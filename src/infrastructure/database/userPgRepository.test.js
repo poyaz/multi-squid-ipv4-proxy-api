@@ -23,7 +23,7 @@ chai.use(sinonChai);
 const expect = chai.expect;
 const testObj = {};
 
-suite(`AddUserValidation`, () => {
+suite(`UserPgRepository`, () => {
   setup(() => {
     const { postgresDb, identifierGenerator, userRepository } = helper.fakeUserPgRepository();
 
@@ -38,6 +38,73 @@ suite(`AddUserValidation`, () => {
 
   teardown(() => {
     testObj.fillModelSpy.restore();
+  });
+
+  suite(`Check user exist`, () => {
+    test(`Should error check user exist in database`, async () => {
+      const inputUsername = 'username';
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.userRepository.isUserExist(inputUsername);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully check user exist in database`, async () => {
+      const inputUsername = 'username';
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.isUserExist(inputUsername);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.startsWith([inputUsername])),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean').and.have.equal(true);
+    });
+
+    test(`Should successfully check user exist in database (not exist record)`, async () => {
+      const inputUsername = 'username';
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.isUserExist(inputUsername);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.startsWith([inputUsername])),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean').and.have.equal(false);
+    });
   });
 
   suite(`Add new user`, () => {

@@ -33,11 +33,31 @@ class UserPgRepository extends IUserRepository {
     this.#identifierGenerator = identifierGenerator;
   }
 
+  async isUserExist(username) {
+    const addQuery = {
+      text: singleLine`
+          SELECT id
+          FROM public.users
+          WHERE username = $1
+            AND delete_date ISNULL
+      `,
+      values: [username],
+    };
+
+    try {
+      const { rowCount } = await this.#db.query(addQuery);
+
+      return [null, rowCount > 0];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async add(model) {
     const id = this.#identifierGenerator.generateId();
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
 
-    const fetchCombosQuery = {
+    const addQuery = {
       text: singleLine`
           INSERT INTO public.users (id, username, password, is_enable, insert_date)
           VALUES ($1, $2, $3, $4, $5)
@@ -51,7 +71,7 @@ class UserPgRepository extends IUserRepository {
     };
 
     try {
-      const { rows } = await this.#db.query(fetchCombosQuery);
+      const { rows } = await this.#db.query(addQuery);
 
       const result = this._fillModel(rows[0]);
 
