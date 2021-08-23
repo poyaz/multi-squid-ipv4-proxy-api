@@ -74,9 +74,23 @@ function fakeUserController(req, res) {
   };
 }
 
+function fakeUserService() {
+  const IUserRepository = require('~src/core/interface/iUserRepository');
+  const UserService = require('~src/core/service/userService');
+
+  const userRepository = sinon.createStubInstance(IUserRepository);
+
+  const userSquidRepository = sinon.createStubInstance(IUserRepository);
+
+  const userService = new UserService(userRepository, userSquidRepository);
+
+  return { userRepository, userSquidRepository, userService };
+}
+
 module.exports = {
   sleep,
   fakeIdentifierGenerator,
   fakeAddUserValidationMiddleware,
   fakeUserController,
+  fakeUserService,
 };

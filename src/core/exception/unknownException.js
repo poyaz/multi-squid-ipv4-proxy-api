@@ -1,6 +1,6 @@
 class UnknownException extends Error {
   constructor() {
-    super('خطای ناشناخته در انجام عملیات');
+    super('Unknown error in operation.');
 
     this.name = 'UnknownError';
     this.isOperation = true;

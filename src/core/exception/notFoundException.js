@@ -1,6 +1,6 @@
 class NotFoundException extends Error {
   constructor() {
-    super('رکورد موردنظر وجود ندارد');
+    super('Record not found.');
 
     this.name = 'NotFoundError';
     this.isOperation = true;
