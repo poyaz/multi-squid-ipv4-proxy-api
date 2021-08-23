@@ -8,7 +8,7 @@ class IUserRepository {
    * @param {string} username
    * @return {Promise<(Error|boolean)[]>}
    */
-  isUserExist(username) {
+  async isUserExist(username) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { username };
     throw error;
@@ -19,7 +19,7 @@ class IUserRepository {
    * @param {UserModel} model
    * @return {Promise<(Error|UserModel)[]>}
    */
-  add(model) {
+  async add(model) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { model };
     throw error;

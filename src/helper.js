@@ -87,10 +87,28 @@ function fakeUserService() {
   return { userRepository, userSquidRepository, userService };
 }
 
+function fakeUserPgRepository() {
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const UserPgRepository = require('~src/infrastructure/database/userPgRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = new DateTime();
+
+  const userRepository = new UserPgRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, identifierGenerator, userRepository };
+}
+
 module.exports = {
   sleep,
   fakeIdentifierGenerator,
   fakeAddUserValidationMiddleware,
   fakeUserController,
   fakeUserService,
+  fakeUserPgRepository,
 };
