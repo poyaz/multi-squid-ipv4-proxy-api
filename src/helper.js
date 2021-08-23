@@ -59,11 +59,14 @@ function fakeAddUserValidationMiddleware(req, res) {
 
 function fakeUserController(req, res) {
   const IUserService = require('~src/core/interface/iUserService');
+  const DateTime = require('~src/infrastructure/system/dateTime');
   const UserController = require('~src/api/http/user/controller/userController');
 
   const userService = sinon.createStubInstance(IUserService);
 
-  const userController = new UserController(req, res, userService);
+  const dateTime = new DateTime();
+
+  const userController = new UserController(req, res, userService, dateTime);
 
   return {
     userService,
