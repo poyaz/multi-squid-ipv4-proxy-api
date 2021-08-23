@@ -1,0 +1,40 @@
+version: "2.3"
+services:
+  node:
+    image: node:14.15.1-alpine
+    expose:
+      - 3000
+    volumes:
+      - $PWD:/home/node
+    user: node
+    working_dir: /home/node
+    restart: "always"
+    networks:
+      main:
+        ipv4_address: 10.102.0.2
+    tty: true
+    entrypoint: |
+      ./scripts/wait-for-it -wait tcp://${PG_HOST:-postgres}:${PG_PORT:-5432} -wait-retry-interval 5s -timeout 600s
+    command: "sh -c 'npm install && npm start'"
+
+  postgres:
+    image: postgres:11.10
+    volumes:
+      - ${PG_DIR_DATA:-postgres-storage}:/var/lib/postgresql/data
+    networks:
+      main:
+        ipv4_address: 10.102.0.3
+    restart: "always"
+    oom_kill_disable: true
+
+volumes:
+  postgres-storage:
+
+networks:
+  main:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.102.0.0/27
+          gateway: 10.102.0.1
