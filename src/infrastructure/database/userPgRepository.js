@@ -65,7 +65,7 @@ class UserPgRepository extends IUserRepository {
           WHERE delete_date ISNULL
               DO
           UPDATE
-          SET username = EXCLUDED.username
+          SET password = EXCLUDED.password
       `,
       values: [id, model.username, model.password, true, now],
     };
