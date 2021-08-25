@@ -32,21 +32,25 @@ suite(`UserService`, () => {
 
   suite(`Get all users`, () => {
     test(`Should error get all users`, async () => {
+      const filterInput = new UserModel();
       testObj.userRepository.getAll.resolves([new UnknownException()]);
 
-      const [error] = await testObj.userService.getAll();
+      const [error] = await testObj.userService.getAll(filterInput);
 
       testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.instanceOf(UserModel));
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
     test(`Should successfully get all users with empty array`, async () => {
+      const filterInput = new UserModel();
       testObj.userRepository.getAll.resolves([null, []]);
 
-      const [error, result] = await testObj.userService.getAll();
+      const [error, result] = await testObj.userService.getAll(filterInput);
 
       testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.instanceOf(UserModel));
       expect(error).to.be.a('null');
       expect(result).to.have.length(0);
     });

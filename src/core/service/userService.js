@@ -27,8 +27,8 @@ class UserService extends IUserService {
     this.#userSquidRepository = userSquidRepository;
   }
 
-  async getAll() {
-    return this.#userRepository.getAll();
+  async getAll(filterInput) {
+    return this.#userRepository.getAll(filterInput);
   }
 
   async add(model) {
