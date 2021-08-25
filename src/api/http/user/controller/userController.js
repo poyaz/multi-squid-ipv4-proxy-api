@@ -78,6 +78,17 @@ class UserController {
 
     return [null];
   }
+
+  async disableByUsername() {
+    const { username } = this.#req.params;
+
+    const [error] = await this.#userService.disableByUsername(username);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = UserController;

@@ -36,6 +36,17 @@ class IUserService {
     error['args'] = { username, password };
     throw error;
   }
+
+  /**
+   *
+   * @param {string} username
+   * @return {Promise<(Error)[]>}
+   */
+  async disableByUsername(username) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username };
+    throw error;
+  }
 }
 
 module.exports = IUserService;
