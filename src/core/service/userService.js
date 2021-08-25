@@ -86,6 +86,40 @@ class UserService extends IUserService {
   }
 
   async disableByUsername(username) {
+    const [fetchError, fetchData] = await this._getUserModelByUsername(username);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const updateModel = fetchData.clone();
+    updateModel.isEnable = false;
+
+    const [updateError] = await this.#userRepository.update(updateModel);
+    if (updateError) {
+      return [updateError];
+    }
+
+    return [null];
+  }
+
+  async enableByUsername(username) {
+    const [fetchError, fetchData] = await this._getUserModelByUsername(username);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const updateModel = fetchData.clone();
+    updateModel.isEnable = true;
+
+    const [updateError] = await this.#userRepository.update(updateModel);
+    if (updateError) {
+      return [updateError];
+    }
+
+    return [null];
+  }
+
+  async _getUserModelByUsername(username) {
     const filterModel = new UserModel();
     filterModel.username = username;
 
@@ -97,15 +131,7 @@ class UserService extends IUserService {
       return [new NotFoundException()];
     }
 
-    const updateModel = fetchData[0].clone();
-    updateModel.isEnable = false;
-
-    const [updateError] = await this.#userRepository.update(updateModel);
-    if (updateError) {
-      return [updateError];
-    }
-
-    return [null];
+    return [null, fetchData[0]];
   }
 }
 
