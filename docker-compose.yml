@@ -14,7 +14,7 @@ services:
     networks:
       main:
         ipv4_address: 10.102.0.2
-    tty: true
+    tty: false
     entrypoint: |
       ./scripts/wait-for-it -wait tcp://${PG_HOST:-postgres}:${PG_PORT:-5432} -wait-retry-interval 5s -timeout 600s
     command: "sh -c 'npm install && npm start'"
@@ -29,6 +29,16 @@ services:
     restart: "always"
     oom_kill_disable: true
 
+  docker-proxy:
+    image: rancher/socat-docker:v0.2.0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    privileged: true
+    networks:
+      main:
+        ipv4_address: 10.102.0.4
+    restart: "always"
+
 volumes:
   postgres-storage:
 
@@ -38,5 +48,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 10.102.0.0/27
+        - subnet: 10.102.0.0/28
           gateway: 10.102.0.1
