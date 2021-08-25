@@ -84,6 +84,29 @@ class UserService extends IUserService {
 
     return [null];
   }
+
+  async disableByUsername(username) {
+    const filterModel = new UserModel();
+    filterModel.username = username;
+
+    const [fetchError, fetchData] = await this.#userRepository.getAll(filterModel);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (fetchData.length === 0) {
+      return [new NotFoundException()];
+    }
+
+    const updateModel = fetchData[0].clone();
+    updateModel.isEnable = false;
+
+    const [updateError] = await this.#userRepository.update(updateModel);
+    if (updateError) {
+      return [updateError];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = UserService;

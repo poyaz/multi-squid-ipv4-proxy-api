@@ -274,4 +274,73 @@ suite(`UserService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Disable user by username`, () => {
+    test(`Should error disable user by username when fetch user info`, async () => {
+      const inputUsername = 'user1';
+      testObj.userRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.disableByUsername(inputUsername);
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error disable user by username when user not found`, async () => {
+      const inputUsername = 'user1';
+      testObj.userRepository.getAll.resolves([null, []]);
+
+      const [error] = await testObj.userService.disableByUsername(inputUsername);
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error disable user by username when update user`, async () => {
+      const inputUsername = 'user1';
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
+      testObj.userRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.disableByUsername(inputUsername);
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      testObj.userRepository.update.should.have.callCount(1);
+      testObj.userRepository.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('isEnable', false)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully disable user by username`, async () => {
+      const inputUsername = 'user1';
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
+      testObj.userRepository.update.resolves([null]);
+
+      const [error] = await testObj.userService.disableByUsername(inputUsername);
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      testObj.userRepository.update.should.have.callCount(1);
+      testObj.userRepository.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('isEnable', false)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });
