@@ -104,6 +104,14 @@ function fakeUserPgRepository() {
   return { postgresDb, identifierGenerator, userRepository };
 }
 
+function fakeUserSquidRepository() {
+  const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
+
+  const userSquidRepository = new UserSquidRepository('passwd-path');
+
+  return { userSquidRepository };
+}
+
 module.exports = {
   sleep,
   fakeIdentifierGenerator,
@@ -111,4 +119,5 @@ module.exports = {
   fakeUserController,
   fakeUserService,
   fakeUserPgRepository,
+  fakeUserSquidRepository,
 };

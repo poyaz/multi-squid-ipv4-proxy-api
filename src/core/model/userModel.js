@@ -15,6 +15,10 @@ class UserModel {
   password = undefined;
   isEnable = undefined;
   insertDate = undefined;
+
+  clone() {
+    return Object.assign(Object.create(this), this);
+  }
 }
 
 module.exports = UserModel;
