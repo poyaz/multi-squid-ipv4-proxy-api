@@ -1,10 +1,10 @@
 /**
- * Created by pooya on 8/23/21.
+ * Created by pooya on 8/25/21.
  */
 
 const BaseUserOutputModel = require('./baseUserOutputModel');
 
-class AddUserOutputModel {
+class GetAllUserOutputModel {
   /**
    * @type {IDateTime}
    */
@@ -20,14 +20,14 @@ class AddUserOutputModel {
 
   /**
    *
-   * @param {UserModel} model
-   * @return {{}}
+   * @param {Array<UserModel>} models
+   * @return {Array<{}>}
    */
-  getOutput(model) {
+  getOutput(models) {
     const baseUserOutputModel = new BaseUserOutputModel(this.#dateTime);
 
-    return baseUserOutputModel.getOutput(model);
+    return models.map((v) => baseUserOutputModel.getOutput(v));
   }
 }
 
-module.exports = AddUserOutputModel;
+module.exports = GetAllUserOutputModel;

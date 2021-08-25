@@ -4,6 +4,7 @@
 
 const AddUserInputModel = require('./model/addUserInputModel');
 const AddUserOutputModel = require('./model/addUserOutputModel');
+const GetAllUserOutputModel = require('./model/getAllUserOutputModel');
 
 class UserController {
   #req;
@@ -29,6 +30,18 @@ class UserController {
     this.#res = res;
     this.#userService = userService;
     this.#dateTime = dateTime;
+  }
+
+  async getAllUsers() {
+    const [error, data] = await this.#userService.getAll();
+    if (error) {
+      return [error];
+    }
+
+    const getAllUserOutputModel = new GetAllUserOutputModel(this.#dateTime);
+    const result = getAllUserOutputModel.getOutput(data);
+
+    return [null, result];
   }
 
   async addUser() {

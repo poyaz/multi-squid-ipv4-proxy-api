@@ -36,6 +36,46 @@ suite(`UserController`, () => {
     testObj.dateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/;
   });
 
+  suite(`Get all user`, () => {
+    test(`Should error get all users`, async () => {
+      testObj.userService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.getAllUsers();
+
+      testObj.userService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error get all users`, async () => {
+      const outputModel1 = new UserModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.username = 'user1';
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      const outputModel2 = new UserModel();
+      outputModel2.id = testObj.identifierGenerator.generateId();
+      outputModel2.username = 'user2';
+      outputModel2.isEnable = false;
+      testObj.userService.getAll.resolves([null, [outputModel1, outputModel2]]);
+
+      const [error, result] = await testObj.userController.getAllUsers();
+
+      testObj.userService.getAll.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(2);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+      });
+      expect(result[0].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[1]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user2',
+      });
+      expect(result[1].insertDate).to.have.be.equal(null);
+    });
+  });
+
   suite(`Add new user`, () => {
     test(`Should error add new user`, async () => {
       testObj.req.body = { username: 'username', password: 'password' };
