@@ -57,6 +57,17 @@ function fakeAddUserValidationMiddleware(req, res) {
   return { addUserValidationMiddleware };
 }
 
+function fakePasswordUserValidationMiddleware(req, res) {
+  const ChangePasswordUserValidationMiddleware = require('~src/api/http/user/middleware/changePasswordUserValidationMiddleware');
+
+  const changePasswordUserValidationMiddleware = new ChangePasswordUserValidationMiddleware(
+    req,
+    res,
+  );
+
+  return { changePasswordUserValidationMiddleware };
+}
+
 function fakeUserController(req, res) {
   const IUserService = require('~src/core/interface/iUserService');
   const DateTime = require('~src/infrastructure/system/dateTime');
@@ -116,6 +127,7 @@ module.exports = {
   sleep,
   fakeIdentifierGenerator,
   fakeAddUserValidationMiddleware,
+  fakePasswordUserValidationMiddleware,
   fakeUserController,
   fakeUserService,
   fakeUserPgRepository,
