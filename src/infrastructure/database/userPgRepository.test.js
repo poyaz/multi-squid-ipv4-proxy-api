@@ -10,7 +10,9 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const UserModel = require('~src/core/model/userModel');
+const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
+const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -363,6 +365,59 @@ suite(`UserPgRepository`, () => {
         password: '',
         isEnable: true,
       });
+    });
+  });
+
+  suite(`Update user`, () => {
+    test(`Should error update user when model id not found`, async () => {
+      const inputModel = new UserModel();
+
+      const [error] = await testObj.userRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update user when model property not set`, async () => {
+      const inputModel = new UserModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.userRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update user when execute query`, async () => {
+      const inputModel = new UserModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.isEnable = true;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.userRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully update user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.isEnable = true;
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.userRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
     });
   });
 });

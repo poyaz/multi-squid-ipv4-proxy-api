@@ -6,7 +6,9 @@ const { singleLine } = require('~src/utility');
 const IUserRepository = require('~src/core/interface/iUserRepository');
 
 const UserModel = require('~src/core/model/userModel');
+const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
+const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 class UserPgRepository extends IUserRepository {
   #db;
@@ -114,6 +116,49 @@ class UserPgRepository extends IUserRepository {
       const result = this._fillModel(rows[0]);
 
       return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
+  async update(model) {
+    if (typeof model.id === 'undefined') {
+      return [new ModelIdNotExistException()];
+    }
+
+    const columns = [];
+    const param = [model.id];
+
+    if (typeof model.username !== 'undefined') {
+      param.push(model.username);
+      columns.push(`username = ${param.length}`);
+    }
+    if (typeof model.isEnable !== 'undefined') {
+      param.push(model.isEnable);
+      columns.push(`is_enable = ${param.length}`);
+    }
+
+    if (columns.length === 0) {
+      return [new DatabaseMinParamUpdateException()];
+    }
+
+    param.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
+    columns.push(`update_date = ${param.length}`);
+
+    const updateQuery = {
+      sql: singleLine`
+          UPDATE public.users
+          SET ${columns.join(', ')}
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [...param],
+    };
+
+    try {
+      await this.#db.query(updateQuery);
+
+      return [null];
     } catch (error) {
       return [new DatabaseExecuteException(error)];
     }
