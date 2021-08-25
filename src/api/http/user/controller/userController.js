@@ -66,6 +66,18 @@ class UserController {
 
     return [null, result];
   }
+
+  async changePassword() {
+    const { username } = this.#req.params;
+    const { password } = this.#req.body;
+
+    const [error] = await this.#userService.changePassword(username, password);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = UserController;

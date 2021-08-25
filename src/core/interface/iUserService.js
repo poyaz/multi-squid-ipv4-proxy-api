@@ -24,6 +24,18 @@ class IUserService {
     error['args'] = { filterModel };
     throw error;
   }
+
+  /**
+   *
+   * @param {string} username
+   * @param {string} password
+   * @return {Promise<void>}
+   */
+  async changePassword(username, password) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username, password };
+    throw error;
+  }
 }
 
 module.exports = IUserService;

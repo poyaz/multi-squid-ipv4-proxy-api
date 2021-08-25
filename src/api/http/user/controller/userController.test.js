@@ -184,4 +184,30 @@ suite(`UserController`, () => {
       expect(result.insertDate).to.have.match(testObj.dateRegex);
     });
   });
+
+  suite(`Change password`, () => {
+    test(`Should error change password`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.req.body = { password: 'password' };
+      testObj.userService.changePassword.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.changePassword();
+
+      testObj.userService.changePassword.should.have.callCount(1);
+      testObj.userService.changePassword.should.have.calledWith('user1', 'password');
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully change password`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.req.body = { password: 'password' };
+      testObj.userService.changePassword.resolves([null]);
+
+      const [error] = await testObj.userController.changePassword();
+
+      testObj.userService.changePassword.should.have.callCount(1);
+      testObj.userService.changePassword.should.have.calledWith('user1', 'password');
+      expect(error).to.be.a('null');
+    });
+  });
 });
