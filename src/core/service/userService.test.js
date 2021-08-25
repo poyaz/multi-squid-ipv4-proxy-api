@@ -20,7 +20,7 @@ chai.use(sinonChai);
 const expect = chai.expect;
 const testObj = {};
 
-suite(`UserController`, () => {
+suite(`UserService`, () => {
   setup(() => {
     const { userRepository, userSquidRepository, userService } = helper.fakeUserService();
 
@@ -28,6 +28,50 @@ suite(`UserController`, () => {
     testObj.userSquidRepository = userSquidRepository;
     testObj.userService = userService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+  });
+
+  suite(`Get all users`, () => {
+    test(`Should error get all users`, async () => {
+      testObj.userRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.getAll();
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully get all users with empty array`, async () => {
+      testObj.userRepository.getAll.resolves([null, []]);
+
+      const [error, result] = await testObj.userService.getAll();
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.length(0);
+    });
+
+    test(`Should successfully get all users with record`, async () => {
+      const outputModel1 = new UserModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.username = 'user1';
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      const outputModel2 = new UserModel();
+      outputModel2.id = testObj.identifierGenerator.generateId();
+      outputModel2.username = 'user1';
+      outputModel2.isEnable = true;
+      outputModel2.insertDate = new Date();
+      testObj.userRepository.getAll.resolves([null, [outputModel1, outputModel2]]);
+
+      const [error, result] = await testObj.userService.getAll();
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.length(2);
+      expect(result[0]).to.have.instanceOf(UserModel);
+      expect(result[1]).to.have.instanceOf(UserModel);
+    });
   });
 
   suite(`Add user`, () => {

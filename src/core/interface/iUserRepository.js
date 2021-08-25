@@ -5,6 +5,16 @@
 class IUserRepository {
   /**
    *
+   * @return {Promise<(Error|Array<UserModel>)[]>}
+   */
+  async getAll() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} username
    * @return {Promise<(Error|boolean)[]>}
    */

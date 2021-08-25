@@ -27,6 +27,10 @@ class UserService extends IUserService {
     this.#userSquidRepository = userSquidRepository;
   }
 
+  async getAll() {
+    return this.#userRepository.getAll();
+  }
+
   async add(model) {
     const [checkExistError, checkExistData] = await this.#userRepository.isUserExist(
       model.username,
