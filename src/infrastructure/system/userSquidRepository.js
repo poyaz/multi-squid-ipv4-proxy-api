@@ -72,16 +72,9 @@ class UserSquidRepository extends IUserRepository {
         fs.closeSync(fd);
       }
 
-      const exec = spawn('htpasswd', ['-b', '-m', '-i', this.#passwdPathFile, model.username]);
-      exec.stdin.write(model.password);
-      exec.stdin.end();
-
-      let addError = '';
-      for await (const chunk of exec.stderr) {
-        addError += chunk;
-      }
+      const [addError] = await this._executePassword(model);
       if (addError) {
-        return [new CommandExecuteException(new Error(addError))];
+        return [addError];
       }
 
       const result = model.clone();
@@ -91,6 +84,10 @@ class UserSquidRepository extends IUserRepository {
     } catch (error) {
       return [new CommandExecuteException(error)];
     }
+  }
+
+  async update(model) {
+    return this._executePassword(model);
   }
 
   async _checkFileExist(filePath) {
@@ -103,6 +100,26 @@ class UserSquidRepository extends IUserRepository {
         return [null, false];
       }
 
+      return [new CommandExecuteException(error)];
+    }
+  }
+
+  async _executePassword(model) {
+    try {
+      const exec = spawn('htpasswd', ['-b', '-m', '-i', this.#passwdPathFile, model.username]);
+      exec.stdin.write(model.password);
+      exec.stdin.end();
+
+      let executeError = '';
+      for await (const chunk of exec.stderr) {
+        executeError += chunk;
+      }
+      if (executeError) {
+        return [new CommandExecuteException(new Error(executeError))];
+      }
+
+      return [null];
+    } catch (error) {
       return [new CommandExecuteException(error)];
     }
   }

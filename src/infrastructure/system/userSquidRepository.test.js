@@ -318,4 +318,66 @@ suite(`UserSquidRepository`, () => {
       expect(result).to.be.instanceOf(UserModel).and.have.property('password', '');
     });
   });
+
+  suite(`Update user`, () => {
+    test(`Should error update user when execute`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = 'password';
+      const commandError = new Error('Command error');
+      child_process.spawn.throws(commandError);
+
+      const [error] = await testObj.userSquidRepository.update(inputModel);
+
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should error update user when have stderr`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = 'password';
+      child_process.spawn.returns();
+      child_process.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.write(`Command error`);
+        stderr.end();
+
+        return { stderr, stdin };
+      });
+
+      const [error] = await testObj.userSquidRepository.update(inputModel);
+
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error.errorInfo).to.have.instanceOf(Error);
+    });
+
+    test(`Should successfully update user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = 'password';
+      child_process.spawn.returns();
+      child_process.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.end();
+
+        return { stderr, stdin };
+      });
+
+      const [error] = await testObj.userSquidRepository.update(inputModel);
+
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
 });
