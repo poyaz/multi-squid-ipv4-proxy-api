@@ -35,6 +35,17 @@ class IUserRepository {
     error['args'] = { model };
     throw error;
   }
+
+  /**
+   *
+   * @param {UserModel} model
+   * @return {Promise<(Error)[]>}
+   */
+  async update(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
 }
 
 module.exports = IUserRepository;

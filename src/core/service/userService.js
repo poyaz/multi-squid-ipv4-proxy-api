@@ -2,7 +2,9 @@
  * Created by pooya on 8/23/21.
  */
 
+const UserModel = require('~src/core/model/userModel');
 const IUserService = require('~src/core/interface/iUserService');
+const NotFoundException = require('~src/core/exception/notFoundException');
 const UserExistException = require('~src/core/exception/userExistException');
 
 class UserService extends IUserService {
@@ -61,6 +63,26 @@ class UserService extends IUserService {
     }
 
     return [null, addData];
+  }
+
+  async changePassword(username, password) {
+    const [existError, existData] = await this.#userRepository.isUserExist(username);
+    if (existError) {
+      return [existError];
+    }
+    if (!existData) {
+      return [new NotFoundException()];
+    }
+
+    const updateModel = new UserModel();
+    updateModel.username = username;
+    updateModel.password = password;
+    const [updateError] = await this.#userSquidRepository.update(updateModel);
+    if (updateModel) {
+      return [updateError];
+    }
+
+    return [null];
   }
 }
 

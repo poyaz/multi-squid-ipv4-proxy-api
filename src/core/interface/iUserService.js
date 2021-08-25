@@ -29,7 +29,7 @@ class IUserService {
    *
    * @param {string} username
    * @param {string} password
-   * @return {Promise<void>}
+   * @return {Promise<(Error)[]>}
    */
   async changePassword(username, password) {
     const error = new Error('The method has to be overridden by subclasses.');

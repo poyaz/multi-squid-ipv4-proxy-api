@@ -12,6 +12,7 @@ const helper = require('~src/helper');
 const UserModel = require('~src/core/model/userModel');
 const UserExistException = require('~src/core/exception/userExistException');
 const UnknownException = require('~src/core/exception/unknownException');
+const NotFoundException = require('~src/core/exception/notFoundException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -206,6 +207,71 @@ suite(`UserService`, () => {
       expect(result)
         .to.have.instanceOf(UserModel)
         .and.have.property('id', testObj.identifierGenerator.generateId());
+    });
+  });
+
+  suite(`Change password`, () => {
+    test(`Should error change password when fetch user`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      testObj.userRepository.isUserExist.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error change password when user not found`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      testObj.userRepository.isUserExist.resolves([null, false]);
+
+      const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error change password when update password`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      testObj.userRepository.isUserExist.resolves([null, true]);
+      testObj.userSquidRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userSquidRepository.update.should.have.callCount(1);
+      testObj.userSquidRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('password', inputPassword)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully change password`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      testObj.userRepository.isUserExist.resolves([null, true]);
+      testObj.userSquidRepository.update.resolves([null]);
+
+      const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userSquidRepository.update.should.have.callCount(1);
+      testObj.userSquidRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('password', inputPassword)),
+      );
+      expect(error).to.be.a('null');
     });
   });
 });
