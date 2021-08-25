@@ -4,6 +4,7 @@
 
 const AddUserInputModel = require('./model/addUserInputModel');
 const AddUserOutputModel = require('./model/addUserOutputModel');
+const GetAllUserInputModel = require('./model/getAllUserInputModel');
 const GetAllUserOutputModel = require('./model/getAllUserOutputModel');
 
 class UserController {
@@ -33,7 +34,12 @@ class UserController {
   }
 
   async getAllUsers() {
-    const [error, data] = await this.#userService.getAll();
+    const qs = this.#req.query;
+
+    const getAllUserInputModel = new GetAllUserInputModel();
+    const filterModel = getAllUserInputModel.getModel(qs);
+
+    const [error, data] = await this.#userService.getAll(filterModel);
     if (error) {
       return [error];
     }

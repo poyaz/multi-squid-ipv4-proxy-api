@@ -46,7 +46,7 @@ suite(`UserController`, () => {
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
-    test(`Should error get all users`, async () => {
+    test(`Should successfully get all users`, async () => {
       const outputModel1 = new UserModel();
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
@@ -73,6 +73,71 @@ suite(`UserController`, () => {
         username: 'user2',
       });
       expect(result[1].insertDate).to.have.be.equal(null);
+    });
+
+    test(`Should successfully get all users (with username)`, async () => {
+      const outputModel1 = new UserModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.username = 'user1';
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      testObj.req.query = { username: 'user1' };
+      testObj.userService.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.userController.getAllUsers();
+
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.userService.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+      });
+    });
+
+    test(`Should successfully get all users (with isEnable)`, async () => {
+      const outputModel1 = new UserModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.username = 'user1';
+      outputModel1.isEnable = false;
+      outputModel1.insertDate = new Date();
+      testObj.req.query = { isEnable: 'false' };
+      testObj.userService.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.userController.getAllUsers();
+
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.userService.getAll.should.have.calledWith(sinon.match.has('isEnable', false));
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+      });
+    });
+
+    test(`Should successfully get all users (with username and isEnable)`, async () => {
+      const outputModel1 = new UserModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.username = 'user1';
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      testObj.req.query = { username: 'user1', isEnable: 'true' };
+      testObj.userService.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.userController.getAllUsers();
+
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.userService.getAll.should.have.calledWith(
+        sinon.match.has('username', 'user1').and(sinon.match.has('isEnable', true)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+      });
     });
   });
 
