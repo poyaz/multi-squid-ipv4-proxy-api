@@ -8,6 +8,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function formatDate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear().toString();
+  let month = (d.getMonth() + 1).toString();
+  let day = d.getDate().toString();
+
+  if (month.length < 2) {
+    month = `0${month}`;
+  }
+  if (day.length < 2) {
+    day = `0${day}`;
+  }
+
+  return [year, month, day].join('-');
+}
+
 function fakeIdentifierGenerator(type = '') {
   const IdentifierGenerator = require('~src/infrastructure/system/identifierGenerator');
 
@@ -123,8 +139,38 @@ function fakeUserSquidRepository() {
   return { userSquidRepository };
 }
 
+function fakeCreatePackageValidationMiddleware(req, res) {
+  const CreatePackageValidationMiddleware = require('~src/api/http/package/middleware/createPackageValidationMiddleware');
+
+  const createPackageValidationMiddleware = new CreatePackageValidationMiddleware(req, res);
+
+  return { createPackageValidationMiddleware };
+}
+
+function fakePackageController(req, res) {
+  const IPackageService = require('~src/core/interface/iPackageService');
+  const IUserService = require('~src/core/interface/iUserService');
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const PackageController = require('~src/api/http/package/controller/packageController');
+
+  const packageService = sinon.createStubInstance(IPackageService);
+
+  const userService = sinon.createStubInstance(IUserService);
+
+  const dateTime = new DateTime();
+
+  const packageController = new PackageController(req, res, packageService, userService, dateTime);
+
+  return {
+    packageService,
+    userService,
+    packageController,
+  };
+}
+
 module.exports = {
   sleep,
+  formatDate,
   fakeIdentifierGenerator,
   fakeAddUserValidationMiddleware,
   fakePasswordUserValidationMiddleware,
@@ -132,4 +178,6 @@ module.exports = {
   fakeUserService,
   fakeUserPgRepository,
   fakeUserSquidRepository,
+  fakeCreatePackageValidationMiddleware,
+  fakePackageController,
 };
