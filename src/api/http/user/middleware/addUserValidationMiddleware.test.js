@@ -3,7 +3,6 @@
  */
 
 const chai = require('chai');
-const sinon = require('sinon');
 const dirtyChai = require('dirty-chai');
 const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -88,7 +87,7 @@ suite(`AddUserValidation`, () => {
       );
   });
 
-  test(`Should error for add new user if password invalid`, async () => {
+  test(`Should successfully for add new user`, async () => {
     testObj.req.body = { username: 'my_username', password: '123456' };
 
     await testObj.addUserValidationMiddleware.act();
