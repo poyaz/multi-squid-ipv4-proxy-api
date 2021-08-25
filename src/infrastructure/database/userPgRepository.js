@@ -33,8 +33,46 @@ class UserPgRepository extends IUserRepository {
     this.#identifierGenerator = identifierGenerator;
   }
 
+  async getAll(filterModel) {
+    const filterConditions = [];
+    const getAllQuery = {
+      text: singleLine`
+          SELECT *
+          FROM public.users
+          WHERE delete_date ISNULL
+      `,
+      values: [],
+    };
+
+    if (typeof filterModel.username !== 'undefined') {
+      getAllQuery.values.push(filterModel.username);
+      filterConditions.push(`username = ${getAllQuery.values.length}`);
+    }
+    if (typeof filterModel.isEnable !== 'undefined') {
+      getAllQuery.values.push(filterModel.isEnable);
+      filterConditions.push(`is_enable = ${getAllQuery.values.length}`);
+    }
+
+    if (filterConditions.length > 0) {
+      getAllQuery.text += ` AND ${filterConditions.join(' AND ')}`;
+    }
+
+    try {
+      const { rowCount, rows } = await this.#db.query(getAllQuery);
+      if (rowCount === 0) {
+        return [null, []];
+      }
+
+      const result = rows.map((v) => this._fillModel(v));
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async isUserExist(username) {
-    const addQuery = {
+    const existQuery = {
       text: singleLine`
           SELECT id
           FROM public.users
@@ -45,7 +83,7 @@ class UserPgRepository extends IUserRepository {
     };
 
     try {
-      const { rowCount } = await this.#db.query(addQuery);
+      const { rowCount } = await this.#db.query(existQuery);
 
       return [null, rowCount > 0];
     } catch (error) {

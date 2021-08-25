@@ -40,6 +40,199 @@ suite(`UserPgRepository`, () => {
     testObj.fillModelSpy.restore();
   });
 
+  suite(`Get all users`, () => {
+    test(`Should error get all when execute query`, async () => {
+      const filterInput = new UserModel();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.userRepository.getAll(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get all and return empty array`, async () => {
+      const filterInput = new UserModel();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getAll(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should successfully get all and return records`, async () => {
+      const filterInput = new UserModel();
+      const fetchQuery = {
+        get rowCount() {
+          return 2;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+            },
+            {
+              id: testObj.identifierGenerator.generateId(),
+              username: 'user2',
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getAll(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(2);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(2);
+      expect(result[0]).to.be.instanceOf(UserModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: '',
+        isEnable: true,
+      });
+      expect(result[1]).to.be.instanceOf(UserModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user2',
+        password: '',
+        isEnable: true,
+      });
+    });
+
+    test(`Should successfully get all with filter (with username)`, async () => {
+      const filterInput = new UserModel();
+      filterInput.username = 'user1';
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getAll(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([filterInput.username])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.instanceOf(UserModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: '',
+        isEnable: true,
+      });
+    });
+
+    test(`Should successfully get all with filter (with isEnable)`, async () => {
+      const filterInput = new UserModel();
+      filterInput.isEnable = false;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getAll(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([filterInput.isEnable])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.instanceOf(UserModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: '',
+        isEnable: true,
+      });
+    });
+
+    test(`Should successfully get all with filter (with username and isEnable)`, async () => {
+      const filterInput = new UserModel();
+      filterInput.username = 'user1';
+      filterInput.isEnable = true;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getAll(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([filterInput.username, true])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.instanceOf(UserModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: '',
+        isEnable: true,
+      });
+    });
+  });
+
   suite(`Check user exist`, () => {
     test(`Should error check user exist in database`, async () => {
       const inputUsername = 'username';

@@ -5,11 +5,12 @@
 class IUserRepository {
   /**
    *
+   * @param {UserModel} filterModel
    * @return {Promise<(Error|Array<UserModel>)[]>}
    */
-  async getAll() {
+  async getAll(filterModel) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = {};
+    error['args'] = { filterModel };
     throw error;
   }
 
