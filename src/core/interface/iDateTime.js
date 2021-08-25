@@ -3,6 +3,12 @@
  */
 
 class IDateTime {
+  /**
+   *
+   * @param {string} date
+   * @param {string} [inputFormat='YYYY-MM-DD HH:mm:ss']
+   * @return {Date}
+   */
   gregorianDateWithTimezone(date, inputFormat = 'YYYY-MM-DD HH:mm:ss') {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { date, inputFormat };

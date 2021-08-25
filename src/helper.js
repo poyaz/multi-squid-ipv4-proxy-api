@@ -149,21 +149,17 @@ function fakeCreatePackageValidationMiddleware(req, res) {
 
 function fakePackageController(req, res) {
   const IPackageService = require('~src/core/interface/iPackageService');
-  const IUserService = require('~src/core/interface/iUserService');
   const DateTime = require('~src/infrastructure/system/dateTime');
   const PackageController = require('~src/api/http/package/controller/packageController');
 
   const packageService = sinon.createStubInstance(IPackageService);
 
-  const userService = sinon.createStubInstance(IUserService);
-
   const dateTime = new DateTime();
 
-  const packageController = new PackageController(req, res, packageService, userService, dateTime);
+  const packageController = new PackageController(req, res, packageService, dateTime);
 
   return {
     packageService,
-    userService,
     packageController,
   };
 }
