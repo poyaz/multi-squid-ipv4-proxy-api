@@ -9,6 +9,7 @@
     "uuid": "8.3.1",
     "moment-timezone": "^0.5.32",
     "joi": "^17.4.2",
+    "@joi/date": "^2.1.0",
     "~src": "file:."
   },
   "devDependencies": {
