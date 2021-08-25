@@ -234,4 +234,28 @@ suite(`UserController`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Enable user by username`, () => {
+    test(`Should error enable user by username`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.userService.enableByUsername.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.enableByUsername();
+
+      testObj.userService.enableByUsername.should.have.callCount(1);
+      testObj.userService.enableByUsername.should.have.calledWith('user1');
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error enable user by username`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.userService.enableByUsername.resolves([null]);
+
+      const [error] = await testObj.userController.enableByUsername();
+
+      testObj.userService.enableByUsername.should.have.callCount(1);
+      testObj.userService.enableByUsername.should.have.calledWith('user1');
+      expect(error).to.be.a('null');
+    });
+  });
 });

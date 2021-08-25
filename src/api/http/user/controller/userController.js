@@ -89,6 +89,17 @@ class UserController {
 
     return [null];
   }
+
+  async enableByUsername() {
+    const { username } = this.#req.params;
+
+    const [error] = await this.#userService.enableByUsername(username);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = UserController;
