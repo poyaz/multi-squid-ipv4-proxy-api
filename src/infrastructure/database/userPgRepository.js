@@ -59,15 +59,15 @@ class UserPgRepository extends IUserRepository {
 
     const addQuery = {
       text: singleLine`
-          INSERT INTO public.users (id, username, password, is_enable, insert_date)
-          VALUES ($1, $2, $3, $4, $5)
+          INSERT INTO public.users (id, username, is_enable, insert_date)
+          VALUES ($1, $2, $3, $4)
           ON CONFLICT (username)
           WHERE delete_date ISNULL
               DO
           UPDATE
-          SET password = EXCLUDED.password
+          SET username = EXCLUDED.username
       `,
-      values: [id, model.username, model.password, true, now],
+      values: [id, model.username, true, now],
     };
 
     try {
@@ -92,7 +92,7 @@ class UserPgRepository extends IUserRepository {
 
     model.id = row['id'];
     model.username = row['username'];
-    model.password = row['password'];
+    model.password = '';
     model.isEnable = row['is_enable'];
     model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
 

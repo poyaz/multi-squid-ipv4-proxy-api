@@ -140,7 +140,6 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'username',
-              password: 'password',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -158,12 +157,9 @@ suite(`UserPgRepository`, () => {
       testObj.postgresDb.query.should.have.calledWith(
         sinon.match.has(
           'values',
-          sinon.match.array.startsWith([
-            testObj.identifierGenerator.generateId(),
-            inputModel.username,
-            inputModel.password,
-            true,
-          ]),
+          sinon.match.array
+            .startsWith([testObj.identifierGenerator.generateId(), inputModel.username, true])
+            .and(sinon.match.has('length', 4)),
         ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
@@ -171,7 +167,7 @@ suite(`UserPgRepository`, () => {
       expect(result).to.have.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'username',
-        password: 'password',
+        password: '',
         isEnable: true,
       });
     });

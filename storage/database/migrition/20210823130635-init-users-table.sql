@@ -2,7 +2,6 @@ create table users
 (
     id          uuid primary key not null,
     username    varchar(100),
-    password    varchar(220),
     is_enable   boolean,
     insert_date timestamp without time zone,
     update_date timestamp without time zone,
