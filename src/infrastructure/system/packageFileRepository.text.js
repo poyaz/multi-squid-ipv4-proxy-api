@@ -27,10 +27,14 @@ const testObj = {};
 suite(`PackageFileRepository`, () => {
   suiteSetup(() => {
     sinon.stub(fsAsync, 'appendFile');
+    sinon.stub(fsAsync, 'access');
+    sinon.stub(fsAsync, 'readFile');
   });
 
   suiteTeardown(() => {
     fsAsync.appendFile.restore();
+    fsAsync.access.restore();
+    fsAsync.readFile.restore();
   });
 
   setup(() => {
@@ -43,6 +47,73 @@ suite(`PackageFileRepository`, () => {
 
   teardown(() => {
     fsAsync.appendFile.resetHistory();
+    fsAsync.access.resetHistory();
+    fsAsync.readFile.resetHistory();
+  });
+
+  suite(`Get all package by username`, () => {
+    test(`Should error get all package by username when check exist file`, async () => {
+      const inputUsername = 'user1';
+      const commandError = new Error('Command error');
+      fsAsync.access.throws(commandError);
+
+      const [error] = await testObj.packageFileRepository.getAllByUsername(inputUsername);
+
+      fsAsync.access.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should error get all package by username when check exist file`, async () => {
+      const inputUsername = 'user1';
+      fsAsync.access.resolves();
+      const commandError = new Error('Command error');
+      fsAsync.readFile.throws(commandError);
+
+      const [error] = await testObj.packageFileRepository.getAllByUsername(inputUsername);
+
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.readFile.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should successfully get all package by username and return empty list (if file not exist)`, async () => {
+      const inputUsername = 'user1';
+      const fileNotFoundError = new Error('File not found');
+      fileNotFoundError.code = 'ENOENT';
+      fsAsync.access.throws(fileNotFoundError);
+
+      const [error, result] = await testObj.packageFileRepository.getAllByUsername(inputUsername);
+
+      fsAsync.access.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should error get all package by username when check exist file`, async () => {
+      const inputUsername = 'user1';
+      fsAsync.access.resolves();
+      const outputFileRead =
+        '192.168.1.2 user1\n192.168.1.3 user2\nunknown row data\n192.168.1.4 user1';
+      fsAsync.readFile.resolves(outputFileRead);
+
+      const [error, result] = await testObj.packageFileRepository.getAllByUsername(inputUsername);
+
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.readFile.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[0].username).to.be.equal(inputUsername);
+      expect(result[0].ipList).to.be.length(2);
+      expect(result[0].ipList[0].ip).to.be.equal('192.168.1.2');
+      expect(result[0].ipList[1].ip).to.be.equal('192.168.1.4');
+    });
   });
 
   suite(`Add new package`, () => {
