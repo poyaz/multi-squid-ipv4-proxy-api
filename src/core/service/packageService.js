@@ -71,7 +71,7 @@ class PackageService extends IPackageService {
       }
 
       const validMatchIpList = data.ipList.filter((source) =>
-        validRunningIpList.find((find) => source.ip === find.ip && source.port === find.port),
+        validRunningIpList.find((find) => source.ip === find.ip),
       );
 
       data.countIp = validMatchIpList.length;
