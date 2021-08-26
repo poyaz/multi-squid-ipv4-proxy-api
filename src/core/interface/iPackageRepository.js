@@ -5,6 +5,17 @@
 class IPackageRepository {
   /**
    *
+   * @param {string} username
+   * @return {Promise<(Error|Array<PackageModel>|[])[]>}
+   */
+  async getAllByUsername(username) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username };
+    throw error;
+  }
+
+  /**
+   *
    * @param {PackageModel} model
    * @return {Promise<(Error|PackageModel|[])[]>}
    */

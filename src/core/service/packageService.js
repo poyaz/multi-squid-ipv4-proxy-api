@@ -41,6 +41,46 @@ class PackageService extends IPackageService {
     this.#proxySquidRepository = proxySquidRepository;
   }
 
+  async getAllByUsername(username) {
+    const [existError] = await this._getUserModelByUsername(username);
+    if (existError) {
+      return [existError];
+    }
+
+    const [fetchError, fetchData] = await this.#packageRepository.getAllByUsername(username);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const [fetchFileError, fetchFileData] = await this.#packageFileRepository.getAllByUsername(
+      username,
+    );
+    if (fetchFileError) {
+      return [fetchFileError];
+    }
+
+    if (fetchFileData.length === 0) {
+      return [null, []];
+    }
+
+    const validRunningIpList = fetchFileData[0].ipList;
+    for (let i = 0; i < fetchData.length; i++) {
+      const data = fetchData[i];
+      if (data.expireDate.getTime() < new Date().getTime()) {
+        continue;
+      }
+
+      const validMatchIpList = data.ipList.filter((source) =>
+        validRunningIpList.find((find) => source.ip === find.ip && source.port === find.port),
+      );
+
+      data.countIp = validMatchIpList.length;
+      data.ipList = validMatchIpList;
+    }
+
+    return [null, fetchData];
+  }
+
   async add(model) {
     const [fetchError, fetchData] = await this._getUserModelByUsername(model.username);
     if (fetchError) {
