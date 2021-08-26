@@ -4,6 +4,7 @@
 
 const AddPackageInputModel = require('./model/addPackageInputModel');
 const AddPackageOutputModel = require('./model/addPackageOutputModel');
+const GetAllByUsernamePackageOutputModel = require('./model/getAllByUsernamePackageOutputModel');
 
 class PackageController {
   #req;
@@ -29,6 +30,22 @@ class PackageController {
     this.#res = res;
     this.#packageService = packageService;
     this.#dateTime = dateTime;
+  }
+
+  async getAllByUsername() {
+    const { username } = this.#req.params;
+
+    const [error, data] = await this.#packageService.getAllByUsername(username);
+    if (error) {
+      return [error];
+    }
+
+    const getAllByUsernamePackageOutputModel = new GetAllByUsernamePackageOutputModel(
+      this.#dateTime,
+    );
+    const result = getAllByUsernamePackageOutputModel.getOutput(data);
+
+    return [null, result];
   }
 
   async addPackage() {
