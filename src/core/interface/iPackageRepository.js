@@ -5,6 +5,17 @@
 class IPackageRepository {
   /**
    *
+   * @param {uuid} id
+   * @return {Promise<(Error|PackageModel|null)[]>}
+   */
+  async getById(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} username
    * @return {Promise<(Error|Array<PackageModel>|[])[]>}
    */
@@ -20,6 +31,17 @@ class IPackageRepository {
    * @return {Promise<(Error|PackageModel|[])[]>}
    */
   async add(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {PackageModel} model
+   * @return {Promise<(Error|number)[]>}
+   */
+  async update(model) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { model };
     throw error;

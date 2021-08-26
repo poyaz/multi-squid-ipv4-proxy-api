@@ -3,8 +3,10 @@
  */
 
 const UserModel = require('~src/core/model/userModel');
+const PackageModel = require('~src/core/model/packageModel');
 const IPackageService = require('~src/core/interface/iPackageService');
 const NotFoundException = require('~src/core/exception/notFoundException');
+const ExpireDateException = require('~src/core/exception/expireDateException');
 const DisableUserException = require('~src/core/exception/disableUserException');
 
 class PackageService extends IPackageService {
@@ -104,6 +106,30 @@ class PackageService extends IPackageService {
     this._reloadServer();
 
     return [null, addData];
+  }
+
+  async renew(id, expireDate) {
+    const [fetchError, fetchData] = await this.#packageRepository.getById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (!fetchData) {
+      return [new NotFoundException()];
+    }
+    if (fetchData.expireDate.getTime() <= new Date().getTime()) {
+      return [new ExpireDateException()];
+    }
+
+    const updateModel = new PackageModel();
+    updateModel.id = id;
+    updateModel.expireDate = expireDate;
+
+    const [updateError] = await this.#packageRepository.update(updateModel);
+    if (updateError) {
+      return [updateError];
+    }
+
+    return [null];
   }
 
   async _getUserModelByUsername(username) {

@@ -13,6 +13,7 @@ const UserModel = require('~src/core/model/userModel');
 const PackageModel = require('~src/core/model/packageModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
+const ExpireDateException = require('~src/core/exception/expireDateException');
 const DisableUserException = require('~src/core/exception/disableUserException');
 
 chai.should();
@@ -317,6 +318,83 @@ suite(`PackageService`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceOf(PackageModel);
+    });
+  });
+
+  suite(`Renew expire date`, () => {
+    test(`Should error renew expire date when check package exist`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      testObj.packageRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.renew(inputId, inputExpireDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error renew expire date when package not exist`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      testObj.packageRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.packageService.renew(inputId, inputExpireDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error renew expire date when expire date not valid`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date();
+      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
+
+      const [error] = await testObj.packageService.renew(inputId, inputExpireDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(ExpireDateException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error renew expire date when update`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 60000);
+      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
+      testObj.packageRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.renew(inputId, inputExpireDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully renew expire date`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 60000);
+      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
+      testObj.packageRepository.update.resolves([null]);
+
+      const [error] = await testObj.packageService.renew(inputId, inputExpireDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('expireDate', sinon.match.instanceOf(Date))),
+      );
+      expect(error).to.be.a('null');
     });
   });
 });
