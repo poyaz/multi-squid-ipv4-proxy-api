@@ -45,22 +45,22 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
       .and.have.property('httpCode', 400)
-      .and.have.nested.property('additionalInfo[0].message', `"url" is required`);
+      .and.have.nested.property('additionalInfo[0].message', `"urls" is required`);
   });
 
-  test(`Should error for add new blacklist if url not valid`, async () => {
-    testObj.req.body = { url: '' };
+  test(`Should error for add new blacklist if urls not valid`, async () => {
+    testObj.req.body = { urls: '' };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
       .and.have.property('httpCode', 400)
-      .and.have.nested.property('additionalInfo[0].message', `"url" must be an array`);
+      .and.have.nested.property('additionalInfo[0].message', `"urls" must be an array`);
   });
 
   test(`Should error for add new blacklist if startDate not exits`, async () => {
-    testObj.req.body = { url: ['google.com'] };
+    testObj.req.body = { urls: ['google.com'] };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
@@ -71,7 +71,7 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
   });
 
   test(`Should error for add new blacklist if startDate not valid`, async () => {
-    testObj.req.body = { url: ['google.com'], startDate: '111' };
+    testObj.req.body = { urls: ['google.com'], startDate: '111' };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
@@ -85,7 +85,7 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
   });
 
   test(`Should error for add new blacklist if startDate less than now`, async () => {
-    testObj.req.body = { url: ['google.com'], startDate: '2021-08-25 09:10:20' };
+    testObj.req.body = { urls: ['google.com'], startDate: '2021-08-25 09:10:20' };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
@@ -99,7 +99,7 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
     const startDate = `${helper.formatDate(
       new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     )} 12:10:20`;
-    testObj.req.body = { url: ['google.com'], startDate };
+    testObj.req.body = { urls: ['google.com'], startDate };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
@@ -113,7 +113,7 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
     const startDate = `${helper.formatDate(
       new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     )} 12:10:20`;
-    testObj.req.body = { url: ['google.com'], startDate, endDate: '111' };
+    testObj.req.body = { urls: ['google.com'], startDate, endDate: '111' };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
@@ -130,7 +130,7 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
     const startDate = `${helper.formatDate(
       new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     )} 12:10:20`;
-    testObj.req.body = { url: ['google.com'], startDate, endDate: '2021-08-25 09:10:20' };
+    testObj.req.body = { urls: ['google.com'], startDate, endDate: '2021-08-25 09:10:20' };
 
     const badCall = testObj.blockUrlForUserValidationMiddleware.act();
 
@@ -147,7 +147,7 @@ suite(`BlockUrlForUserValidationMiddleware`, () => {
     const endDate = `${helper.formatDate(
       new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     )} 13:10:20`;
-    testObj.req.body = { url: ['google.com'], startDate, endDate };
+    testObj.req.body = { urls: ['google.com'], startDate, endDate };
 
     await testObj.blockUrlForUserValidationMiddleware.act();
   });

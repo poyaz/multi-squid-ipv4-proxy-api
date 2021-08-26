@@ -26,7 +26,7 @@ class BlockUrlForUserValidationMiddleware extends IHttpMiddleware {
     const urlList = Joi.array().items(Joi.string()).min(1);
 
     const schema = Joi.object({
-      url: urlList.required(),
+      urls: urlList.required(),
       startDate: dateFormat.required(),
       endDate: dateFormat.required(),
     });

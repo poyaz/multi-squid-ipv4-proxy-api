@@ -326,7 +326,7 @@ curl \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/user/:username/website/block' \
-  -d '{"url": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}'
+  -d '{"urls": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}'
 ```
 
 ### Example:
