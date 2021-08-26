@@ -12,6 +12,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const helper = require('~src/helper');
 
 const UserModel = require('~src/core/model/userModel');
+const UrlAccessModel = require('~src/core/model/urlAccessModel');
 const UnknownException = require('~src/core/exception/unknownException');
 
 chai.should();
@@ -27,9 +28,14 @@ suite(`UserController`, () => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const { userService, userController } = helper.fakeUserController(testObj.req, testObj.res);
+    const {
+      userService,
+      urlAccessService,
+      userController,
+    } = helper.fakeUserController(testObj.req, testObj.res);
 
     testObj.userService = userService;
+    testObj.urlAccessService = urlAccessService;
     testObj.userController = userController;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
@@ -255,6 +261,47 @@ suite(`UserController`, () => {
 
       testObj.userService.enableByUsername.should.have.callCount(1);
       testObj.userService.enableByUsername.should.have.calledWith('user1');
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Block website for user`, () => {
+    test(`Should error block website for user`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.req.body = {
+        urls: ['google.com'],
+        startDate: new Date(),
+        endDate: new Date(new Date().getTime() + 60000),
+      };
+      testObj.urlAccessService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.blockAccessToUrlByUsername();
+
+      testObj.urlAccessService.add.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully block website for user`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.req.body = {
+        urls: ['google.com'],
+        startDate: new Date(),
+        endDate: new Date(new Date().getTime() + 60000),
+      };
+      const outputModel = new UrlAccessModel();
+      testObj.urlAccessService.add.resolves([null, outputModel]);
+
+      const [error] = await testObj.userController.blockAccessToUrlByUsername();
+
+      testObj.urlAccessService.add.should.have.callCount(1);
+      testObj.urlAccessService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UrlAccessModel)
+          .and(sinon.match.has('username', 'user1'))
+          .and(sinon.match.hasNested('urlList[0].url', 'google.com'))
+          .and(sinon.match.has('startDate', sinon.match.instanceOf(Date)))
+          .and(sinon.match.has('endDate', sinon.match.instanceOf(Date))),
+      );
       expect(error).to.be.a('null');
     });
   });

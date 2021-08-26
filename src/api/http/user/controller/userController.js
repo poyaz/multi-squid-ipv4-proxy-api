@@ -6,6 +6,7 @@ const AddUserInputModel = require('./model/addUserInputModel');
 const AddUserOutputModel = require('./model/addUserOutputModel');
 const GetAllUserInputModel = require('./model/getAllUserInputModel');
 const GetAllUserOutputModel = require('./model/getAllUserOutputModel');
+const BlockUrlForUserInputModel = require('./model/blockUrlForUserInputModel');
 
 class UserController {
   #req;
@@ -18,6 +19,10 @@ class UserController {
    * @type {IDateTime}
    */
   #dateTime;
+  /**
+   * @type {IUrlAccessService}
+   */
+  #urlAccessService;
 
   /**
    *
@@ -25,12 +30,14 @@ class UserController {
    * @param res
    * @param {IUserService} userService
    * @param {IDateTime} dateTime
+   * @param {IUrlAccessService} urlAccessService
    */
-  constructor(req, res, userService, dateTime) {
+  constructor(req, res, userService, dateTime, urlAccessService) {
     this.#req = req;
     this.#res = res;
     this.#userService = userService;
     this.#dateTime = dateTime;
+    this.#urlAccessService = urlAccessService;
   }
 
   async getAllUsers() {
@@ -94,6 +101,21 @@ class UserController {
     const { username } = this.#req.params;
 
     const [error] = await this.#userService.enableByUsername(username);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
+
+  async blockAccessToUrlByUsername() {
+    const { username } = this.#req.params;
+    const { body } = this.#req;
+
+    const blockUrlForUserInputModel = new BlockUrlForUserInputModel(this.#dateTime, username);
+    const model = blockUrlForUserInputModel.getModel(body);
+
+    const [error] = await this.#urlAccessService.add(model);
     if (error) {
       return [error];
     }
