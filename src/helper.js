@@ -147,6 +147,14 @@ function fakeCreatePackageValidationMiddleware(req, res) {
   return { createPackageValidationMiddleware };
 }
 
+function fakeRenewPackageValidationMiddleware(req, res) {
+  const RenewPackageValidatorMiddleware = require('~src/api/http/package/middleware/renewPackageValidatorMiddleware');
+
+  const renewPackageValidatorMiddleware = new RenewPackageValidatorMiddleware(req, res);
+
+  return { renewPackageValidatorMiddleware };
+}
+
 function fakePackageController(req, res) {
   const IPackageService = require('~src/core/interface/iPackageService');
   const DateTime = require('~src/infrastructure/system/dateTime');
@@ -236,6 +244,7 @@ module.exports = {
   fakeUserPgRepository,
   fakeUserSquidRepository,
   fakeCreatePackageValidationMiddleware,
+  fakeRenewPackageValidationMiddleware,
   fakePackageController,
   fakePackageService,
   fakePackagePgRepository,
