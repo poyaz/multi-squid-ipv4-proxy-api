@@ -5,6 +5,7 @@
 const AddPackageInputModel = require('./model/addPackageInputModel');
 const AddPackageOutputModel = require('./model/addPackageOutputModel');
 const GetAllByUsernamePackageOutputModel = require('./model/getAllByUsernamePackageOutputModel');
+const RenewPackageInputModel = require('./model/renewPackageInputModel');
 
 class PackageController {
   #req;
@@ -63,6 +64,21 @@ class PackageController {
     const result = addPackageOutputModel.getOutput(data);
 
     return [null, result];
+  }
+
+  async renewPackage() {
+    const { body } = this.#req;
+    const { packageId } = this.#req.params;
+
+    const renewPackageInputModel = new RenewPackageInputModel(this.#dateTime);
+    const expireDate = renewPackageInputModel.getModel(body);
+
+    const [error] = await this.#packageService.renew(packageId, expireDate);
+    if (error) {
+      return [error];
+    }
+
+    return [null, { expireDate: body.expire }];
   }
 }
 

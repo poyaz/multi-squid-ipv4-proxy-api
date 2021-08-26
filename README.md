@@ -391,13 +391,13 @@ curl \
       "id": "cb194947-29b2-47cc-bb7f-24e10d4515e2",
       "username": "my_username",
       "countIp": 25,
-      "expire": "2021-10-25"
+      "expireDate": "2021-10-25"
     },
     {
       "id": "ebc143cd-221a-4841-86ff-13687105b99e",
       "username": "my_username",
       "countIp": 10,
-      "expire": "2021-08-25"
+      "expireDate": "2021-08-25"
     }
   ]
 }
@@ -430,7 +430,7 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/package/cb194947-29b2-47cc-bb7f-24e10d4515e2/renew' \
-    -d '{"expire": "2021-11-01"}'
+    -d '{"expireDate": "2021-11-01"}'
 ```
 
 ### Output:

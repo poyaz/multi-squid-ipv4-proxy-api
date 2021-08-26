@@ -162,4 +162,38 @@ suite(`PackageController`, () => {
       expect(result[1].expireDate).to.have.match(testObj.expireRegex);
     });
   });
+
+  suite(`Renew expire date package`, () => {
+    test(`Should error renew expire date`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.req.body = { expire: '2021-08-26' };
+      testObj.packageService.renew.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageController.renewPackage();
+
+      testObj.packageService.renew.should.have.callCount(1);
+      testObj.packageService.renew.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match.instanceOf(Date),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully renew expire date`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.req.body = { expire: '2021-08-26' };
+      testObj.packageService.renew.resolves([null]);
+
+      const [error, result] = await testObj.packageController.renewPackage();
+
+      testObj.packageService.renew.should.have.callCount(1);
+      testObj.packageService.renew.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match.instanceOf(Date),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result).to.have.include({ expireDate: testObj.req.body.expire });
+    });
+  });
 });
