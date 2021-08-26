@@ -8,4 +8,5 @@ create table users
     delete_date timestamp without time zone
 );
 
-create unique index users_username on users using btree (username) where delete_date isnull;
+create unique index users_username
+    on users using btree (username) where delete_date isnull;
