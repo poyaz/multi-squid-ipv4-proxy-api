@@ -50,6 +50,87 @@ suite(`PackagePgRepository`, () => {
     testObj.fillModelSpy.restore();
   });
 
+  suite(`Get by id`, () => {
+    test(`Should error get by id when fetch from database`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.packageRepository.getById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get by id return null`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.packageRepository.getById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([inputId])),
+      );
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('null');
+    });
+
+    test(`Should successfully get by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              user_id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              count_ip: 1,
+              ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              expire_date: new Date(),
+              insert_date: new Date(),
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.packageRepository.getById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([inputId])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(PackageModel);
+      expect(result).to.be.includes({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        countIp: 1,
+      });
+      expect(result.expireDate).to.be.an.instanceOf(Date);
+      expect(result.insertDate).to.be.an.instanceOf(Date);
+      expect(result.ipList).to.be.length(1);
+    });
+  });
+
   suite(`Get all package by username`, () => {
     test(`Should error fetch from database`, async () => {
       const inputUsername = 'user1';

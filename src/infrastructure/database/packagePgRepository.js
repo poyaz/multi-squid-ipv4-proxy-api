@@ -34,6 +34,48 @@ class PackagePgRepository extends IPackageRepository {
     this.#identifierGenerator = identifierGenerator;
   }
 
+  async getById(id) {
+    const fetchQuery = {
+      text: singleLine`
+          SELECT DISTINCT ON (p.id) p.id,
+                                    u.id                                                        AS user_id,
+                                    u.username,
+                                    p.expire_date,
+                                    p.insert_date,
+                                    count(*)                                                    AS count_ip,
+                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
+          FROM public.users u,
+               public.packages p,
+               public.map_bind_address_package mbdp,
+               public.bind_address ba
+          WHERE u.id = p.user_id
+            AND p.id = mbdp.package_id
+            AND mbdp.bind_address_id = ba.id
+            AND u.is_enable = true
+            AND u.delete_date ISNULL
+            AND p.delete_date ISNULL
+            AND mbdp.delete_date ISNULL
+            AND ba.delete_date ISNULL
+            AND p.id = $1
+          GROUP BY p.id, u.id, u.username, p.expire_date, p.insert_date
+      `,
+      values: [id],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(fetchQuery);
+      if (rowCount === 0) {
+        return [null, null];
+      }
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async getAllByUsername(username) {
     const fetchQuery = {
       text: singleLine`
