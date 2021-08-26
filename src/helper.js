@@ -164,6 +164,22 @@ function fakePackageController(req, res) {
   };
 }
 
+function fakePackageService() {
+  const IUserService = require('~src/core/interface/iUserService');
+  const IPackageRepository = require('~src/core/interface/iPackageRepository');
+  const PackageService = require('~src/core/service/packageService');
+
+  const userService = sinon.createStubInstance(IUserService);
+
+  const packageRepository = sinon.createStubInstance(IPackageRepository);
+
+  const packageFileRepository = sinon.createStubInstance(IPackageRepository);
+
+  const packageService = new PackageService(userService, packageRepository, packageFileRepository);
+
+  return { userService, packageRepository, packageFileRepository, packageService };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -176,4 +192,5 @@ module.exports = {
   fakeUserSquidRepository,
   fakeCreatePackageValidationMiddleware,
   fakePackageController,
+  fakePackageService,
 };
