@@ -180,6 +180,29 @@ function fakePackageService() {
   return { userService, packageRepository, packageFileRepository, packageService };
 }
 
+function fakePackagePgRepository() {
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const PackagePgRepository = require('~src/infrastructure/database/packagePgRepository');
+
+  const postgresDbClient = {
+    query: sinon.stub(),
+    release: sinon.stub(),
+  };
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+  postgresDb.connect = sinon.stub().resolves(postgresDbClient);
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = new DateTime();
+
+  const packageRepository = new PackagePgRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, postgresDbClient, identifierGenerator, packageRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -193,4 +216,5 @@ module.exports = {
   fakeCreatePackageValidationMiddleware,
   fakePackageController,
   fakePackageService,
+  fakePackagePgRepository,
 };
