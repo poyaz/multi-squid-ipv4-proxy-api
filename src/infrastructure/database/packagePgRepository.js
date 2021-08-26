@@ -5,9 +5,11 @@
 const { singleLine } = require('~src/utility');
 const PackageModel = require('~src/core/model/packageModel');
 const IPackageRepository = require('~src/core/interface/iPackageRepository');
+const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
 const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
 const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
+const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 class PackagePgRepository extends IPackageRepository {
   #db;
@@ -192,6 +194,45 @@ class PackagePgRepository extends IPackageRepository {
       return [await this._rollbackOnError(client, executeError, transaction.isStart)];
     } finally {
       client.release();
+    }
+  }
+
+  async update(model) {
+    if (typeof model.id === 'undefined') {
+      return [new ModelIdNotExistException()];
+    }
+
+    const columns = [];
+    const param = [model.id];
+
+    if (typeof model.expireDate !== 'undefined') {
+      param.push(this.#dateTime.gregorianWithTimezoneString(model.expireDate));
+      columns.push(`expire_date = ${param.length}`);
+    }
+
+    if (columns.length === 0) {
+      return [new DatabaseMinParamUpdateException()];
+    }
+
+    param.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
+    columns.push(`update_date = ${param.length}`);
+
+    const updateQuery = {
+      sql: singleLine`
+          UPDATE public.packages
+          SET ${columns.join(', ')}
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [...param],
+    };
+
+    try {
+      const { rowCount } = await this.#db.query(updateQuery);
+
+      return [null, rowCount];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
     }
   }
 

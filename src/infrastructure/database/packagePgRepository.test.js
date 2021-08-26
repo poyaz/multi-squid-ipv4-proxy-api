@@ -394,4 +394,63 @@ suite(`PackagePgRepository`, () => {
       expect(result.ipList).to.be.length(2);
     });
   });
+
+  suite(`Update package`, () => {
+    test(`Should error update package when model id not found`, async () => {
+      const inputModel = new PackageModel();
+
+      const [error] = await testObj.packageRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update package when model property not set`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.packageRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update package when execute query`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.expireDate = new Date();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.packageRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully update package`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.expireDate = new Date();
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.packageRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal(1);
+    });
+  });
 });
