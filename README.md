@@ -310,6 +310,44 @@ curl \
 }
 ```
 
+## Block site for user
+
+If package expire date not end, You can renew expire date
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/user/:username/website/block`
+* Body: `{"url": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}`
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/user/:username/website/block' \
+  -d '{"url": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/user/:username/website/block' \
+    -d '{"url": ["www.google.com", "google.com"], "startDate": "<start-date>", "endDate": "<end-date>"}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
 ## Create package
 
 Create new package for users
@@ -419,7 +457,7 @@ curl \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/package/:packageId/renew' \
-  -d {"expire": "<expire-date>"}
+  -d '{"expire": "<expire-date>"}'
 ```
 
 ### Example:
