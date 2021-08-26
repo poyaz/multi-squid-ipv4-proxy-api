@@ -203,6 +203,14 @@ function fakePackagePgRepository() {
   return { postgresDb, postgresDbClient, identifierGenerator, packageRepository };
 }
 
+function fakePackageFileRepository() {
+  const PackageFileRepository = require('~src/infrastructure/system/packageFileRepository');
+
+  const packageFileRepository = new PackageFileRepository('user-ip-path');
+
+  return { packageFileRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -217,4 +225,5 @@ module.exports = {
   fakePackageController,
   fakePackageService,
   fakePackagePgRepository,
+  fakePackageFileRepository,
 };
