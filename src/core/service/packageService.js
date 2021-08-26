@@ -20,19 +20,25 @@ class PackageService extends IPackageService {
    * @type {IPackageRepository}
    */
   #packageFileRepository;
+  /**
+   * @type {IProxyServerRepository}
+   */
+  #proxySquidRepository;
 
   /**
    *
    * @param {IUserService} userService
    * @param {IPackageRepository} packageRepository
    * @param {IPackageRepository} packageFileRepository
+   * @param {IProxyServerRepository} proxySquidRepository
    */
-  constructor(userService, packageRepository, packageFileRepository) {
+  constructor(userService, packageRepository, packageFileRepository, proxySquidRepository) {
     super();
 
     this.#userService = userService;
     this.#packageRepository = packageRepository;
     this.#packageFileRepository = packageFileRepository;
+    this.#proxySquidRepository = proxySquidRepository;
   }
 
   async add(model) {
@@ -55,6 +61,8 @@ class PackageService extends IPackageService {
       return [addFileError];
     }
 
+    this._reloadServer();
+
     return [null, addData];
   }
 
@@ -71,6 +79,15 @@ class PackageService extends IPackageService {
     }
 
     return [null, fetchData[0]];
+  }
+
+  _reloadServer() {
+    (async () => {
+      const [error] = await this.#proxySquidRepository.reload();
+      if (error) {
+        console.error(error);
+      }
+    })().catch(console.error);
   }
 }
 

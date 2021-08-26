@@ -27,12 +27,14 @@ suite(`PackageService`, () => {
       userService,
       packageRepository,
       packageFileRepository,
+      proxySquidRepository,
       packageService,
     } = helper.fakePackageService();
 
     testObj.userService = userService;
     testObj.packageRepository = packageRepository;
     testObj.packageFileRepository = packageFileRepository;
+    testObj.proxySquidRepository = proxySquidRepository;
     testObj.packageService = packageService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
@@ -156,11 +158,13 @@ suite(`PackageService`, () => {
       testObj.userService.getAll.resolves([null, [outputFetchUser1]]);
       testObj.packageRepository.add.resolves([null, outputAddPackage]);
       testObj.packageFileRepository.add.resolves([null]);
+      testObj.proxySquidRepository.reload.resolves([null]);
 
       const [error, result] = await testObj.packageService.add(inputModel);
 
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageRepository.add.should.have.callCount(1);
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
       testObj.packageRepository.add.should.have.calledWith(
         sinon.match
           .instanceOf(PackageModel)
