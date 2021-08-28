@@ -8,6 +8,7 @@ services:
       - 3000
     volumes:
       - $PWD:/home/node
+      - /etc/localtime:/etc/localtime:ro
     user: node
     working_dir: /home/node
     restart: "always"
@@ -23,6 +24,7 @@ services:
     image: postgres:11.10
     volumes:
       - ${PG_DIR_DATA:-postgres-storage}:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
     networks:
       main:
         ipv4_address: 10.102.0.3
@@ -33,6 +35,7 @@ services:
     image: rancher/socat-docker:v0.2.0
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
     privileged: true
     networks:
       main:

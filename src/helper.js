@@ -245,6 +245,24 @@ function fakePackageFileRepository() {
   return { packageFileRepository };
 }
 
+function fakeUrlAccessService() {
+  const IUserService = require('~src/core/interface/iUserService');
+  const IUrlAccessRepository = require('~src/core/interface/iUrlAccessRepository');
+  const UrlAccessService = require('~src/core/service/urlAccessService');
+
+  const userService = sinon.createStubInstance(IUserService);
+
+  const urlAccessRepository = sinon.createStubInstance(IUrlAccessRepository);
+
+  const urlAccessService = new UrlAccessService(userService, urlAccessRepository);
+
+  return {
+    userService,
+    urlAccessRepository,
+    urlAccessService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -262,4 +280,5 @@ module.exports = {
   fakePackageService,
   fakePackagePgRepository,
   fakePackageFileRepository,
+  fakeUrlAccessService,
 };

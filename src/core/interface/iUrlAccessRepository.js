@@ -2,11 +2,11 @@
  * Created by pooya on 8/23/21.
  */
 
-class IUrlAccessService {
+class IUrlAccessRepository {
   /**
    *
    * @param {UrlAccessModel} model
-   * @return {Promise<(Error|UrlAccessModel)[]>}
+   * @return {Promise<(Error|UrlAccessModel|[])[]>}
    */
   async add(model) {
     const error = new Error('The method has to be overridden by subclasses.');
@@ -15,4 +15,4 @@ class IUrlAccessService {
   }
 }
 
-module.exports = IUrlAccessService;
+module.exports = IUrlAccessRepository;
