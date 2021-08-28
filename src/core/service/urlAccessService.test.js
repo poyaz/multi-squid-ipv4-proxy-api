@@ -13,8 +13,6 @@ const UserModel = require('~src/core/model/userModel');
 const UrlAccessModel = require('~src/core/model/urlAccessModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
-const ExpireDateException = require('~src/core/exception/expireDateException');
-const DisableUserException = require('~src/core/exception/disableUserException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -63,6 +61,17 @@ suite(`UrlAccessService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
+    test(`Should error add url access record when user not found`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.userService.getAll.resolves([null, []]);
+
+      const [error] = await testObj.urlAccessService.add(inputModel);
+
+      testObj.userService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
     test(`Should error add url access record when add data`, async () => {
       const inputModel = testObj.inputModel;
       testObj.userService.getAll.resolves([null, [testObj.outputUserModel]]);
@@ -89,7 +98,8 @@ suite(`UrlAccessService`, () => {
       testObj.urlAccessRepository.add.should.have.calledWith(
         sinon.match
           .instanceOf(UrlAccessModel)
-          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId())));
+          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId())),
+      );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(UrlAccessModel);
     });
