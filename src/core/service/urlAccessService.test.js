@@ -40,7 +40,7 @@ suite(`UrlAccessService`, () => {
         { url: 'www.google.com', isBlock: true },
       ];
       inputModel.startDate = new Date();
-      inputModel.startDate = new Date(new Date().getTime() + 60000);
+      inputModel.endDate = new Date(new Date().getTime() + 60000);
 
       const outputUserModel = new UserModel();
       outputUserModel.id = testObj.identifierGenerator.generateId();
