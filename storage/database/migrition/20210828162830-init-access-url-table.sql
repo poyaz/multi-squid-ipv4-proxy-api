@@ -2,7 +2,7 @@ create table access_url
 (
     id          uuid primary key not null,
     user_id     uuid             not null,
-    url         varchar(225),
+    url_list    varchar(225)[],
     is_block    boolean,
     start_date  timestamp without time zone,
     end_date    timestamp without time zone,
@@ -11,5 +11,8 @@ create table access_url
     delete_date timestamp without time zone
 );
 
-create unique index access_url_user_id_url_is_block
-    on access_url using btree (user_id, url, is_block) where delete_date isnull;
+create index access_url_user_id
+    on access_url using btree (user_id, start_date, end_date) where delete_date isnull;
+
+create index access_url_url
+    on access_url using gin (url_list) where delete_date isnull;
