@@ -1,0 +1,54 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "http": {
+      "port": 3000
+    },
+    "https": {
+      "port": 3443,
+      "force": false
+    },
+    "public": {
+      "host": "",
+      "http": {
+        "port": 80
+      },
+      "https": {
+        "port": 443
+      }
+    }
+  },
+  "database": {
+    "pg": {
+      "driver": "postgres",
+      "host": "",
+      "port": 5432,
+      "db": "",
+      "username": "",
+      "password": "",
+      "max": 40,
+      "idleTimeout": 10000,
+      "ssl": false,
+      "sslOption": {
+        "rejectUnauthorized": false
+      }
+    }
+  },
+  "cluster": {
+    "server": {
+      "enable": true,
+      "mode": "manual",
+      "count": 1
+    }
+  },
+  "custom": {
+    "timezone": {
+      "locales": "en",
+      "zone": "US/Eastern"
+    },
+    "jwt": {
+      "type": "default",
+      "secret": null
+    }
+  }
+}

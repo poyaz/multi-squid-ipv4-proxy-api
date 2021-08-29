@@ -1,0 +1,53 @@
+{
+  "server": {
+    "host": "SERVER_HOST",
+    "http": {
+      "port": "SERVER_HTTP_PORT"
+    },
+    "https": {
+      "port": "SERVER_HTTPS_PORT",
+      "force": "SERVER_HTTPS_FORCE"
+    },
+    "public": {
+      "host": "SERVER_PUBLIC_HOST",
+      "http": {
+        "port": "SERVER_PUBLIC_HTTP_PORT"
+      },
+      "https": {
+        "port": "SERVER_PUBLIC_HTTPS_PORT"
+      }
+    }
+  },
+  "database": {
+    "pg": {
+      "host": "DB_PG_HOST",
+      "port": "DB_PG_PORT",
+      "db": "DB_PG_DATABASE",
+      "username": "DB_PG_USERNAME",
+      "password": "DB_PG_PASSWORD",
+      "max": "DB_PG_MAX",
+      "idleTimeout": "DB_PG_IDLE_TIMEOUT",
+      "ssl": "DB_PG_USE_SSL",
+      "sslOption": {
+        "rejectUnauthorized": "DB_PG_SSL_REJECT_UNAUTHORIZED"
+      }
+    }
+  },
+  "cluster": {
+    "server": {
+      "enable": "CLUSTER_ENABLE",
+      "mode": "CLUSTER_MODE",
+      "count": "CLUSTER_COUNT"
+    }
+  },
+  "custom": {
+    "timezone": {
+      "locales": "TIMEZONE_LOCALES",
+      "zone": "TIMEZONE_ZONE"
+    },
+    "jwt": {
+      "type": "JWT_TYPE",
+      "secret": "JWT_SECRET_KEY"
+    }
+  }
+}

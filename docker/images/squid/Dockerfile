@@ -1,6 +1,6 @@
 FROM alpine:3.12
 
-RUN apk add --no-cache bash apache2-utils squid=4.15-r0
+RUN apk add --no-cache bash apache2-utils squid=4.15-r0 jq curl
 
 VOLUME /etc/squid/
 

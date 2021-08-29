@@ -76,7 +76,7 @@ curl \
   "status": "success",
   "data": {
     "id": "7bc4d68da9974543aa119aca7d13b684",
-    // status list: processing, finish
+    // status list: processing, error, finish
     "status": "processing",
     // total ip record should be added
     "totalRecord": 225,
@@ -160,6 +160,49 @@ curl \
 }
 ```
 
+## Get users
+
+This API use for a get all user
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/user`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/user'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/user'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "ec7c5690-c008-4c13-bf52-ba0bbff06fb0",
+      "username": "my_username",
+      "isEnable": true,
+      "insertDate": "2021-08-29 09:59:40"
+    }
+  ]
+}
+```
+
 ## Create users
 
 This API use for create new user
@@ -208,13 +251,13 @@ Change password for exist user in system
 
 ### Information:
 
-* Method: `POST`
+* Method: `PUT`
 * URL: `api/v1/user/:username/password`
 * Body: `{"password": "<your-new-password>"}`
 
 ```bash
 curl \
-  -X POST \
+  -X PUT \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/user/:username/password' \
@@ -225,7 +268,7 @@ curl \
 
 ```bash
 curl \
-    -X POST \
+    -X PUT \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/user/my_username/password'
@@ -246,12 +289,12 @@ Disable all user's proxy
 
 ### Information:
 
-* Method: `POST`
+* Method: `PUT`
 * URL: `api/v1/user/:username/disable`
 
 ```bash
 curl \
-  -X GET \
+  -X PUT \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/user/:username/disable'
@@ -261,7 +304,7 @@ curl \
 
 ```bash
 curl \
-    -X GET \
+    -X PUT \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/user/:username/disable'
@@ -281,12 +324,12 @@ Disable all user's proxy
 
 ### Information:
 
-* Method: `POST`
+* Method: `PUT`
 * URL: `api/v1/user/:username/enable`
 
 ```bash
 curl \
-  -X GET \
+  -X PUT \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/user/:username/enable'
@@ -296,7 +339,7 @@ curl \
 
 ```bash
 curl \
-    -X GET \
+    -X PUT \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/user/:username/enable'
@@ -485,13 +528,13 @@ If package expire date not end, You can renew expire date
 
 ### Information:
 
-* Method: `POST`
+* Method: `PUT`
 * URL: `api/v1/package/:packageId/renew`
 * Body: `{"expire": "<expire-date>"}`
 
 ```bash
 curl \
-  -X POST \
+  -X PUT \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/package/:packageId/renew' \
@@ -502,7 +545,7 @@ curl \
 
 ```bash
 curl \
-    -X POST \
+    -X PUT \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/package/cb194947-29b2-47cc-bb7f-24e10d4515e2/renew' \
