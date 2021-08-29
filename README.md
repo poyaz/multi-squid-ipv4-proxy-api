@@ -312,7 +312,7 @@ curl \
 
 ## Block site for user
 
-If package expire date not end, You can renew expire date
+You can add the blacklist url for users
 
 ### Information:
 
@@ -345,6 +345,44 @@ curl \
 ```json5
 {
   "status": "success"
+}
+```
+
+## Check block url for user (for squid acl)
+
+Squid ACL check request url block for user or not
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/user/:username/website/:url/status`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/user/:username/website/:url/status'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/user/:username/website/google.com/status'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "isBlock": true
+  }
 }
 ```
 

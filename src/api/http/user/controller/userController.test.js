@@ -28,11 +28,10 @@ suite(`UserController`, () => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const {
-      userService,
-      urlAccessService,
-      userController,
-    } = helper.fakeUserController(testObj.req, testObj.res);
+    const { userService, urlAccessService, userController } = helper.fakeUserController(
+      testObj.req,
+      testObj.res,
+    );
 
     testObj.userService = userService;
     testObj.urlAccessService = urlAccessService;
@@ -303,6 +302,34 @@ suite(`UserController`, () => {
           .and(sinon.match.has('endDate', sinon.match.instanceOf(Date))),
       );
       expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Check website block for user`, () => {
+    test(`Should error check website block for user`, async () => {
+      testObj.req.params = { username: 'user1', url: 'google.com' };
+      testObj.urlAccessService.checkBlockUrlForUsername.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.checkBlockUrlForUsername();
+
+      testObj.urlAccessService.checkBlockUrlForUsername.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully check website block for user`, async () => {
+      testObj.req.params = { username: 'user1', url: 'google.com' };
+      testObj.urlAccessService.checkBlockUrlForUsername.resolves([null, false]);
+
+      const [error, result] = await testObj.userController.checkBlockUrlForUsername();
+
+      testObj.urlAccessService.checkBlockUrlForUsername.should.have.callCount(1);
+      testObj.urlAccessService.checkBlockUrlForUsername.should.have.calledWith(
+        sinon.match('user1'),
+        sinon.match('google.com'),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result).to.have.include({ isBlock: false });
     });
   });
 });

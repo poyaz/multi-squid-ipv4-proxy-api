@@ -13,6 +13,18 @@ class IUrlAccessService {
     error['args'] = { model };
     throw error;
   }
+
+  /**
+   *
+   * @param {string} username
+   * @param {string} url
+   * @return {Promise<(Error|boolean)[]>}
+   */
+  async checkBlockUrlForUsername(username, url) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username, url };
+    throw error;
+  }
 }
 
 module.exports = IUrlAccessService;

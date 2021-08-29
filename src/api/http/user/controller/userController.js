@@ -122,6 +122,17 @@ class UserController {
 
     return [null];
   }
+
+  async checkBlockUrlForUsername() {
+    const { username, url } = this.#req.params;
+
+    const [error, data] = await this.#urlAccessService.checkBlockUrlForUsername(username, url);
+    if (error) {
+      return [error];
+    }
+
+    return [null, { isBlock: data }];
+  }
 }
 
 module.exports = UserController;
