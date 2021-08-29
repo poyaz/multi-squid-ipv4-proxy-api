@@ -284,6 +284,14 @@ function fakeUrlAccessPgRepository() {
   return { postgresDb, identifierGenerator, urlAccessPgRepository };
 }
 
+function fakeInitProxyValidationMiddleware(req, res) {
+  const InitProxyValidatorMiddleware = require('~src/api/http/proxy/middleware/initProxyValidatorMiddleware');
+
+  const initProxyValidatorMiddleware = new InitProxyValidatorMiddleware(req, res);
+
+  return { initProxyValidatorMiddleware };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -303,4 +311,5 @@ module.exports = {
   fakePackageFileRepository,
   fakeUrlAccessService,
   fakeUrlAccessPgRepository,
+  fakeInitProxyValidationMiddleware,
 };
