@@ -123,10 +123,13 @@ class UserController {
     return [null];
   }
 
-  async checkBlockUrlForUsername() {
-    const { username, url } = this.#req.params;
+  async checkBlockDomainForUsername() {
+    const { username, domain } = this.#req.params;
 
-    const [error, data] = await this.#urlAccessService.checkBlockUrlForUsername(username, url);
+    const [error, data] = await this.#urlAccessService.checkBlockDomainForUsername(
+      username,
+      domain,
+    );
     if (error) {
       return [error];
     }

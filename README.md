@@ -348,21 +348,21 @@ curl \
 }
 ```
 
-## Check block url for user (for squid acl)
+## Check block domain for user (for squid acl)
 
-Squid ACL check request url block for user or not
+Squid ACL check request domain block for user or not
 
 ### Information:
 
 * Method: `GET`
-* URL: `api/v1/user/:username/website/:url/status`
+* URL: `api/v1/user/:username/domain/:domain/status`
 
 ```bash
 curl \
   -X GET \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
-  '<your-hostname-or-ip>/api/v1/user/:username/website/:url/status'
+  '<your-hostname-or-ip>/api/v1/user/:username/domain/:domain/status'
 ```
 
 ### Example:
@@ -372,7 +372,7 @@ curl \
     -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/user/:username/website/google.com/status'
+    '<your-hostname-or-ip>/api/v1/user/:username/domain/google.com/status'
 ```
 
 ### Output:

@@ -307,23 +307,23 @@ suite(`UserController`, () => {
 
   suite(`Check website block for user`, () => {
     test(`Should error check website block for user`, async () => {
-      testObj.req.params = { username: 'user1', url: 'google.com' };
-      testObj.urlAccessService.checkBlockUrlForUsername.resolves([new UnknownException()]);
+      testObj.req.params = { username: 'user1', domain: 'google.com' };
+      testObj.urlAccessService.checkBlockDomainForUsername.resolves([new UnknownException()]);
 
-      const [error] = await testObj.userController.checkBlockUrlForUsername();
+      const [error] = await testObj.userController.checkBlockDomainForUsername();
 
-      testObj.urlAccessService.checkBlockUrlForUsername.should.have.callCount(1);
+      testObj.urlAccessService.checkBlockDomainForUsername.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
     test(`Should successfully check website block for user`, async () => {
-      testObj.req.params = { username: 'user1', url: 'google.com' };
-      testObj.urlAccessService.checkBlockUrlForUsername.resolves([null, false]);
+      testObj.req.params = { username: 'user1', domain: 'google.com' };
+      testObj.urlAccessService.checkBlockDomainForUsername.resolves([null, false]);
 
-      const [error, result] = await testObj.userController.checkBlockUrlForUsername();
+      const [error, result] = await testObj.userController.checkBlockDomainForUsername();
 
-      testObj.urlAccessService.checkBlockUrlForUsername.should.have.callCount(1);
-      testObj.urlAccessService.checkBlockUrlForUsername.should.have.calledWith(
+      testObj.urlAccessService.checkBlockDomainForUsername.should.have.callCount(1);
+      testObj.urlAccessService.checkBlockDomainForUsername.should.have.calledWith(
         sinon.match('user1'),
         sinon.match('google.com'),
       );
