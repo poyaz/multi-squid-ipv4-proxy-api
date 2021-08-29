@@ -263,6 +263,27 @@ function fakeUrlAccessService() {
   };
 }
 
+function fakeUrlAccessPgRepository() {
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const UrlAccessPgRepository = require('~src/infrastructure/database/urlAccessPgRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = new DateTime();
+
+  const urlAccessPgRepository = new UrlAccessPgRepository(
+    postgresDb,
+    dateTime,
+    identifierGenerator,
+  );
+
+  return { postgresDb, identifierGenerator, urlAccessPgRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -281,4 +302,5 @@ module.exports = {
   fakePackagePgRepository,
   fakePackageFileRepository,
   fakeUrlAccessService,
+  fakeUrlAccessPgRepository,
 };
