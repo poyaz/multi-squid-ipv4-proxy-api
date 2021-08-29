@@ -117,4 +117,51 @@ suite(`UrlAccessPgRepository`, () => {
       expect(result.insertDate).to.have.match(testObj.dateRegex);
     });
   });
+
+  suite(`Check domain block for user`, () => {
+    test(`Should error check domain block for user when execute query`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const inputDomain = 'google.com';
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.urlAccessPgRepository.checkBlockDomainByUserId(
+        inputUserId,
+        inputDomain,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully check domain block for user when execute query`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const inputDomain = 'google.com';
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.urlAccessPgRepository.checkBlockDomainByUserId(
+        inputUserId,
+        inputDomain,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean');
+    });
+  });
 });

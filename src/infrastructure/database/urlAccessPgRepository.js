@@ -61,6 +61,33 @@ class UrlAccessPgRepository extends IUrlAccessRepository {
     }
   }
 
+  async checkBlockDomainByUserId(userId, domain) {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const checkBlockQuery = {
+      text: singleLine`
+          SELECT id
+          FROM public.access_url
+          WHERE delete_date ISNULL
+            AND is_block = true
+            AND user_id = $1
+            AND url_list @> $2
+            AND $3 BETWEEN start_date AND end_date;
+      `,
+      values: [userId, [domain], now],
+    };
+
+    try {
+      const { rowCount } = await this.#db.query(checkBlockQuery);
+
+      const result = rowCount > 0;
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new UrlAccessModel();
     model.id = row['id'];
