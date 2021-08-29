@@ -21,6 +21,10 @@ class UrlAccessModel {
   endDate = undefined;
   insertDate = undefined;
   updateDate = undefined;
+
+  clone() {
+    return Object.assign(Object.create(this), this);
+  }
 }
 
 module.exports = UrlAccessModel;
