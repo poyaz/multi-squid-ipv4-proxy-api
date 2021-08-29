@@ -17,12 +17,12 @@ class IUrlAccessService {
   /**
    *
    * @param {string} username
-   * @param {string} url
+   * @param {string} domain
    * @return {Promise<(Error|boolean)[]>}
    */
-  async checkBlockUrlForUsername(username, url) {
+  async checkBlockDomainForUsername(username, domain) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { username, url };
+    error['args'] = { username, domain };
     throw error;
   }
 }

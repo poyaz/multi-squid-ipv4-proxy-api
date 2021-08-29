@@ -104,4 +104,82 @@ suite(`UrlAccessService`, () => {
       expect(result).to.be.an.instanceof(UrlAccessModel);
     });
   });
+
+  suite(`Check domain block for username`, () => {
+    setup(() => {
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.username = 'test1';
+
+      testObj.outputUserModel = outputUserModel;
+    });
+
+    test(`Should error check domain block for username when fetch user info`, async () => {
+      const inputUsername = 'user1';
+      const inputDomain = 'google.com';
+      testObj.userService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.urlAccessService.checkBlockDomainForUsername(
+        inputUsername,
+        inputDomain,
+      );
+
+      testObj.userService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check domain block for username when user not found`, async () => {
+      const inputUsername = 'user1';
+      const inputDomain = 'google.com';
+      testObj.userService.getAll.resolves([null, []]);
+
+      const [error] = await testObj.urlAccessService.checkBlockDomainForUsername(
+        inputUsername,
+        inputDomain,
+      );
+
+      testObj.userService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error check domain block for username when add data`, async () => {
+      const inputUsername = 'user1';
+      const inputDomain = 'google.com';
+      testObj.userService.getAll.resolves([null, [testObj.outputUserModel]]);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.resolves([new UnknownException()]);
+
+      const [error] = await testObj.urlAccessService.checkBlockDomainForUsername(
+        inputUsername,
+        inputDomain,
+      );
+
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully check domain block for username`, async () => {
+      const inputUsername = 'user1';
+      const inputDomain = 'google.com';
+      testObj.userService.getAll.resolves([null, [testObj.outputUserModel]]);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.resolves([null, true]);
+
+      const [error, result] = await testObj.urlAccessService.checkBlockDomainForUsername(
+        inputUsername,
+        inputDomain,
+      );
+
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.should.have.callCount(1);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match(inputDomain),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean');
+    });
+  });
 });

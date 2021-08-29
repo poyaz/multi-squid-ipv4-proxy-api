@@ -43,6 +43,23 @@ class UrlAccessService extends IUrlAccessService {
     return [null, addData];
   }
 
+  async checkBlockDomainForUsername(username, domain) {
+    const [fetchError, fetchData] = await this._getUserModelByUsername(username);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const [checkError, checkData] = await this.#urlAccessRepository.checkBlockDomainByUserId(
+      fetchData.id,
+      domain,
+    );
+    if (checkError) {
+      return [checkError];
+    }
+
+    return [null, checkData];
+  }
+
   async _getUserModelByUsername(username) {
     const filterModel = new UserModel();
     filterModel.username = username;
