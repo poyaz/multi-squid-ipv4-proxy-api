@@ -13,32 +13,20 @@ class ProxyServerService extends IProxyServerService {
    */
   #proxyServerRepository;
   /**
-   * @type {IProxyServerRepository}
-   */
-  #proxyServerFileRepository;
-  /**
-   * @type {IProxyServerRepository}
-   */
-  #ipAddrRepository;
-  /**
    * @type {IJobService}
    */
-  #jobService;
+  #proxyServerJobService;
 
   /**
    *
    * @param {IProxyServerRepository} proxyServerRepository
-   * @param {IProxyServerRepository} proxyServerFileRepository
-   * @param {IProxyServerRepository} ipAddrRepository
-   * @param {IJobService} jobService
+   * @param {IJobService} proxyServerJobService
    */
-  constructor(proxyServerRepository, proxyServerFileRepository, ipAddrRepository, jobService) {
+  constructor(proxyServerRepository, proxyServerJobService) {
     super();
 
     this.#proxyServerRepository = proxyServerRepository;
-    this.#proxyServerFileRepository = proxyServerFileRepository;
-    this.#ipAddrRepository = ipAddrRepository;
-    this.#jobService = jobService;
+    this.#proxyServerJobService = proxyServerJobService;
   }
 
   async add(model) {
@@ -72,7 +60,7 @@ class ProxyServerService extends IProxyServerService {
     jobModel.status = JobModel.STATUS_PENDING;
     jobModel.totalRecord = ipModels.length;
 
-    const [jobAddError, jobAddId] = await this.#jobService.add(jobModel);
+    const [jobAddError, jobAddId] = await this.#proxyServerJobService.add(jobModel);
     if (jobAddError) {
       return [jobAddError];
     }

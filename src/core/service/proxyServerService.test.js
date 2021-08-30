@@ -27,16 +27,12 @@ suite(`ProxyServerService`, () => {
   setup(() => {
     const {
       proxyServerRepository,
-      proxyServerFileRepository,
-      ipAddrRepository,
-      jobService,
+      proxyServerJobService,
       proxyServerService,
     } = helper.fakeProxyServerService();
 
     testObj.proxyServerRepository = proxyServerRepository;
-    testObj.proxyServerFileRepository = proxyServerFileRepository;
-    testObj.ipAddrRepository = ipAddrRepository;
-    testObj.jobService = jobService;
+    testObj.proxyServerJobService = proxyServerJobService;
     testObj.proxyServerService = proxyServerService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
@@ -119,7 +115,7 @@ suite(`ProxyServerService`, () => {
         testObj.outputModel6,
       ];
       testObj.proxyServerRepository.add.resolves([null, outputIpModel]);
-      testObj.jobService.add.resolves([new UnknownException()]);
+      testObj.proxyServerJobService.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.proxyServerService.add(inputModel);
 
@@ -127,7 +123,7 @@ suite(`ProxyServerService`, () => {
       testObj.proxyServerRepository.add.should.have.calledWith(
         sinon.match.array.and(sinon.match.has('length', 5)),
       );
-      testObj.jobService.add.should.have.callCount(1);
+      testObj.proxyServerJobService.add.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
@@ -143,7 +139,7 @@ suite(`ProxyServerService`, () => {
         testObj.outputModel6,
       ];
       testObj.proxyServerRepository.add.resolves([null, outputIpModel]);
-      testObj.jobService.add.resolves([null, testObj.identifierGenerator.generateId()]);
+      testObj.proxyServerJobService.add.resolves([null, testObj.identifierGenerator.generateId()]);
 
       const [error, result] = await testObj.proxyServerService.add(inputModel);
 
@@ -151,8 +147,8 @@ suite(`ProxyServerService`, () => {
       testObj.proxyServerRepository.add.should.have.calledWith(
         sinon.match.array.and(sinon.match.has('length', 5)),
       );
-      testObj.jobService.add.should.have.callCount(1);
-      testObj.jobService.add.should.have.calledWith(
+      testObj.proxyServerJobService.add.should.have.callCount(1);
+      testObj.proxyServerJobService.add.should.have.calledWith(
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('data', `${testObj.inputModel.ip}/${testObj.inputModel.mask}`))

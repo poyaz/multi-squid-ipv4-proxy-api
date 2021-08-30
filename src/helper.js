@@ -316,24 +316,13 @@ function fakeProxyServerService() {
 
   const proxyServerRepository = sinon.createStubInstance(IProxyServerRepository);
 
-  const proxyServerFileRepository = sinon.createStubInstance(IProxyServerRepository);
+  const proxyServerJobService = sinon.createStubInstance(IJobService);
 
-  const ipAddrRepository = sinon.createStubInstance(IProxyServerRepository);
-
-  const jobService = sinon.createStubInstance(IJobService);
-
-  const proxyServerService = new ProxyServerService(
-    proxyServerRepository,
-    proxyServerFileRepository,
-    ipAddrRepository,
-    jobService,
-  );
+  const proxyServerService = new ProxyServerService(proxyServerRepository, proxyServerJobService);
 
   return {
     proxyServerRepository,
-    proxyServerFileRepository,
-    ipAddrRepository,
-    jobService,
+    proxyServerJobService,
     proxyServerService,
   };
 }
