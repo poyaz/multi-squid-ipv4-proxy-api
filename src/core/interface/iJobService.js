@@ -1,0 +1,18 @@
+/**
+ * Created by pooya on 8/30/21.
+ */
+
+class IJobService {
+  /**
+   *
+   * @param {JobModel} model
+   * @return {Promise<(Error|JobModel)[]>}
+   */
+  async add(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+}
+
+module.exports = IJobService;

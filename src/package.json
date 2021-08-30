@@ -10,6 +10,7 @@
     "moment-timezone": "^0.5.32",
     "joi": "^17.4.2",
     "@joi/date": "^2.1.0",
+    "ip-addresses": "^1.0.0",
     "~src": "file:."
   },
   "devDependencies": {

@@ -309,6 +309,35 @@ function fakeProxyController(req, res) {
   };
 }
 
+function fakeProxyServerService() {
+  const IProxyServerRepository = require('~src/core/interface/iProxyServerRepository');
+  const IJobService = require('~src/core/interface/iJobService');
+  const ProxyServerService = require('~src/core/service/proxyServerService');
+
+  const proxyServerRepository = sinon.createStubInstance(IProxyServerRepository);
+
+  const proxyServerFileRepository = sinon.createStubInstance(IProxyServerRepository);
+
+  const ipAddrRepository = sinon.createStubInstance(IProxyServerRepository);
+
+  const jobService = sinon.createStubInstance(IJobService);
+
+  const proxyServerService = new ProxyServerService(
+    proxyServerRepository,
+    proxyServerFileRepository,
+    ipAddrRepository,
+    jobService,
+  );
+
+  return {
+    proxyServerRepository,
+    proxyServerFileRepository,
+    ipAddrRepository,
+    jobService,
+    proxyServerService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -330,4 +359,5 @@ module.exports = {
   fakeUrlAccessPgRepository,
   fakeGenerateProxyValidationMiddleware,
   fakeProxyController,
+  fakeProxyServerService,
 };
