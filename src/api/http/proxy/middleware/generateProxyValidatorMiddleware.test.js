@@ -83,12 +83,12 @@ suite(`GenerateProxyValidatorMiddleware`, () => {
       .and.have.property('httpCode', 400)
       .and.have.nested.property(
         'additionalInfo[0].message',
-        `"mask" must be less than or equal to 32`,
+        `"mask" must be less than or equal to 30`,
       );
   });
 
   test(`Should error for init proxy if gateway not exits`, async () => {
-    testObj.req.body = { ip: '192.168.1.2', mask: 32 };
+    testObj.req.body = { ip: '192.168.1.2', mask: 30 };
 
     const badCall = testObj.generateProxyValidatorMiddleware.act();
 
@@ -99,7 +99,7 @@ suite(`GenerateProxyValidatorMiddleware`, () => {
   });
 
   test(`Should error for init proxy if gateway not valid`, async () => {
-    testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: 'asdas' };
+    testObj.req.body = { ip: '192.168.1.2', mask: 30, gateway: 'asdas' };
 
     const badCall = testObj.generateProxyValidatorMiddleware.act();
 
@@ -113,7 +113,7 @@ suite(`GenerateProxyValidatorMiddleware`, () => {
   });
 
   test(`Should error for init proxy if interface not exist`, async () => {
-    testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1' };
+    testObj.req.body = { ip: '192.168.1.2', mask: 30, gateway: '192.168.1.1' };
 
     const badCall = testObj.generateProxyValidatorMiddleware.act();
 
@@ -124,7 +124,7 @@ suite(`GenerateProxyValidatorMiddleware`, () => {
   });
 
   test(`Should error for init proxy if interface empty`, async () => {
-    testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1', interface: '' };
+    testObj.req.body = { ip: '192.168.1.2', mask: 30, gateway: '192.168.1.1', interface: '' };
 
     const badCall = testObj.generateProxyValidatorMiddleware.act();
 
@@ -138,7 +138,7 @@ suite(`GenerateProxyValidatorMiddleware`, () => {
   });
 
   test(`Should successfully for init proxy`, async () => {
-    testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1', interface: 'ens192' };
+    testObj.req.body = { ip: '192.168.1.2', mask: 30, gateway: '192.168.1.1', interface: 'ens192' };
 
     await testObj.generateProxyValidatorMiddleware.act();
   });

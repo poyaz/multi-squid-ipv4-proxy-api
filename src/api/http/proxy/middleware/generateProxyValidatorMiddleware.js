@@ -25,7 +25,7 @@ class GenerateProxyValidatorMiddleware extends IHttpMiddleware {
     const ipPattern = Joi.string()
       .ip({ version: ['ipv4'] })
       .required();
-    const maskFormat = Joi.number().min(1).max(32);
+    const maskFormat = Joi.number().min(1).max(30);
 
     const schema = Joi.object({
       ip: ipPattern,
