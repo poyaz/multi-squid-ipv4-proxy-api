@@ -8,7 +8,7 @@ const IHttpMiddleware = require('~src/api/interface/iHttpMiddleware');
 
 const SchemaValidatorException = require('~src/core/exception/schemaValidatorException');
 
-class InitProxyValidatorMiddleware extends IHttpMiddleware {
+class GenerateProxyValidatorMiddleware extends IHttpMiddleware {
   #req;
   #res;
 
@@ -41,4 +41,4 @@ class InitProxyValidatorMiddleware extends IHttpMiddleware {
   }
 }
 
-module.exports = InitProxyValidatorMiddleware;
+module.exports = GenerateProxyValidatorMiddleware;

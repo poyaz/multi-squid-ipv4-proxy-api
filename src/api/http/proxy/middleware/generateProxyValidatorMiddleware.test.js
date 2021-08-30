@@ -24,23 +24,23 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 const testObj = {};
 
-suite(`InitProxyValidatorMiddleware`, () => {
+suite(`GenerateProxyValidatorMiddleware`, () => {
   setup(() => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const { initProxyValidatorMiddleware } = helper.fakeInitProxyValidationMiddleware(
+    const { generateProxyValidatorMiddleware } = helper.fakeGenerateProxyValidationMiddleware(
       testObj.req,
       testObj.res,
     );
 
-    testObj.initProxyValidatorMiddleware = initProxyValidatorMiddleware;
+    testObj.generateProxyValidatorMiddleware = generateProxyValidatorMiddleware;
   });
 
   test(`Should error for init proxy if send empty body`, async () => {
     testObj.req.body = {};
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -51,7 +51,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if ip invalid`, async () => {
     testObj.req.body = { ip: 'my$username|' };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -65,7 +65,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if mask not exist`, async () => {
     testObj.req.body = { ip: '192.168.1.2' };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -76,7 +76,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if mask invalid`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 33 };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -90,7 +90,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if gateway not exits`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 32 };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -101,7 +101,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if gateway not valid`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: 'asdas' };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -115,7 +115,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if interface not exist`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1' };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -126,7 +126,7 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should error for init proxy if interface empty`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1', interface: '' };
 
-    const badCall = testObj.initProxyValidatorMiddleware.act();
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
 
     await expect(badCall)
       .to.eventually.have.rejectedWith(SchemaValidatorException)
@@ -140,6 +140,6 @@ suite(`InitProxyValidatorMiddleware`, () => {
   test(`Should successfully for init proxy`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1', interface: 'ens192' };
 
-    await testObj.initProxyValidatorMiddleware.act();
+    await testObj.generateProxyValidatorMiddleware.act();
   });
 });
