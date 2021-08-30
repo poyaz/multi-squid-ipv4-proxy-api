@@ -234,4 +234,33 @@ suite(`ProxyServerRepository`, () => {
       });
     });
   });
+
+  suite(`Active ip range`, () => {
+    test(`Should error active ip range when fetch from database`, async () => {
+      const inputIpWithMask = '192.168.1.0/29';
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.proxyServerRepository.activeIpMask(inputIpWithMask);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully active ip range`, async () => {
+      const inputIpWithMask = '192.168.1.0/29';
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.proxyServerRepository.activeIpMask(inputIpWithMask);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([inputIpWithMask])),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

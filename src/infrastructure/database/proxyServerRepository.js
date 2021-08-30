@@ -101,6 +101,27 @@ class ProxyServerRepository extends IProxyServerRepository {
     }
   }
 
+  async activeIpMask(ipWithMask) {
+    const updateQuery = {
+      text: singleLine`
+          UPDATE public.bind_address
+          SET is_enable = true
+          WHERE delete_date ISNULL
+            AND is_enable = false
+            AND ip ::inet << inet $1
+      `,
+      values: [ipWithMask],
+    };
+
+    try {
+      await this.#db.query(updateQuery);
+
+      return [null];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new IpAddressModel();
     model.id = row['id'];
