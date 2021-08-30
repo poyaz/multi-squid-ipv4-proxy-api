@@ -356,6 +356,27 @@ function fakeProxyServerJobService() {
   };
 }
 
+function fakeProxyServerPgRepository() {
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const ProxyServerRepository = require('~src/infrastructure/database/proxyServerRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = new DateTime();
+
+  const proxyServerRepository = new ProxyServerRepository(
+    postgresDb,
+    dateTime,
+    identifierGenerator,
+  );
+
+  return { postgresDb, identifierGenerator, proxyServerRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -379,4 +400,5 @@ module.exports = {
   fakeProxyController,
   fakeProxyServerService,
   fakeProxyServerJobService,
+  fakeProxyServerPgRepository,
 };

@@ -4,6 +4,8 @@ create table bind_address
     interface   varchar(100),
     ip          varchar(100),
     port        int,
+    gateway     varchar(100),
+    is_enable   boolean default false,
     insert_date timestamp without time zone,
     update_date timestamp without time zone,
     delete_date timestamp without time zone
