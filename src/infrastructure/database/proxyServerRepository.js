@@ -62,6 +62,35 @@ class ProxyServerRepository extends IProxyServerRepository {
     }
   }
 
+  async getAll() {
+    const fetchQuery = {
+      text: singleLine`
+          SELECT id,
+                 interface,
+                 ip,
+                 port,
+                 gateway
+          FROM public.bind_address
+          WHERE delete_date ISNULL
+            AND is_enable = true
+      `,
+      values: [],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(fetchQuery);
+      if (rowCount === 0) {
+        return [null, []];
+      }
+
+      const result = rows.map((v) => this._fillModel(v));
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async add(models) {
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
 

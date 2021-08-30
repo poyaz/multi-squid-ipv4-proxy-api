@@ -126,6 +126,81 @@ suite(`ProxyServerRepository`, () => {
     });
   });
 
+  suite(`Get all`, () => {
+    test(`Should error get all ip list when fetch from database`, async () => {
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.proxyServerRepository.getAll();
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get all ip list return null`, async () => {
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.proxyServerRepository.getAll();
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([])),
+      );
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should successfully get all ip list`, async () => {
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              interface: 'ens192',
+              ip: '192.168.1.1',
+              port: 8080,
+              gateway: '192.168.1.3',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.proxyServerRepository.getAll();
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(IpAddressModel);
+      expect(result[0]).to.be.includes({
+        id: testObj.identifierGenerator.generateId(),
+        interface: 'ens192',
+        ip: '192.168.1.1',
+        port: 8080,
+        gateway: '192.168.1.3',
+      });
+    });
+  });
+
   suite(`Add ip list by range`, () => {
     setup(() => {
       const inputIpModel1 = new IpAddressModel();
