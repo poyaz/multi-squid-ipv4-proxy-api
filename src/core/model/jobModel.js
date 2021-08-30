@@ -16,6 +16,10 @@ class JobModel {
   totalRecordExist = undefined;
   totalRecordError = undefined;
   insertDate = undefined;
+
+  clone() {
+    return Object.assign(Object.create(this), this);
+  }
 }
 
 module.exports = JobModel;

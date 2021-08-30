@@ -5,8 +5,19 @@
 class IProxyServerRepository {
   /**
    *
+   * @param {string} ipWithMask
+   * @return {Promise<(Error|JobModel)[]>}
+   */
+  async getByIpMask(ipWithMask) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { ipWithMask };
+    throw error;
+  }
+
+  /**
+   *
    * @param {Array<IpAddressModel>} model
-   * @return {Promise<(Error|IpAddressModel)[]>}
+   * @return {Promise<(Error|Array<IpAddressModel>)[]>}
    */
   async add(model) {
     const error = new Error('The method has to be overridden by subclasses.');
