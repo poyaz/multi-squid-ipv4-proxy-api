@@ -284,12 +284,29 @@ function fakeUrlAccessPgRepository() {
   return { postgresDb, identifierGenerator, urlAccessPgRepository };
 }
 
-function fakeInitProxyValidationMiddleware(req, res) {
-  const InitProxyValidatorMiddleware = require('~src/api/http/proxy/middleware/initProxyValidatorMiddleware');
+function fakeGenerateProxyValidationMiddleware(req, res) {
+  const GenerateProxyValidatorMiddleware = require('~src/api/http/proxy/middleware/generateProxyValidatorMiddleware');
 
-  const initProxyValidatorMiddleware = new InitProxyValidatorMiddleware(req, res);
+  const generateProxyValidatorMiddleware = new GenerateProxyValidatorMiddleware(req, res);
 
-  return { initProxyValidatorMiddleware };
+  return { generateProxyValidatorMiddleware };
+}
+
+function fakeProxyController(req, res) {
+  const IProxyServerService = require('~src/core/interface/iProxyServerService');
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const ProxyController = require('~src/api/http/proxy/controller/proxyController');
+
+  const proxyServerService = sinon.createStubInstance(IProxyServerService);
+
+  const dateTime = new DateTime();
+
+  const proxyController = new ProxyController(req, res, proxyServerService, dateTime);
+
+  return {
+    proxyServerService,
+    proxyController,
+  };
 }
 
 module.exports = {
@@ -311,5 +328,6 @@ module.exports = {
   fakePackageFileRepository,
   fakeUrlAccessService,
   fakeUrlAccessPgRepository,
-  fakeInitProxyValidationMiddleware,
+  fakeGenerateProxyValidationMiddleware,
+  fakeProxyController,
 };
