@@ -11,6 +11,7 @@
     "joi": "^17.4.2",
     "@joi/date": "^2.1.0",
     "ip-addresses": "^1.0.0",
+    "dockerode": "^3.2.1",
     "~src": "file:."
   },
   "devDependencies": {

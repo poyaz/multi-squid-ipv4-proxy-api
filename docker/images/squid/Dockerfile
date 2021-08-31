@@ -4,4 +4,4 @@ RUN apk add --no-cache bash apache2-utils squid=4.15-r0 jq curl
 
 VOLUME /etc/squid/
 
-CMD squid -d 1 --foreground -f /etc/squid/squid.conf
+CMD "[ -f $SQUID_BLOCK_URL_BASH ] && chmod +x $SQUID_BLOCK_URL_BASH; squid -d 1 --foreground -f /etc/squid/squid.conf"

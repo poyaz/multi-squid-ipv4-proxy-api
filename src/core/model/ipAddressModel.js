@@ -23,6 +23,10 @@ class IpAddressModel {
   insertDate = undefined;
   updateDate = undefined;
   deleteDate = undefined;
+
+  clone() {
+    return Object.assign(Object.create(this), this);
+  }
 }
 
 module.exports = IpAddressModel;

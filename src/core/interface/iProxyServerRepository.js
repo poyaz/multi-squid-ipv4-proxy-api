@@ -26,12 +26,12 @@ class IProxyServerRepository {
 
   /**
    *
-   * @param {Array<IpAddressModel>} model
+   * @param {Array<IpAddressModel>} models
    * @return {Promise<(Error|Array<IpAddressModel>)[]>}
    */
-  async add(model) {
+  async add(models) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { model };
+    error['args'] = { models };
     throw error;
   }
 

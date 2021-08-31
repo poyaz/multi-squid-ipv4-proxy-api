@@ -42,6 +42,17 @@ services:
         ipv4_address: 10.102.0.4
     restart: "always"
 
+  build-squid-image:
+    build:
+      context: ./docker/images/squid
+      dockerfile: Dockerfile
+    image: multi-squid-ipv4-proxy-api:latest
+    networks:
+      main:
+        ipv4_address: 10.102.0.5
+    restart: "no"
+    command: /bin/sh -c "sleep 1; exit"
+
 volumes:
   postgres-storage:
 

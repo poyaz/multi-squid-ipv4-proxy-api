@@ -377,6 +377,37 @@ function fakeProxyServerPgRepository() {
   return { postgresDb, identifierGenerator, proxyServerRepository };
 }
 
+function fakeProxyFileServerPgRepository(ipCountPerInstance) {
+  const Docker = require('dockerode');
+  const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
+
+  const defaultSquidConfigFolder = '/tmp/config';
+  const squidPasswordFile = 'storage/template/squid/squid-pwd.htpasswd';
+  const squidIpAccessFile = 'storage/template/squid/squid-user-ip.conf';
+  const squidIpAccessBashFile = 'storage/scripts/squid-block-domain.sh';
+  const squidVolumePerInstanceFolder = '/tmp/squid';
+  const apiUrl = 'http://127.0.0.1:3000';
+  const apiToken = 'Bearer my-token';
+
+  //const docker = new Docker({ host: '10.102.0.4', port: 2375 });
+  const docker = sinon.createStubInstance(Docker);
+  const container = sinon.createStubInstance(Docker.Container);
+
+  const squidServerRepository = new SquidServerRepository(
+    docker,
+    defaultSquidConfigFolder,
+    squidPasswordFile,
+    squidIpAccessFile,
+    squidIpAccessBashFile,
+    squidVolumePerInstanceFolder,
+    ipCountPerInstance,
+    apiUrl,
+    apiToken,
+  );
+
+  return { docker, container, squidServerRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -401,4 +432,5 @@ module.exports = {
   fakeProxyServerService,
   fakeProxyServerJobService,
   fakeProxyServerPgRepository,
+  fakeProxyFileServerPgRepository,
 };
