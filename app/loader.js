@@ -11,23 +11,37 @@ const CliApi = require('./bootstrap/api/cliApi');
 const PgDb = require('./bootstrap/db/pgDb');
 const FileUtil = require('./bootstrap/util/fileUtil');
 const JwtUtil = require('./bootstrap/util/jwtUtil');
+const DockerUtil = require('./bootstrap/util/dockerUtil');
 
 const DateTime = require('~src/infrastructure/system/dateTime');
 const IdentifierGenerator = require('~src/infrastructure/system/identifierGenerator');
 
-const PackageFileRepository = require('~src/infrastructure/system/packageFileRepository');
-const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
+const JobRepository = require('~src/infrastructure/database/jobRepository');
 const PackagePgRepository = require('~src/infrastructure/database/packagePgRepository');
+const ProxyServerRepository = require('~src/infrastructure/database/proxyServerRepository');
 const UrlAccessPgRepository = require('~src/infrastructure/database/urlAccessPgRepository');
 const UserPgRepository = require('~src/infrastructure/database/userPgRepository');
 
+const IpAddrRepository = require('~src/infrastructure/system/ipAddrRepository');
+const PackageFileRepository = require('~src/infrastructure/system/packageFileRepository');
+const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
+const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
+
+const JobService = require('~src/core/service/jobService');
 const PackageService = require('~src/core/service/packageService');
+const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
+const ProxyServerService = require('~src/core/service/proxyServerService');
 const UrlAccessService = require('~src/core/service/urlAccessService');
 const UserService = require('~src/core/service/userService');
+
+const JobControllerFactory = require('~src/api/http/job/controller/jobControllerFactory');
 
 const CreatePackageValidationMiddlewareFactory = require('~src/api/http/package/middleware/createPackageValidationMiddlewareFactory');
 const RenewPackageValidatorMiddlewareFactory = require('~src/api/http/package/middleware/renewPackageValidatorMiddlewareFactory');
 const PackageControllerFactory = require('~src/api/http/package/controller/packageControllerFactory');
+
+const GenerateProxyValidatorMiddlewareFactory = require('~src/api/http/proxy/middleware/generateProxyValidatorMiddlewareFactory');
+const ProxyControllerFactory = require('~src/api/http/proxy/controller/proxyControllerFactory');
 
 const AddUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/addUserValidationMiddlewareFactory');
 const BlockUrlForUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/blockUrlForUserValidationMiddlewareFactory');
@@ -51,43 +65,85 @@ class Loader {
       this._cluster();
     }
 
-    const { squidPasswordFile, squidIpAccessFile } = await this._fileLocation();
+    const {
+      squidVolumeFolder,
+      squidPasswordFile,
+      squidIpAccessFile,
+      squidIpAccessBashFile,
+      squidConfFolder,
+    } = await this._fileLocation();
     const { pgDb } = await this._db();
     const { jwt } = await this._jwt();
+    const { docker } = await this._docker();
 
     const identifierGenerator = new IdentifierGenerator();
     const dateTime = new DateTime();
 
+    const httpPublicApiHostConfig = this._config.getStr('server.public.host');
+    const httpPublicApiPortConfig = this._config.getNum('server.public.http.port');
+    const httpApiUrlConfig = `http://:${httpPublicApiHostConfig}:${httpPublicApiPortConfig}`;
+    const squidPerIpInstanceConfig = this._config.getNum('custom.squid.perIpInstance');
+    const squidScriptApiTokenConfig = this._config.getStr('custom.squid.scriptApiToken');
+
     // Repository
     // ----------
 
+    const ipAddrRepository = new IpAddrRepository();
     const packageFileRepository = new PackageFileRepository(squidIpAccessFile);
+    const squidServerRepository = new SquidServerRepository(
+      docker,
+      squidConfFolder,
+      squidPasswordFile,
+      squidIpAccessFile,
+      squidIpAccessBashFile,
+      squidVolumeFolder,
+      squidPerIpInstanceConfig,
+      httpApiUrlConfig,
+      squidScriptApiTokenConfig,
+    );
     const userSquidRepository = new UserSquidRepository(squidPasswordFile);
 
+    const jobRepository = new JobRepository(pgDb, dateTime, identifierGenerator);
     const packagePgRepository = new PackagePgRepository(pgDb, dateTime, identifierGenerator);
+    const proxyServerRepository = new ProxyServerRepository(pgDb, dateTime, identifierGenerator);
     const urlAccessPgRepository = new UrlAccessPgRepository(pgDb, dateTime, identifierGenerator);
     const userPgRepository = new UserPgRepository(pgDb, dateTime, identifierGenerator);
 
     // Service
     // -------
 
+    const jobService = new JobService(jobRepository);
     const userService = new UserService(userPgRepository, userSquidRepository);
     const packageService = new PackageService(
       userService,
       packagePgRepository,
       packageFileRepository,
-      null,
+      squidServerRepository,
     );
     const urlAccessService = new UrlAccessService(userService, urlAccessPgRepository);
+    const proxyServerJobService = new ProxyServerJobService(
+      jobRepository,
+      proxyServerRepository,
+      squidServerRepository,
+      ipAddrRepository,
+    );
+    const proxyServerService = new ProxyServerService(proxyServerRepository, proxyServerJobService);
 
     // Controller and middleware
     // -------------------------
+
+    const jobControllerFactory = new JobControllerFactory(jobService, dateTime);
 
     const packageMiddlewares = {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
       renewPackageValidator: new RenewPackageValidatorMiddlewareFactory(),
     };
     const packageControllerFactory = new PackageControllerFactory(packageService, dateTime);
+
+    const proxyMiddleware = {
+      generateProxyValidation: new GenerateProxyValidatorMiddlewareFactory(),
+    };
+    const proxyControllerFactory = new ProxyControllerFactory(proxyServerService, dateTime);
 
     const userMiddlewares = {
       addUserValidation: new AddUserValidationMiddlewareFactory(),
@@ -107,10 +163,19 @@ class Loader {
     this._dependency.identifierGenerator = identifierGenerator;
     this._dependency.dateTime = dateTime;
 
+    this._dependency.jobHttpApi = {
+      jobControllerFactory,
+    };
+
     this._dependency.packageHttpApi = {
       createPackageValidationMiddlewareFactory: packageMiddlewares.createPackageValidation,
       renewPackageValidatorMiddlewareFactory: packageMiddlewares.renewPackageValidator,
       packageControllerFactory,
+    };
+
+    this._dependency.proxyHttpApi = {
+      generateProxyValidatorMiddlewareFactory: proxyMiddleware.generateProxyValidation,
+      proxyControllerFactory,
     };
 
     this._dependency.userHttpApi = {
@@ -178,9 +243,27 @@ class Loader {
 
   async _fileLocation() {
     const file = new FileUtil(this._config, this._options, {});
-    const { squidPasswordFile, squidIpAccessFile } = await file.start();
+    const {
+      squidVolumeFolder,
+      squidPasswordFile,
+      squidIpAccessFile,
+      squidIpAccessBashFile,
+      squidConfFolder,
+    } = await file.start();
 
-    return { squidPasswordFile, squidIpAccessFile };
+    return {
+      squidVolumeFolder,
+      squidPasswordFile,
+      squidIpAccessFile,
+      squidIpAccessBashFile,
+      squidConfFolder,
+    };
+  }
+
+  async _docker() {
+    const docker = new DockerUtil(this._config, this._options, {});
+
+    return { docker: await docker.start() };
   }
 }
 

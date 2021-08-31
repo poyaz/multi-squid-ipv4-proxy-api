@@ -72,8 +72,25 @@ class ExpressApi extends IRunner {
       }
     });
 
+    this._jobRoute();
     this._userRoute();
     this._packageRoute();
+    this._proxyRoute();
+  }
+
+  _jobRoute() {
+    const jobHttpApi = this._dependency.jobHttpApi;
+
+    router.get('/v1/job/:jobId', async (req, res, next) => {
+      try {
+        const jobController = jobHttpApi.jobControllerFactory.create(req, res);
+        const response = await jobController.getJobByid();
+
+        this._sendResponse(req, res, response);
+      } catch (error) {
+        return next(error);
+      }
+    });
   }
 
   _userRoute() {
@@ -254,6 +271,33 @@ class ExpressApi extends IRunner {
         try {
           const packageController = packageHttpApi.packageControllerFactory.create(req, res);
           const response = await packageController.renewPackage();
+
+          this._sendResponse(req, res, response);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+  }
+
+  _proxyRoute() {
+    const proxyHttpApi = this._dependency.proxyHttpApi;
+
+    router.post(
+      '/v1/proxy/generate',
+      async (req, res, next) => {
+        try {
+          const middleware = proxyHttpApi.generateProxyValidatorMiddlewareFactory.create(req, res);
+
+          await middleware.act();
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
+          const response = await proxyController.generateIp();
 
           this._sendResponse(req, res, response);
         } catch (error) {

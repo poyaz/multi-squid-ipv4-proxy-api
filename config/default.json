@@ -42,9 +42,18 @@
     }
   },
   "custom": {
+    "squid": {
+      "perIpInstance": 100,
+      "scriptApiToken": ""
+    },
     "timezone": {
       "locales": "en",
       "zone": "US/Eastern"
+    },
+    "docker": {
+      "protocol": "http",
+      "url": "",
+      "port": 2375
     },
     "jwt": {
       "type": "default",

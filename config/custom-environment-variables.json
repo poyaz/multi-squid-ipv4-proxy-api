@@ -41,9 +41,18 @@
     }
   },
   "custom": {
+    "squid": {
+      "perIpInstance": "SQUID_PER_IP_INSTANCE",
+      "scriptApiToken": "SQUID_SCRIPT_API_TOKEN"
+    },
     "timezone": {
       "locales": "TIMEZONE_LOCALES",
       "zone": "TIMEZONE_ZONE"
+    },
+    "docker": {
+      "protocol": "DOCKER_PROTOCOL",
+      "host": "DOCKER_HOST",
+      "port": "DOCKER_PORT"
     },
     "jwt": {
       "type": "JWT_TYPE",

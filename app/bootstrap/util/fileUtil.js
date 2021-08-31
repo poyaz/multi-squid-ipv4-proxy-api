@@ -26,8 +26,11 @@ class FileUtil extends IRunner {
 
     this._templateFolder = `${this._cwd}${path.sep}storage${path.sep}temp${path.sep}template`;
     this._templateSquidFolder = `${this._cwd}${path.sep}storage${path.sep}temp${path.sep}template${path.sep}squid`;
+    this._templateSquidConfFolder = `${this._cwd}${path.sep}storage${path.sep}defaultSquidConf`;
+    this._squidVolumeFolder = `${this._cwd}${path.sep}storage${path.sep}temp${path.sep}squidVolume`;
     this._squidPasswordFile = `${this._cwd}${path.sep}storage${path.sep}temp${path.sep}template${path.sep}squid${path.sep}squid-pwd.htpasswd`;
     this._squidIpAccessFile = `${this._cwd}${path.sep}storage${path.sep}temp${path.sep}template${path.sep}squid${path.sep}squid-user-ip.conf`;
+    this._squidIpAccessBashFile = `${this._cwd}${path.sep}storage${path.sep}scripts${path.sep}squid-block-domain.sh`;
   }
 
   async start() {
@@ -40,6 +43,11 @@ class FileUtil extends IRunner {
       const checkTemplateSquidFolderExist = await this._checkFolderExist(this._templateSquidFolder);
       if (!checkTemplateSquidFolderExist) {
         await fsAsync.mkdir(this._templateSquidFolder);
+      }
+
+      const checkSquidVolumeFolderExist = await this._checkFolderExist(this._squidVolumeFolder);
+      if (!checkSquidVolumeFolderExist) {
+        await fsAsync.mkdir(this._squidVolumeFolder);
       }
 
       const checkSquidPasswordFileExist = await this._checkFolderExist(this._squidPasswordFile);
@@ -56,8 +64,11 @@ class FileUtil extends IRunner {
     }
 
     return {
+      squidVolumeFolder: this._squidVolumeFolder,
       squidPasswordFile: this._squidPasswordFile,
       squidIpAccessFile: this._squidIpAccessFile,
+      squidIpAccessBashFile: this._squidIpAccessBashFile,
+      squidConfFolder: this._templateSquidConfFolder,
     };
   }
 

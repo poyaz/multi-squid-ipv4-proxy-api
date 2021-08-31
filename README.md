@@ -9,7 +9,7 @@ For generate new IP address you should use this API. If your ip range exist, thi
 
 * Method: `POST`
 * URL: `api/v1/proxy/generate`
-* Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>"}`
+* Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>"}`
 
 ```bash
 curl \
@@ -17,7 +17,7 @@ curl \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/proxy/generate' \
-  -d '{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>"}'
+  -d '{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>"}'
 ```
 
 ### Example:
@@ -28,7 +28,7 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/proxy/generate' \
-    -d '{"ip": "192.168.1.1", "mask": 24, "gateway": "192.168.1.224"}'
+    -d '{"ip": "192.168.1.1", "mask": 24, "gateway": "192.168.1.224", "interface": "ens192"}'
 ```
 
 ### Output:
@@ -87,76 +87,6 @@ curl \
     // total record has been error
     "totalRecordError": 0
   }
-}
-```
-
-## Init proxy
-
-After generate IP address and finish job, you should start or init proxy server
-
-### Information:
-
-* Method: `GET`
-* URL: `api/v1/proxy/init`
-
-```bash
-curl \
-  -X GET \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
-  '<your-hostname-or-ip>/api/v1/proxy/init'
-```
-
-### Example:
-
-```bash
-curl \
-    -X GET \
-    -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/proxy/init'
-```
-
-### Output:
-
-```json5
-{
-  "status": "success"
-}
-```
-
-## Stop proxy
-
-If you want stop all proxy, use this API
-
-### Information:
-
-* Method: `GET`
-* URL: `api/v1/proxy/stop`
-
-```bash
-curl \
-  -X GET \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
-  '<your-hostname-or-ip>/api/v1/proxy/stop'
-```
-
-### Example:
-
-```bash
-curl \
-    -X GET \
-    -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/proxy/stop'
-```
-
-### Output:
-
-```json5
-{
-  "status": "success"
 }
 ```
 
