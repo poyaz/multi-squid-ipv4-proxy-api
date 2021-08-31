@@ -432,6 +432,20 @@ function fakeJobPgRepository() {
   return { postgresDb, identifierGenerator, jobRepository };
 }
 
+function fakeJobService() {
+  const IJobRepository = require('~src/core/interface/iJobRepository');
+  const JobService = require('~src/core/service/jobService');
+
+  const jobRepository = sinon.createStubInstance(IJobRepository);
+
+  const jobService = new JobService(jobRepository);
+
+  return {
+    jobRepository,
+    jobService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -459,4 +473,5 @@ module.exports = {
   fakeProxyFileServerPgRepository,
   fakeIpAddrRepository,
   fakeJobPgRepository,
+  fakeJobService,
 };
