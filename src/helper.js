@@ -389,7 +389,6 @@ function fakeProxyFileServerPgRepository(ipCountPerInstance) {
   const apiUrl = 'http://127.0.0.1:3000';
   const apiToken = 'Bearer my-token';
 
-  //const docker = new Docker({ host: '10.102.0.4', port: 2375 });
   const docker = sinon.createStubInstance(Docker);
   const container = sinon.createStubInstance(Docker.Container);
 
@@ -406,6 +405,14 @@ function fakeProxyFileServerPgRepository(ipCountPerInstance) {
   );
 
   return { docker, container, squidServerRepository };
+}
+
+function fakeIpAddrRepository() {
+  const IpAddrRepository = require('~src/infrastructure/system/ipAddrRepository');
+
+  const ipAddrRepository = new IpAddrRepository();
+
+  return { ipAddrRepository };
 }
 
 module.exports = {
@@ -433,4 +440,5 @@ module.exports = {
   fakeProxyServerJobService,
   fakeProxyServerPgRepository,
   fakeProxyFileServerPgRepository,
+  fakeIpAddrRepository,
 };
