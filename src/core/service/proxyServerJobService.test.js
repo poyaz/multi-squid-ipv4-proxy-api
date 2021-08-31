@@ -12,9 +12,6 @@ const helper = require('~src/helper');
 const IpAddressModel = require('~src/core/model/ipAddressModel');
 const JobModel = require('~src/core/model/jobModel');
 const UnknownException = require('~src/core/exception/unknownException');
-const NotFoundException = require('~src/core/exception/notFoundException');
-const ExpireDateException = require('~src/core/exception/expireDateException');
-const DisableUserException = require('~src/core/exception/disableUserException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -210,6 +207,7 @@ suite(`ProxyServerJobService`, () => {
 
       testObj.proxyServerRepository.getByIpMask.should.have.callCount(1);
       testObj.ipAddrRepository.add.should.have.callCount(5);
+      testObj.ipAddrRepository.add.should.have.calledWith(sinon.match.hasNested('0.mask', 29));
       testObj.jobRepository.update.should.have.callCount(1);
       testObj.jobRepository.update.should.have.calledWith(
         sinon.match
@@ -231,24 +229,25 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel5,
       ];
       testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
-      testObj.ipAddrRepository.add.onCall(0).resolves([null]);
+      testObj.ipAddrRepository.add.onCall(0).resolves([null, []]);
       testObj.ipAddrRepository.add.onCall(1).resolves([new UnknownException()]);
-      testObj.ipAddrRepository.add.onCall(2).resolves([null]);
+      testObj.ipAddrRepository.add.onCall(2).resolves([null, [testObj.outputIpModel2]]);
       testObj.ipAddrRepository.add.onCall(3).resolves([new UnknownException()]);
-      testObj.ipAddrRepository.add.onCall(4).resolves([null]);
+      testObj.ipAddrRepository.add.onCall(4).resolves([null, []]);
       testObj.jobRepository.update.resolves([null]);
 
       await testObj.proxyServerJobService.execute(inputModel);
 
       testObj.proxyServerRepository.getByIpMask.should.have.callCount(1);
       testObj.ipAddrRepository.add.should.have.callCount(5);
+      testObj.ipAddrRepository.add.should.have.calledWith(sinon.match.hasNested('0.mask', 29));
       testObj.jobRepository.update.should.have.callCount(1);
       testObj.jobRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('status', JobModel.STATUS_FAIL))
-          .and(sinon.match.has('totalRecordAdd', 3))
-          .and(sinon.match.has('totalRecordExist', 0))
+          .and(sinon.match.has('totalRecordAdd', 1))
+          .and(sinon.match.has('totalRecordExist', 2))
           .and(sinon.match.has('totalRecordError', 2)),
       );
     });
@@ -263,7 +262,7 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel5,
       ];
       testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
-      testObj.ipAddrRepository.add.resolves([null]);
+      testObj.ipAddrRepository.add.resolves([null, []]);
       testObj.proxyServerRepository.activeIpMask.resolves([new UnknownException()]);
       testObj.jobRepository.update.resolves([null]);
 
@@ -271,14 +270,15 @@ suite(`ProxyServerJobService`, () => {
 
       testObj.proxyServerRepository.getByIpMask.should.have.callCount(1);
       testObj.ipAddrRepository.add.should.have.callCount(5);
+      testObj.ipAddrRepository.add.should.have.calledWith(sinon.match.hasNested('0.mask', 29));
       testObj.proxyServerRepository.activeIpMask.should.have.callCount(1);
       testObj.jobRepository.update.should.have.callCount(1);
       testObj.jobRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('status', JobModel.STATUS_FAIL))
-          .and(sinon.match.has('totalRecordAdd', 5))
-          .and(sinon.match.has('totalRecordExist', 0))
+          .and(sinon.match.has('totalRecordAdd', 0))
+          .and(sinon.match.has('totalRecordExist', 5))
           .and(sinon.match.has('totalRecordError', 0)),
       );
     });
@@ -293,7 +293,7 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel5,
       ];
       testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
-      testObj.ipAddrRepository.add.resolves([null]);
+      testObj.ipAddrRepository.add.resolves([null, []]);
       testObj.proxyServerRepository.activeIpMask.resolves([null]);
       testObj.proxyServerRepository.getAll.resolves([new UnknownException()]);
       testObj.jobRepository.update.resolves([null]);
@@ -302,6 +302,7 @@ suite(`ProxyServerJobService`, () => {
 
       testObj.proxyServerRepository.getByIpMask.should.have.callCount(1);
       testObj.ipAddrRepository.add.should.have.callCount(5);
+      testObj.ipAddrRepository.add.should.have.calledWith(sinon.match.hasNested('0.mask', 29));
       testObj.proxyServerRepository.activeIpMask.should.have.callCount(1);
       testObj.proxyServerRepository.getAll.should.have.callCount(1);
       testObj.jobRepository.update.should.have.callCount(1);
@@ -309,8 +310,8 @@ suite(`ProxyServerJobService`, () => {
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('status', JobModel.STATUS_FAIL))
-          .and(sinon.match.has('totalRecordAdd', 5))
-          .and(sinon.match.has('totalRecordExist', 0))
+          .and(sinon.match.has('totalRecordAdd', 0))
+          .and(sinon.match.has('totalRecordExist', 5))
           .and(sinon.match.has('totalRecordError', 0)),
       );
     });
@@ -325,7 +326,7 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel5,
       ];
       testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
-      testObj.ipAddrRepository.add.resolves([null]);
+      testObj.ipAddrRepository.add.resolves([null, []]);
       testObj.proxyServerRepository.activeIpMask.resolves([null]);
       testObj.proxyServerRepository.getAll.resolves([null, outputIpModelList]);
       testObj.proxyServerFileRepository.add.resolves([new UnknownException()]);
@@ -335,6 +336,7 @@ suite(`ProxyServerJobService`, () => {
 
       testObj.proxyServerRepository.getByIpMask.should.have.callCount(1);
       testObj.ipAddrRepository.add.should.have.callCount(5);
+      testObj.ipAddrRepository.add.should.have.calledWith(sinon.match.hasNested('0.mask', 29));
       testObj.proxyServerRepository.activeIpMask.should.have.callCount(1);
       testObj.proxyServerRepository.getAll.should.have.callCount(1);
       testObj.proxyServerFileRepository.add.should.have.callCount(1);
@@ -343,8 +345,8 @@ suite(`ProxyServerJobService`, () => {
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('status', JobModel.STATUS_FAIL))
-          .and(sinon.match.has('totalRecordAdd', 5))
-          .and(sinon.match.has('totalRecordExist', 0))
+          .and(sinon.match.has('totalRecordAdd', 0))
+          .and(sinon.match.has('totalRecordExist', 5))
           .and(sinon.match.has('totalRecordError', 0)),
       );
     });
@@ -359,7 +361,7 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel5,
       ];
       testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
-      testObj.ipAddrRepository.add.resolves([null]);
+      testObj.ipAddrRepository.add.resolves([null, []]);
       testObj.proxyServerRepository.activeIpMask.resolves([null]);
       testObj.proxyServerRepository.getAll.resolves([null, outputIpModelList]);
       testObj.proxyServerFileRepository.add.resolves([null]);
@@ -369,6 +371,7 @@ suite(`ProxyServerJobService`, () => {
 
       testObj.proxyServerRepository.getByIpMask.should.have.callCount(1);
       testObj.ipAddrRepository.add.should.have.callCount(5);
+      testObj.ipAddrRepository.add.should.have.calledWith(sinon.match.hasNested('0.mask', 29));
       testObj.proxyServerRepository.activeIpMask.should.have.callCount(1);
       testObj.proxyServerRepository.getAll.should.have.callCount(1);
       testObj.proxyServerFileRepository.add.should.have.callCount(1);
@@ -377,8 +380,8 @@ suite(`ProxyServerJobService`, () => {
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('status', JobModel.STATUS_SUCCESS))
-          .and(sinon.match.has('totalRecordAdd', 5))
-          .and(sinon.match.has('totalRecordExist', 0))
+          .and(sinon.match.has('totalRecordAdd', 0))
+          .and(sinon.match.has('totalRecordExist', 5))
           .and(sinon.match.has('totalRecordError', 0)),
       );
     });

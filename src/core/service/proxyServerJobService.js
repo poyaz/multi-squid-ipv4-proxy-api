@@ -64,46 +64,56 @@ class ProxyServerJobService extends IJobService {
     }
 
     let totalAdd = 0;
+    let totalExist = 0;
     let totalError = 0;
     let lastErrorCatch = null;
 
-    const tasks = fetchIpList.map((v) => this.#ipAddrRepository.add(new Array(v)));
+    const globalIpMask = Number(model.data.split('/')[1]);
+    fetchIpList.map((v) => (v.mask = globalIpMask));
+
+    const tasks = fetchIpList
+      .map((v) => new Array(1).fill(v))
+      .map((v) => this.#ipAddrRepository.add(v));
     const executeTasks = await Promise.all(tasks);
 
-    for (const [errorAddIp] of executeTasks) {
-      if (errorAddIp) {
-        lastErrorCatch = errorAddIp;
+    for (const [addIpError, addIpData] of executeTasks) {
+      if (addIpError) {
+        lastErrorCatch = addIpError;
         totalError++;
         continue;
       }
 
-      totalAdd++;
+      if (addIpData.length > 0) {
+        totalAdd++;
+      } else {
+        totalExist++;
+      }
     }
 
     if (totalError > 0) {
-      await this._updateJobStatus(lastErrorCatch, model, totalAdd, 0, totalError);
+      await this._updateJobStatus(lastErrorCatch, model, totalAdd, totalExist, totalError);
       return;
     }
 
     const [activeIpMaskError] = await this.#proxyServerRepository.activeIpMask(model.data);
     if (activeIpMaskError) {
-      await this._updateJobStatus(activeIpMaskError, model, totalAdd, 0, totalError);
+      await this._updateJobStatus(activeIpMaskError, model, totalAdd, totalExist, totalError);
       return;
     }
 
     const [allIpListError, allIpList] = await this.#proxyServerRepository.getAll();
     if (allIpListError) {
-      await this._updateJobStatus(allIpListError, model, totalAdd, 0, totalError);
+      await this._updateJobStatus(allIpListError, model, totalAdd, totalExist, totalError);
       return;
     }
 
     const [addProxyError] = await this.#proxyServerFileRepository.add(allIpList);
     if (addProxyError) {
-      await this._updateJobStatus(addProxyError, model, totalAdd, 0, totalError);
+      await this._updateJobStatus(addProxyError, model, totalAdd, totalExist, totalError);
       return;
     }
 
-    await this._updateJobStatus(null, model, totalAdd, 0, 0);
+    await this._updateJobStatus(null, model, totalAdd, totalExist, 0);
   }
 
   async _updateJobStatus(error, model, totalAdd, totalExist, totalError) {
