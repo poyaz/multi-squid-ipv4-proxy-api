@@ -64,6 +64,29 @@ class JobRepository extends IJobRepository {
     }
   }
 
+  async add(model) {
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.jobs (id, data, status, insert_date)
+          VALUES ($1, $2, $3, $4)
+      `,
+      values: [id, model.data, model.status, now],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new JobModel();
     model.id = row['id'];
@@ -73,6 +96,7 @@ class JobRepository extends IJobRepository {
     model.totalRecordAdd = row['total_record_add'];
     model.totalRecordExist = row['total_record_exist'];
     model.totalRecordError = row['total_record_error'];
+    model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
 
     return model;
   }

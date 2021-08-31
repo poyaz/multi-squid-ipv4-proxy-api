@@ -125,4 +125,89 @@ suite(`JobRepository`, () => {
       });
     });
   });
+
+  suite(`Add new job`, () => {
+    setup(() => {
+      const inputModel = new JobModel();
+      inputModel.data = '192.168.1.1/28';
+      inputModel.status = JobModel.STATUS_SUCCESS;
+      inputModel.totalRecord = 3;
+      inputModel.totalRecordAdd = 2;
+      inputModel.totalRecordExist = 1;
+      inputModel.totalRecordError = 0;
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add job user in database`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.jobRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully add new job in database`, async () => {
+      const inputModel = testObj.inputModel;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              data: '192.168.1.1/28',
+              status: JobModel.STATUS_SUCCESS,
+              total_record: 3,
+              total_record_add: 2,
+              total_record_exist: 1,
+              total_record_error: 0,
+              insert_date: '2021-08-31 11:29:50',
+            },
+          ];
+        },
+      };
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.jobRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .startsWith([
+              testObj.identifierGenerator.generateId(),
+              inputModel.data,
+              inputModel.status,
+            ])
+            .and(sinon.match.has('length', 4)),
+        ),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(JobModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        data: '192.168.1.1/28',
+        status: JobModel.STATUS_SUCCESS,
+        totalRecord: 3,
+        totalRecordAdd: 2,
+        totalRecordExist: 1,
+        totalRecordError: 0,
+      });
+    });
+  });
 });
