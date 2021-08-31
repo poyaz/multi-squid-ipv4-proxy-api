@@ -5,6 +5,17 @@
 class IJobService {
   /**
    *
+   * @param {uuid} id
+   * @return {Promise<(Error|JobModel)[]>}
+   */
+  async getById(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
+
+  /**
+   *
    * @param {JobModel} model
    * @return {Promise<(Error|JobModel)[]>}
    */
