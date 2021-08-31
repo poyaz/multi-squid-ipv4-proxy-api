@@ -12,8 +12,6 @@ const helper = require('~src/helper');
 const JobModel = require('~src/core/model/jobModel');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
-const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
-const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 chai.should();
@@ -208,6 +206,59 @@ suite(`JobRepository`, () => {
         totalRecordExist: 1,
         totalRecordError: 0,
       });
+    });
+  });
+
+  suite(`Update job`, () => {
+    test(`Should error update job when model id not found`, async () => {
+      const inputModel = new JobModel();
+
+      const [error] = await testObj.jobRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update job when model property not set`, async () => {
+      const inputModel = new JobModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.jobRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update job when execute query`, async () => {
+      const inputModel = new JobModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.status = JobModel.STATUS_SUCCESS;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.jobRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully update job`, async () => {
+      const inputModel = new JobModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.status = JobModel.STATUS_SUCCESS;
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.jobRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
     });
   });
 });
