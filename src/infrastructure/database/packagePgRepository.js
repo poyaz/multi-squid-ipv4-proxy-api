@@ -54,6 +54,7 @@ class PackagePgRepository extends IPackageRepository {
             AND p.id = mbdp.package_id
             AND mbdp.bind_address_id = ba.id
             AND u.is_enable = true
+            AND ba.is_enable = true
             AND u.delete_date ISNULL
             AND p.delete_date ISNULL
             AND mbdp.delete_date ISNULL
@@ -96,6 +97,7 @@ class PackagePgRepository extends IPackageRepository {
             AND p.id = mbdp.package_id
             AND mbdp.bind_address_id = ba.id
             AND u.is_enable = true
+            AND ba.is_enable = true
             AND u.delete_date ISNULL
             AND p.delete_date ISNULL
             AND mbdp.delete_date ISNULL
@@ -145,6 +147,7 @@ class PackagePgRepository extends IPackageRepository {
               SELECT ba.id, ba.ip, ba.port
               FROM public.bind_address ba
               WHERE delete_date ISNULL
+                AND ba.is_enable = true
                   EXCEPT
               SELECT DISTINCT ba.id, ba.ip, ba.port
               FROM public.users u,
@@ -155,6 +158,7 @@ class PackagePgRepository extends IPackageRepository {
                 AND p.id = mbdp.package_id
                 AND mbdp.bind_address_id = ba.id
                 AND u.is_enable = true
+                AND ba.is_enable = true
                 AND u.delete_date ISNULL
                 AND p.delete_date ISNULL
                 AND mbdp.delete_date ISNULL
@@ -218,7 +222,7 @@ class PackagePgRepository extends IPackageRepository {
     columns.push(`update_date = ${param.length}`);
 
     const updateQuery = {
-      sql: singleLine`
+      text: singleLine`
           UPDATE public.packages
           SET ${columns.join(', ')}
           WHERE delete_date ISNULL

@@ -16,6 +16,10 @@ class ProxyServerService extends IProxyServerService {
    * @type {IJobService}
    */
   #proxyServerJobService;
+  /**
+   * @type {number}
+   */
+  #defaultPort = 3128;
 
   /**
    *
@@ -35,19 +39,31 @@ class ProxyServerService extends IProxyServerService {
     const iteratorIpList = generateIp.getHostsIterator();
     const ipModels = [];
 
-    for (const item of iteratorIpList) {
-      const ip = item.toString();
-      if (ip === model.gateway) {
-        continue;
-      }
-
+    if (model.mask === 32) {
       const tmpModel = new IpAddressModel();
-      tmpModel.ip = ip;
+      tmpModel.ip = model.ip;
       tmpModel.mask = 32;
+      tmpModel.port = this.#defaultPort;
       tmpModel.gateway = model.gateway;
       tmpModel.interface = model.interface;
 
       ipModels.push(tmpModel);
+    } else {
+      for (const item of iteratorIpList) {
+        const ip = item.toString();
+        if (ip === model.gateway) {
+          continue;
+        }
+
+        const tmpModel = new IpAddressModel();
+        tmpModel.ip = ip;
+        tmpModel.mask = 32;
+        tmpModel.port = this.#defaultPort;
+        tmpModel.gateway = model.gateway;
+        tmpModel.interface = model.interface;
+
+        ipModels.push(tmpModel);
+      }
     }
 
     const [ipAddError] = await this.#proxyServerRepository.add(ipModels);

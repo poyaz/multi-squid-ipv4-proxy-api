@@ -41,7 +41,7 @@ class ProxyController {
       return [error];
     }
 
-    return [null, { jobId: data }];
+    return [null, { jobId: data.id }];
   }
 }
 

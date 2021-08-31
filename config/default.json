@@ -42,6 +42,7 @@
     }
   },
   "custom": {
+    "realProjectPathForDocker": "",
     "squid": {
       "perIpInstance": 100,
       "scriptApiToken": ""
@@ -52,7 +53,7 @@
     },
     "docker": {
       "protocol": "http",
-      "url": "",
+      "host": "",
       "port": 2375
     },
     "jwt": {

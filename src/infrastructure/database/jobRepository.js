@@ -74,6 +74,7 @@ class JobRepository extends IJobRepository {
       text: singleLine`
           INSERT INTO public.jobs (id, data, status, insert_date)
           VALUES ($1, $2, $3, $4)
+          RETURNING *
       `,
       values: [id, model.data, model.status, now],
     };
@@ -95,44 +96,47 @@ class JobRepository extends IJobRepository {
     }
 
     const columns = [];
-    const param = [model.id];
+    /**
+     * @type {Array<*>}
+     */
+    const params = [model.id];
 
     if (typeof model.status !== 'undefined') {
-      param.push(model.status);
-      columns.push(`status = ${param.length}`);
+      params.push(model.status);
+      columns.push(`status = $${params.length}`);
     }
     if (typeof model.totalRecord !== 'undefined') {
-      param.push(model.totalRecord);
-      columns.push(`total_record = ${param.length}`);
+      params.push(model.totalRecord);
+      columns.push(`total_record = $${params.length}`);
     }
     if (typeof model.totalRecordAdd !== 'undefined') {
-      param.push(model.totalRecordAdd);
-      columns.push(`total_record_add = ${param.length}`);
+      params.push(model.totalRecordAdd);
+      columns.push(`total_record_add = $${params.length}`);
     }
     if (typeof model.totalRecordExist !== 'undefined') {
-      param.push(model.totalRecordExist);
-      columns.push(`total_record_exist = ${param.length}`);
+      params.push(model.totalRecordExist);
+      columns.push(`total_record_exist = $${params.length}`);
     }
     if (typeof model.totalRecordError !== 'undefined') {
-      param.push(model.totalRecordError);
-      columns.push(`total_record_error = ${param.length}`);
+      params.push(model.totalRecordError);
+      columns.push(`total_record_error = $${params.length}`);
     }
 
     if (columns.length === 0) {
       return [new DatabaseMinParamUpdateException()];
     }
 
-    param.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
-    columns.push(`update_date = ${param.length}`);
+    params.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
+    columns.push(`update_date = $${params.length}`);
 
     const updateQuery = {
-      sql: singleLine`
+      text: singleLine`
           UPDATE public.jobs
           SET ${columns.join(', ')}
           WHERE delete_date ISNULL
             AND id = $1
       `,
-      values: [...param],
+      values: [...params],
     };
 
     try {

@@ -84,6 +84,11 @@ class Loader {
     const httpApiUrlConfig = `http://:${httpPublicApiHostConfig}:${httpPublicApiPortConfig}`;
     const squidPerIpInstanceConfig = this._config.getNum('custom.squid.perIpInstance');
     const squidScriptApiTokenConfig = this._config.getStr('custom.squid.scriptApiToken');
+    const realProjectPathForDockerConfig = this._config.getStr('custom.realProjectPathForDocker');
+    const projectPathConfig = {
+      host: realProjectPathForDockerConfig,
+      current: this._options.cwd,
+    };
 
     // Repository
     // ----------
@@ -92,6 +97,7 @@ class Loader {
     const packageFileRepository = new PackageFileRepository(squidIpAccessFile);
     const squidServerRepository = new SquidServerRepository(
       docker,
+      projectPathConfig,
       squidConfFolder,
       squidPasswordFile,
       squidIpAccessFile,

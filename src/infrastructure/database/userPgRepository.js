@@ -127,32 +127,35 @@ class UserPgRepository extends IUserRepository {
     }
 
     const columns = [];
-    const param = [model.id];
+    /**
+     * @type {Array<*>}
+     */
+    const params = [model.id];
 
     if (typeof model.username !== 'undefined') {
-      param.push(model.username);
-      columns.push(`username = ${param.length}`);
+      params.push(model.username);
+      columns.push(`username = $${params.length}`);
     }
     if (typeof model.isEnable !== 'undefined') {
-      param.push(model.isEnable);
-      columns.push(`is_enable = ${param.length}`);
+      params.push(model.isEnable);
+      columns.push(`is_enable = $${params.length}`);
     }
 
     if (columns.length === 0) {
       return [new DatabaseMinParamUpdateException()];
     }
 
-    param.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
-    columns.push(`update_date = ${param.length}`);
+    params.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
+    columns.push(`update_date = $${params.length}`);
 
     const updateQuery = {
-      sql: singleLine`
+      text: singleLine`
           UPDATE public.users
           SET ${columns.join(', ')}
           WHERE delete_date ISNULL
             AND id = $1
       `,
-      values: [...param],
+      values: [...params],
     };
 
     try {

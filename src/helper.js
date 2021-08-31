@@ -382,6 +382,10 @@ function fakeProxyFileServerPgRepository(ipCountPerInstance) {
   const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
 
   const defaultSquidConfigFolder = '/tmp/config';
+  const projectPath = {
+    host: '/opt/project',
+    current: '/home/node/project',
+  };
   const squidPasswordFile = 'storage/template/squid/squid-pwd.htpasswd';
   const squidIpAccessFile = 'storage/template/squid/squid-user-ip.conf';
   const squidIpAccessBashFile = 'storage/scripts/squid-block-domain.sh';
@@ -394,6 +398,7 @@ function fakeProxyFileServerPgRepository(ipCountPerInstance) {
 
   const squidServerRepository = new SquidServerRepository(
     docker,
+    projectPath,
     defaultSquidConfigFolder,
     squidPasswordFile,
     squidIpAccessFile,

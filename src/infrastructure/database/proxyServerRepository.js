@@ -33,8 +33,11 @@ class ProxyServerRepository extends IProxyServerRepository {
   }
 
   async getByIpMask(ipWithMask) {
-    const fetchQuery = {
-      text: singleLine`
+    const [ip, mask] = ipWithMask.split('/');
+    const fetchQuery = { text: '', values: [] };
+
+    if (mask === '32') {
+      fetchQuery.text = singleLine`
           SELECT id,
                  interface,
                  ip,
@@ -43,10 +46,23 @@ class ProxyServerRepository extends IProxyServerRepository {
           FROM public.bind_address
           WHERE delete_date ISNULL
             AND is_enable = false
-            AND ip ::inet << inet $1
-      `,
-      values: [ipWithMask],
-    };
+            AND ip = $1
+      `;
+      fetchQuery.values = [ip];
+    } else {
+      fetchQuery.text = singleLine`
+          SELECT id,
+                 interface,
+                 ip,
+                 port,
+                 gateway
+          FROM public.bind_address
+          WHERE delete_date ISNULL
+            AND is_enable = false
+            AND ip :: inet << $1 :: inet
+      `;
+      fetchQuery.values = [ipWithMask];
+    }
 
     try {
       const { rowCount, rows } = await this.#db.query(fetchQuery);
@@ -131,16 +147,28 @@ class ProxyServerRepository extends IProxyServerRepository {
   }
 
   async activeIpMask(ipWithMask) {
-    const updateQuery = {
-      text: singleLine`
+    const [ip, mask] = ipWithMask.split('/');
+    const updateQuery = { text: '', values: [] };
+
+    if (mask === '32') {
+      updateQuery.text = singleLine`
           UPDATE public.bind_address
           SET is_enable = true
           WHERE delete_date ISNULL
             AND is_enable = false
-            AND ip ::inet << inet $1
-      `,
-      values: [ipWithMask],
-    };
+            AND ip = $1
+      `;
+      updateQuery.values = [ip];
+    } else {
+      updateQuery.text = singleLine`
+          UPDATE public.bind_address
+          SET is_enable = true
+          WHERE delete_date ISNULL
+            AND is_enable = false
+            AND ip :: inet << $1 :: inet
+      `;
+      updateQuery.values = [ipWithMask];
+    }
 
     try {
       await this.#db.query(updateQuery);

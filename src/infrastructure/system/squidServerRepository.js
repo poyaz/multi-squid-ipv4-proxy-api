@@ -15,6 +15,10 @@ class SquidServerRepository extends IProxyServerRepository {
    */
   #docker;
   /**
+   * @type {Object<{host: string, current: string}>}
+   */
+  #projectPath;
+  /**
    * @type {string}
    */
   #defaultSquidConfigFolder;
@@ -58,6 +62,7 @@ class SquidServerRepository extends IProxyServerRepository {
   /**
    *
    * @param {Docker} docker
+   * @param {Object<{host: string, current: string}>} projectPath
    * @param {string} defaultSquidConfigFolder
    * @param {string} squidPasswordFile
    * @param {string} squidIpAccessFile
@@ -69,6 +74,7 @@ class SquidServerRepository extends IProxyServerRepository {
    */
   constructor(
     docker,
+    projectPath,
     defaultSquidConfigFolder,
     squidPasswordFile,
     squidIpAccessFile,
@@ -81,6 +87,7 @@ class SquidServerRepository extends IProxyServerRepository {
     super();
 
     this.#docker = docker;
+    this.#projectPath = projectPath;
     this.#defaultSquidConfigFolder = defaultSquidConfigFolder;
     this.#squidPasswordFile = squidPasswordFile;
     this.#squidIpAccessFile = squidIpAccessFile;
@@ -170,7 +177,7 @@ class SquidServerRepository extends IProxyServerRepository {
         const exec = spawn('cp', [
           '-f',
           '-r',
-          `${this.#defaultSquidConfigFolder}${path.sep}*`,
+          `${this.#defaultSquidConfigFolder}${path.sep}.`,
           containerPath,
         ]);
         let executeError = '';
@@ -205,24 +212,40 @@ class SquidServerRepository extends IProxyServerRepository {
           },
         );
 
+        const containerPathVolume = containerPath.replace(
+          this.#projectPath.current,
+          this.#projectPath.host,
+        );
+        const squidPasswordFileVolume = this.#squidPasswordFile.replace(
+          this.#projectPath.current,
+          this.#projectPath.host,
+        );
+        const squidIpAccessFileVolume = this.#squidIpAccessFile.replace(
+          this.#projectPath.current,
+          this.#projectPath.host,
+        );
+        const squidIpAccessBashFileVolume = this.#squidIpAccessBashFile.replace(
+          this.#projectPath.current,
+          this.#projectPath.host,
+        );
         const container = await this.#docker.createContainer(
           {
             Image: 'multi-squid-ipv4-proxy-api:latest',
             name: `multi-squid-ipv4-proxy-api_squid-${i}`,
             Labels: { 'com.multi.squid.ipv4.proxy.api': 'squid' },
-            Volumes: {
-              '/etc/localtime': '/etc/localtime:ro',
-              [containerPath]: '/etc/squid/',
-              [this.#squidPasswordFile]: `${this.#squidOtherConfDir}/squid-pwd.htpasswd`,
-              [this.#squidIpAccessFile]: `${this.#squidOtherConfDir}/squid-user-ip.conf`,
-              [this.#squidIpAccessBashFile]: `${this.#squidOtherConfDir}/squid-block-url.sh`,
-            },
-            Env: {
-              API_URL: this.#apiUrl,
-              API_TOKEN: this.#apiToken,
-              SQUID_BLOCK_URL_BASH: `${this.#squidOtherConfDir}/squid-block-url.sh`,
-            },
+            Env: [
+              `API_URL=${this.#apiUrl}`,
+              `API_TOKEN${this.#apiToken}`,
+              `SQUID_BLOCK_URL_BASH=${this.#squidOtherConfDir}/squid-block-url.sh`,
+            ],
             HostConfig: {
+              Binds: [
+                `/etc/localtime:/etc/localtime:ro`,
+                `${containerPathVolume}:/etc/squid`,
+                `${squidPasswordFileVolume}:${this.#squidOtherConfDir}/squid-pwd.htpasswd`,
+                `${squidIpAccessFileVolume}:${this.#squidOtherConfDir}/squid-user-ip.conf`,
+                `${squidIpAccessBashFileVolume}:${this.#squidOtherConfDir}/squid-block-url.sh`,
+              ],
               NetworkMode: 'host',
               RestartPolicy: {
                 Name: 'always',

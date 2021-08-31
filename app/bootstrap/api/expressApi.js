@@ -43,7 +43,10 @@ class ExpressApi extends IRunner {
     this._route();
 
     app.use((error, req, res, next) => {
-      this._sendFail(res, error);
+      if (error) {
+        this._sendFail(res, error);
+      }
+
       next();
     });
 
@@ -87,6 +90,8 @@ class ExpressApi extends IRunner {
         const response = await jobController.getJobByid();
 
         this._sendResponse(req, res, response);
+
+        return next(null);
       } catch (error) {
         return next(error);
       }
@@ -102,6 +107,8 @@ class ExpressApi extends IRunner {
         const response = await userController.getAllUsers();
 
         this._sendResponse(req, res, response);
+
+        return next(null);
       } catch (error) {
         return next(error);
       }
@@ -114,6 +121,8 @@ class ExpressApi extends IRunner {
           const middleware = userHttpApi.addUserValidationMiddlewareFactory.create(req, res);
 
           await middleware.act();
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -124,6 +133,8 @@ class ExpressApi extends IRunner {
           const response = await userController.addUser();
 
           this._sendResponse(req, res, response);
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -140,6 +151,8 @@ class ExpressApi extends IRunner {
           );
 
           await middleware.act();
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -150,6 +163,8 @@ class ExpressApi extends IRunner {
           const response = await userController.changePassword();
 
           this._sendResponse(req, res, response);
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -162,6 +177,8 @@ class ExpressApi extends IRunner {
         const response = await userController.disableByUsername();
 
         this._sendResponse(req, res, response);
+
+        return next(null);
       } catch (error) {
         return next(error);
       }
@@ -173,6 +190,8 @@ class ExpressApi extends IRunner {
         const response = await userController.enableByUsername();
 
         this._sendResponse(req, res, response);
+
+        return next(null);
       } catch (error) {
         return next(error);
       }
@@ -188,6 +207,8 @@ class ExpressApi extends IRunner {
           );
 
           await middleware.act();
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -198,6 +219,8 @@ class ExpressApi extends IRunner {
           const response = await userController.blockAccessToUrlByUsername();
 
           this._sendResponse(req, res, response);
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -210,6 +233,8 @@ class ExpressApi extends IRunner {
         const response = await userController.checkBlockDomainForUsername();
 
         this._sendResponse(req, res, response);
+
+        return next(null);
       } catch (error) {
         return next(error);
       }
@@ -225,6 +250,8 @@ class ExpressApi extends IRunner {
         const response = await packageController.getAllByUsername();
 
         this._sendResponse(req, res, response);
+
+        return next(null);
       } catch (error) {
         return next(error);
       }
@@ -240,6 +267,8 @@ class ExpressApi extends IRunner {
           );
 
           await middleware.act();
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -250,6 +279,8 @@ class ExpressApi extends IRunner {
           const response = await packageController.addPackage();
 
           this._sendResponse(req, res, response);
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -263,6 +294,8 @@ class ExpressApi extends IRunner {
           const middleware = packageHttpApi.renewPackageValidator.create(req, res);
 
           await middleware.act();
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -273,6 +306,8 @@ class ExpressApi extends IRunner {
           const response = await packageController.renewPackage();
 
           this._sendResponse(req, res, response);
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -290,6 +325,8 @@ class ExpressApi extends IRunner {
           const middleware = proxyHttpApi.generateProxyValidatorMiddlewareFactory.create(req, res);
 
           await middleware.act();
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
@@ -300,6 +337,8 @@ class ExpressApi extends IRunner {
           const response = await proxyController.generateIp();
 
           this._sendResponse(req, res, response);
+
+          return next(null);
         } catch (error) {
           return next(error);
         }
