@@ -415,6 +415,23 @@ function fakeIpAddrRepository() {
   return { ipAddrRepository };
 }
 
+function fakeJobPgRepository() {
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const JobRepository = require('~src/infrastructure/database/jobRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = new DateTime();
+
+  const jobRepository = new JobRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, identifierGenerator, jobRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -441,4 +458,5 @@ module.exports = {
   fakeProxyServerPgRepository,
   fakeProxyFileServerPgRepository,
   fakeIpAddrRepository,
+  fakeJobPgRepository,
 };
