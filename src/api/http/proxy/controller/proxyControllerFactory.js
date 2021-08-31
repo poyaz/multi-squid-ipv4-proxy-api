@@ -8,7 +8,7 @@ class ProxyControllerFactory {
   /**
    * @type {IProxyServerService}
    */
-  #ProxyServerService;
+  #proxyServerService;
   /**
    * @type {IDateTime}
    */
@@ -16,11 +16,11 @@ class ProxyControllerFactory {
 
   /**
    *
-   * @param {IProxyServerService} ProxyServerService
+   * @param {IProxyServerService} proxyServerService
    * @param {IDateTime} dateTime
    */
-  constructor(ProxyServerService, dateTime) {
-    this.#ProxyServerService = ProxyServerService;
+  constructor(proxyServerService, dateTime) {
+    this.#proxyServerService = proxyServerService;
     this.#dateTime = dateTime;
   }
 
@@ -31,7 +31,7 @@ class ProxyControllerFactory {
    * @return {ProxyController}
    */
   create(req, res) {
-    return new ProxyController(req, res, this.#ProxyServerService, this.#dateTime);
+    return new ProxyController(req, res, this.#proxyServerService, this.#dateTime);
   }
 }
 
