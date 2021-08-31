@@ -24,6 +24,17 @@ class IJobRepository {
     error['args'] = { model };
     throw error;
   }
+
+  /**
+   *
+   * @param {JobModel} model
+   * @return {Promise<(Error)[]>}
+   */
+  async update(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
 }
 
 module.exports = IJobRepository;
