@@ -9,12 +9,11 @@ services:
     volumes:
       - $PWD:/home/node
       - /etc/localtime:/etc/localtime:ro
-    user: node
+    user: root
     working_dir: /home/node
+    privileged: true
     restart: "always"
-    networks:
-      main:
-        ipv4_address: 10.102.0.2
+    network_mode: host
     tty: false
     entrypoint: |
       ./scripts/wait-for-it -wait tcp://${PG_HOST:-postgres}:${PG_PORT:-5432} -wait-retry-interval 5s -timeout 600s
