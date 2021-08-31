@@ -31,14 +31,12 @@ suite(`UserSquidRepository`, () => {
   suiteSetup(() => {
     sinon.stub(fsAsync, 'access');
     sinon.stub(fsAsync, 'open');
-    sinon.stub(fs, 'closeSync');
     sinon.stub(child_process, 'spawn');
   });
 
   suiteTeardown(() => {
     fsAsync.access.restore();
     fsAsync.open.restore();
-    fs.closeSync.restore();
     child_process.spawn.restore();
   });
 
@@ -53,7 +51,6 @@ suite(`UserSquidRepository`, () => {
   teardown(() => {
     fsAsync.access.resetHistory();
     fsAsync.open.resetHistory();
-    fs.closeSync.resetHistory();
     child_process.spawn.resetHistory();
   });
 
@@ -215,8 +212,7 @@ suite(`UserSquidRepository`, () => {
       const fileNotFoundError = new Error('File not found');
       fileNotFoundError.code = 'ENOENT';
       fsAsync.access.throws(fileNotFoundError);
-      fsAsync.open.resolves();
-      fs.closeSync.returns();
+      fsAsync.open.resolves({ close: async () => {} });
       const commandError = new Error('Command error');
       child_process.spawn.throws(commandError);
 
@@ -224,7 +220,6 @@ suite(`UserSquidRepository`, () => {
 
       fsAsync.access.should.have.callCount(1);
       fsAsync.open.should.have.callCount(1);
-      fs.closeSync.should.have.callCount(1);
       child_process.spawn.should.have.callCount(1);
       expect(error).to.be.an.instanceof(CommandExecuteException);
       expect(error).to.have.property('httpCode', 400);
@@ -239,8 +234,7 @@ suite(`UserSquidRepository`, () => {
       const fileNotFoundError = new Error('File not found');
       fileNotFoundError.code = 'ENOENT';
       fsAsync.access.throws(fileNotFoundError);
-      fsAsync.open.resolves();
-      fs.closeSync.returns();
+      fsAsync.open.resolves({ close: async () => {} });
       child_process.spawn.returns();
       child_process.spawn.callsFake(() => {
         const stdin = new PassThrough();
@@ -256,7 +250,6 @@ suite(`UserSquidRepository`, () => {
 
       fsAsync.access.should.have.callCount(1);
       fsAsync.open.should.have.callCount(1);
-      fs.closeSync.should.have.callCount(1);
       child_process.spawn.should.have.callCount(1);
       expect(error).to.be.an.instanceof(CommandExecuteException);
       expect(error).to.have.property('httpCode', 400);
@@ -283,7 +276,6 @@ suite(`UserSquidRepository`, () => {
 
       fsAsync.access.should.have.callCount(1);
       fsAsync.open.should.have.callCount(0);
-      fs.closeSync.should.have.callCount(0);
       child_process.spawn.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.instanceOf(UserModel).and.have.property('password', '');
@@ -296,8 +288,7 @@ suite(`UserSquidRepository`, () => {
       const fileNotFoundError = new Error('File not found');
       fileNotFoundError.code = 'ENOENT';
       fsAsync.access.throws(fileNotFoundError);
-      fsAsync.open.resolves();
-      fs.closeSync.returns();
+      fsAsync.open.resolves({ close: async () => {} });
       child_process.spawn.returns();
       child_process.spawn.callsFake(() => {
         const stdin = new PassThrough();
@@ -312,7 +303,6 @@ suite(`UserSquidRepository`, () => {
 
       fsAsync.access.should.have.callCount(1);
       fsAsync.open.should.have.callCount(1);
-      fs.closeSync.should.have.callCount(1);
       child_process.spawn.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.instanceOf(UserModel).and.have.property('password', '');

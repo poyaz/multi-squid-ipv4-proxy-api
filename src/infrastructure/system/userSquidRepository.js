@@ -69,7 +69,7 @@ class UserSquidRepository extends IUserRepository {
     try {
       if (!isFileExist) {
         const fd = await fsAsync.open(this.#passwdPathFile, 'w');
-        fs.closeSync(fd);
+        await fd.close();
       }
 
       const [addError] = await this._executePassword(model);
