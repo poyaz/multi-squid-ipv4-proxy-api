@@ -58,6 +58,59 @@ suite(`SquidServerRepository`, () => {
     childProcess.spawn.resetHistory();
   });
 
+  suite(`Reload all proxy`, () => {
+    test(`Should error reload all proxy when get list of container`, async () => {
+      const commandError = new Error('docker error');
+      testObj.docker.listContainers.throws(commandError);
+
+      const [error] = await testObj.squidServerRepository.reload();
+
+      testObj.docker.listContainers.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should error reload all proxy when send kill to proxy container`, async () => {
+      const containerOutputList = [{ Id: testObj.identifierGenerator.generateId() }];
+      testObj.docker.listContainers.resolves(containerOutputList);
+      testObj.docker.getContainer.returns(testObj.container);
+      const commandError = new Error('docker error');
+      testObj.container.kill.throws(commandError);
+
+      const [error] = await testObj.squidServerRepository.reload();
+
+      testObj.docker.listContainers.should.have.callCount(1);
+      testObj.docker.getContainer.should.have.callCount(1);
+      testObj.docker.getContainer.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.container.kill.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should successfully reload all proxy`, async () => {
+      const containerOutputList = [{ Id: testObj.identifierGenerator.generateId() }];
+      testObj.docker.listContainers.resolves(containerOutputList);
+      testObj.docker.getContainer.returns(testObj.container);
+      testObj.container.kill.resolves();
+
+      const [error] = await testObj.squidServerRepository.reload();
+
+      testObj.docker.listContainers.should.have.callCount(1);
+      testObj.docker.getContainer.should.have.callCount(1);
+      testObj.docker.getContainer.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.container.kill.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
   suite(`Add proxy`, () => {
     setup(() => {
       const inputIpModel1 = new IpAddressModel();

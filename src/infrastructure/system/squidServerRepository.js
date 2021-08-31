@@ -6,8 +6,6 @@ const fs = require('fs');
 const fsAsync = require('fs/promises');
 const path = require('path');
 const { spawn } = require('child_process');
-const Docker = require('dockerode');
-const IpAddressModel = require('~src/core/model/ipAddressModel');
 const IProxyServerRepository = require('~src/core/interface/iProxyServerRepository');
 const CommandExecuteException = require('~src/core/exception/commandExecuteException');
 
@@ -116,6 +114,27 @@ class SquidServerRepository extends IProxyServerRepository {
       `http_access deny all`,
       ``,
     ];
+  }
+
+  async reload() {
+    try {
+      const getCurrentContainerList = await this.#docker.listContainers(
+        {
+          all: true,
+          filters: { label: ['com.multi.squid.ipv4.proxy.api=squid'] },
+        },
+        undefined,
+      );
+
+      for await (const item of getCurrentContainerList) {
+        const container = this.#docker.getContainer(item.Id);
+        await container.kill({ signal: 'HUP' }, undefined);
+      }
+
+      return [null];
+    } catch (error) {
+      return [new CommandExecuteException(error)];
+    }
   }
 
   async add(models) {
