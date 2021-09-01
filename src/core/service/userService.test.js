@@ -434,13 +434,14 @@ suite(`UserService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successfully enable user by username`, async () => {
+    test(`Should error enable user by username when update package file`, async () => {
       const inputUsername = 'user1';
       const outputModel = new UserModel();
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.username = 'user1';
       testObj.userRepository.getAll.resolves([null, [outputModel]]);
       testObj.userRepository.update.resolves([null]);
+      testObj.packageFileRepository.update.resolves([new UnknownException()]);
 
       const [error] = await testObj.userService.enableByUsername(inputUsername);
 
@@ -452,6 +453,39 @@ suite(`UserService`, () => {
           .has('id', testObj.identifierGenerator.generateId())
           .and(sinon.match.has('isEnable', true)),
       );
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully enable user by username`, async () => {
+      const inputUsername = 'user1';
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
+      testObj.userRepository.update.resolves([null]);
+      testObj.packageFileRepository.update.resolves([null]);
+      testObj.proxySquidRepository.reload.resolves([null]);
+
+      const [error] = await testObj.userService.enableByUsername(inputUsername);
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      testObj.userRepository.update.should.have.callCount(1);
+      testObj.userRepository.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('isEnable', true)),
+      );
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('deleteDate', undefined)),
+      );
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
   });

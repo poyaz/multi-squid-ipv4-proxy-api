@@ -140,6 +140,16 @@ class UserService extends IUserService {
       return [updateError];
     }
 
+    const enableUserPackage = new PackageModel();
+    enableUserPackage.username = username;
+
+    const [updatePackageError] = await this.#packageFileRepository.update(enableUserPackage);
+    if (updatePackageError) {
+      return [updatePackageError];
+    }
+
+    this._reloadServer();
+
     return [null];
   }
 
