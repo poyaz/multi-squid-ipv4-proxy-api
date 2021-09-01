@@ -106,6 +106,7 @@ class UserPgRepository extends IUserRepository {
               DO
           UPDATE
           SET username = EXCLUDED.username
+          RETURNING *
       `,
       values: [id, model.username, true, now],
     };
