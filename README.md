@@ -291,7 +291,7 @@ You can add the blacklist url for users
 
 * Method: `POST`
 * URL: `api/v1/user/:username/website/block`
-* Body: `{"url": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}`
+* Body: `{"urls": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}`
 
 ```bash
 curl \
@@ -367,7 +367,7 @@ Create new package for users
 
 * Method: `POST`
 * URL: `api/v1/package`
-* Body: `{"username": "<your-username>", "countIp": <total-ip-need-use>, "expire": "<expire-date>"}`
+* Body: `{"username": "<your-username>", "count": <total-ip-need-use>, "expire": "<expire-date>"}`
 
 ```bash
 curl \
