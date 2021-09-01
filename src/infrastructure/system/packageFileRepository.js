@@ -57,7 +57,7 @@ class PackageFileRepository extends IPackageRepository {
   async add(model) {
     try {
       for await (const data of model.ipList) {
-        const record = `${data.ip} ${model.username}`;
+        const record = `${data.ip} ${model.username}\n`;
 
         await fsAsync.appendFile(this.#accessUserIpPath, record);
       }
