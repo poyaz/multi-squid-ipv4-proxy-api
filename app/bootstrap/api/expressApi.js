@@ -318,6 +318,19 @@ class ExpressApi extends IRunner {
   _proxyRoute() {
     const proxyHttpApi = this._dependency.proxyHttpApi;
 
+    router.get('/v1/proxy/reload', async (req, res, next) => {
+      try {
+        const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
+        const response = await proxyController.reload();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
+
     router.post(
       '/v1/proxy/generate',
       async (req, res, next) => {

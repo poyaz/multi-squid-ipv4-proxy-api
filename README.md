@@ -42,6 +42,41 @@ curl \
 }
 ```
 
+## Reload all proxy
+
+Reload all proxy
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/user`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/proxy/reload'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/proxy/reload'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
 ## Check job
 
 For check create ip range job finished you should use this API. this api return status about job

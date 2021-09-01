@@ -133,7 +133,11 @@ class Loader {
       squidServerRepository,
       ipAddrRepository,
     );
-    const proxyServerService = new ProxyServerService(proxyServerRepository, proxyServerJobService);
+    const proxyServerService = new ProxyServerService(
+      proxyServerRepository,
+      proxyServerJobService,
+      squidServerRepository,
+    );
 
     // Controller and middleware
     // -------------------------
