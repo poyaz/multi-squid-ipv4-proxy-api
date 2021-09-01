@@ -237,7 +237,7 @@ class SquidServerRepository extends IProxyServerRepository {
             Labels: { 'com.multi.squid.ipv4.proxy.api': 'squid' },
             Env: [
               `API_URL=${this.#apiUrl}`,
-              `API_TOKEN${this.#apiToken}`,
+              `API_TOKEN=${this.#apiToken}`,
               `SQUID_BLOCK_URL_BASH=${this.#squidOtherConfDir}/squid-block-url.sh`,
             ],
             HostConfig: {
