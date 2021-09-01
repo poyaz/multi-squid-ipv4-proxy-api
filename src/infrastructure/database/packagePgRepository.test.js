@@ -365,18 +365,7 @@ suite(`PackagePgRepository`, () => {
           ),
       );
       testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
-      const sinonMatch2 = sinon.match.has(
-        'values',
-        sinon.match
-          .has('length', 3)
-          .and(
-            sinon.match.array.startsWith([
-              testObj.identifierGenerator.generateId(),
-              testObj.identifierGenerator.generateId(),
-              inputModel.countIp,
-            ]),
-          ),
-      );
+      const sinonMatch2 = sinon.match.has('values', sinon.match.has('length', 4));
       testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
       testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
       testObj.fillModelSpy.should.have.callCount(1);
