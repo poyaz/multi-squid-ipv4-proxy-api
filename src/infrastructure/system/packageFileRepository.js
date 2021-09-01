@@ -6,8 +6,10 @@ const IPackageRepository = require('~src/core/interface/iPackageRepository');
 
 const fs = require('fs');
 const fsAsync = require('fs/promises');
+const { spawn } = require('child_process');
 const PackageModel = require('~src/core/model/packageModel');
 const CommandExecuteException = require('~src/core/exception/commandExecuteException');
+const ModelUsernameNotExistException = require('~src/core/exception/modelUsernameNotExistException');
 
 class PackageFileRepository extends IPackageRepository {
   /**
@@ -63,6 +65,43 @@ class PackageFileRepository extends IPackageRepository {
       }
 
       return [null, model];
+    } catch (error) {
+      return [new CommandExecuteException(error)];
+    }
+  }
+
+  async update(model) {
+    if (!model.username) {
+      return [new ModelUsernameNotExistException()];
+    }
+
+    let updatePattern = '';
+    switch (true) {
+      case model.expireDate instanceof Date && model.ipList.length > 0: {
+        const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
+        updatePattern = `'/^#\\?\\(${ipList}\\) ${model.username}$/d'`;
+        break;
+      }
+      case model.deleteDate instanceof Date:
+        updatePattern = `'s/^\\([^#]\\+ ${model.username}\\)$/#\\1/g'`;
+        break;
+      case !model.deleteDate:
+        updatePattern = `'s/^#\\(.\\+ ${model.username}\\)$/\\1/g'`;
+        break;
+    }
+
+    try {
+      const exec = spawn('sed', [`-i`, updatePattern, this.#accessUserIpPath]);
+
+      let changeUserAccessError = '';
+      for await (const chunk of exec.stderr) {
+        changeUserAccessError += chunk;
+      }
+      if (changeUserAccessError) {
+        return [new CommandExecuteException(new Error(changeUserAccessError))];
+      }
+
+      return [null];
     } catch (error) {
       return [new CommandExecuteException(error)];
     }

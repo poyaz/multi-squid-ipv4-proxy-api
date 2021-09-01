@@ -10,8 +10,11 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const fsAsync = require('fs/promises');
+const childProcess = require('child_process');
+const { PassThrough } = require('stream');
 const PackageModel = require('~src/core/model/packageModel');
 const CommandExecuteException = require('~src/core/exception/commandExecuteException');
+const ModelUsernameNotExistException = require('~src/core/exception/modelUsernameNotExistException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -29,12 +32,14 @@ suite(`PackageFileRepository`, () => {
     sinon.stub(fsAsync, 'appendFile');
     sinon.stub(fsAsync, 'access');
     sinon.stub(fsAsync, 'readFile');
+    sinon.stub(childProcess, 'spawn');
   });
 
   suiteTeardown(() => {
     fsAsync.appendFile.restore();
     fsAsync.access.restore();
     fsAsync.readFile.restore();
+    childProcess.spawn.restore();
   });
 
   setup(() => {
@@ -49,6 +54,7 @@ suite(`PackageFileRepository`, () => {
     fsAsync.appendFile.resetHistory();
     fsAsync.access.resetHistory();
     fsAsync.readFile.resetHistory();
+    childProcess.spawn.resetHistory();
   });
 
   suite(`Get all package by username`, () => {
@@ -163,6 +169,126 @@ suite(`PackageFileRepository`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(PackageModel);
+    });
+  });
+
+  suite(`Update package`, () => {
+    test(`Should error update package when username not exist`, async () => {
+      const inputModel = new PackageModel();
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      expect(error).to.be.an.instanceof(ModelUsernameNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update package when execute sed command`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      const commandError = new Error('Command error');
+      childProcess.spawn.throws(commandError);
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      childProcess.spawn.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should error update package when execute sed command with stderr`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      childProcess.spawn.returns();
+      childProcess.spawn.callsFake(() => {
+        const stderr = new PassThrough();
+        stderr.write('Command error');
+        stderr.end();
+
+        return { stderr };
+      });
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      childProcess.spawn.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error.errorInfo).to.be.an.instanceof(Error);
+    });
+
+    test(`Should successfully update package (disable user)`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.deleteDate = new Date();
+      childProcess.spawn.returns();
+      childProcess.spawn.callsFake(() => {
+        const stderr = new PassThrough();
+        stderr.end();
+
+        return { stderr };
+      });
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      childProcess.spawn.should.have.callCount(1);
+      childProcess.spawn.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.has('1', sinon.match(`'s/^\\([^#]\\+ ${inputModel.username}\\)$/#\\1/g'`)),
+      );
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should successfully update package (enable user)`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      childProcess.spawn.returns();
+      childProcess.spawn.callsFake(() => {
+        const stderr = new PassThrough();
+        stderr.end();
+
+        return { stderr };
+      });
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      childProcess.spawn.should.have.callCount(1);
+      childProcess.spawn.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.has('1', sinon.match(`'s/^#\\(.\\+ ${inputModel.username}\\)$/\\1/g'`)),
+      );
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should successfully update package (remove expire user ip)`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      inputModel.expireDate = new Date();
+      childProcess.spawn.returns();
+      childProcess.spawn.callsFake(() => {
+        const stderr = new PassThrough();
+        stderr.end();
+
+        return { stderr };
+      });
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      childProcess.spawn.should.have.callCount(1);
+      childProcess.spawn.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.has(
+          '1',
+          sinon.match(`'/^#\\?\\(192\\.168\\.1\\.1\\|192\\.168\\.1\\.2\\) ${inputModel.username}$/d'`),
+        ),
+      );
+      expect(error).to.be.a('null');
     });
   });
 });
