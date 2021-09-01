@@ -11,6 +11,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 
 const helper = require('~src/helper');
 
+const JobModel = require('~src/core/model/jobModel');
 const IpAddressModel = require('~src/core/model/ipAddressModel');
 const UnknownException = require('~src/core/exception/unknownException');
 
@@ -64,7 +65,9 @@ suite(`ProxyController`, () => {
         gateway: '192.168.1.1',
         interface: 'ens192',
       };
-      testObj.proxyServerService.add.resolves([null, testObj.identifierGenerator.generateId()]);
+      const outputModel = new JobModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerService.add.resolves([null, outputModel]);
 
       const [error, result] = await testObj.proxyController.generateIp();
 
@@ -74,6 +77,26 @@ suite(`ProxyController`, () => {
       expect(result)
         .to.be.a('object')
         .and.have.include({ jobId: testObj.identifierGenerator.generateId() });
+    });
+  });
+
+  suite(`Reload all proxy`, () => {
+    test(`Should error reload all proxy`, async () => {
+      testObj.proxyServerService.reload.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyController.reload();
+
+      testObj.proxyServerService.reload.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully reload all proxy`, async () => {
+      testObj.proxyServerService.reload.resolves([null]);
+
+      const [error] = await testObj.proxyController.reload();
+
+      testObj.proxyServerService.reload.should.have.callCount(1);
+      expect(error).to.be.a('null');
     });
   });
 });

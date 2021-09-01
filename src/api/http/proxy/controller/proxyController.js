@@ -43,6 +43,10 @@ class ProxyController {
 
     return [null, { jobId: data.id }];
   }
+
+  async reload() {
+    return this.#proxyServerService.reload();
+  }
 }
 
 module.exports = ProxyController;
