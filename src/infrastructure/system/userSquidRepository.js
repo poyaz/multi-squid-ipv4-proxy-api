@@ -32,7 +32,7 @@ class UserSquidRepository extends IUserRepository {
     }
 
     try {
-      const exec = spawn('htpasswd', ['-v', this.#passwdPathFile, username]);
+      const exec = spawn('htpasswd', ['-v', '-i', this.#passwdPathFile, username]);
       exec.stdin.end();
 
       let checkUserError = '';
@@ -40,10 +40,10 @@ class UserSquidRepository extends IUserRepository {
         checkUserError += chunk;
       }
       if (checkUserError) {
-        if (/not found$/.test(checkUserError)) {
+        if (/not found/.test(checkUserError)) {
           return [null, false];
         }
-        if (/verification failed$/.test(checkUserError)) {
+        if (/verification failed/.test(checkUserError)) {
           return [null, true];
         }
 
