@@ -81,7 +81,7 @@ class Loader {
 
     const httpPublicApiHostConfig = this._config.getStr('server.public.host');
     const httpPublicApiPortConfig = this._config.getNum('server.public.http.port');
-    const httpApiUrlConfig = `http://:${httpPublicApiHostConfig}:${httpPublicApiPortConfig}`;
+    const httpApiUrlConfig = `http://${httpPublicApiHostConfig}:${httpPublicApiPortConfig}`;
     const squidPerIpInstanceConfig = this._config.getNum('custom.squid.perIpInstance');
     const squidScriptApiTokenConfig = this._config.getStr('custom.squid.scriptApiToken');
     const realProjectPathForDockerConfig = this._config.getStr('custom.realProjectPathForDocker');
