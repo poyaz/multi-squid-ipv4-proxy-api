@@ -217,6 +217,7 @@ class Loader {
       });
       cluster.on('exit', (worker) => {
         console.log(`Worker ${worker.process.pid} died.`);
+        cluster.fork();
       });
     } else {
       console.log(`Start worker: ${process.pid}`);
