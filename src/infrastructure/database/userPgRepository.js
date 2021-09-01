@@ -48,11 +48,11 @@ class UserPgRepository extends IUserRepository {
 
     if (typeof filterModel.username !== 'undefined') {
       getAllQuery.values.push(filterModel.username);
-      filterConditions.push(`username = ${getAllQuery.values.length}`);
+      filterConditions.push(`username = $${getAllQuery.values.length}`);
     }
     if (typeof filterModel.isEnable !== 'undefined') {
       getAllQuery.values.push(filterModel.isEnable);
-      filterConditions.push(`is_enable = ${getAllQuery.values.length}`);
+      filterConditions.push(`is_enable = $${getAllQuery.values.length}`);
     }
 
     if (filterConditions.length > 0) {
