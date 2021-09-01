@@ -99,6 +99,8 @@ class SquidServerRepository extends IProxyServerRepository {
 
     const squidOtherConfDir = this.#squidOtherConfDir;
     this.#defaultConfig = [
+      `visible_hostname localhost`,
+      ``,
       `cache deny all`,
       ``,
       `acl localnet src all`,
