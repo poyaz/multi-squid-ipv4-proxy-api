@@ -291,7 +291,7 @@ class ExpressApi extends IRunner {
       '/v1/package/:packageId/renew',
       async (req, res, next) => {
         try {
-          const middleware = packageHttpApi.renewPackageValidator.create(req, res);
+          const middleware = packageHttpApi.renewPackageValidatorMiddlewareFactory.create(req, res);
 
           await middleware.act();
 
