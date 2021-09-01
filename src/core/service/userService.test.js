@@ -10,6 +10,7 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const UserModel = require('~src/core/model/userModel');
+const PackageModel = require('~src/core/model/packageModel');
 const UserExistException = require('~src/core/exception/userExistException');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
@@ -23,10 +24,18 @@ const testObj = {};
 
 suite(`UserService`, () => {
   setup(() => {
-    const { userRepository, userSquidRepository, userService } = helper.fakeUserService();
+    const {
+      userRepository,
+      userSquidRepository,
+      packageFileRepository,
+      proxySquidRepository,
+      userService,
+    } = helper.fakeUserService();
 
     testObj.userRepository = userRepository;
     testObj.userSquidRepository = userSquidRepository;
+    testObj.packageFileRepository = packageFileRepository;
+    testObj.proxySquidRepository = proxySquidRepository;
     testObj.userService = userService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
@@ -322,13 +331,14 @@ suite(`UserService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successfully disable user by username`, async () => {
+    test(`Should error disable user by username when update package file`, async () => {
       const inputUsername = 'user1';
       const outputModel = new UserModel();
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.username = 'user1';
       testObj.userRepository.getAll.resolves([null, [outputModel]]);
       testObj.userRepository.update.resolves([null]);
+      testObj.packageFileRepository.update.resolves([new UnknownException()]);
 
       const [error] = await testObj.userService.disableByUsername(inputUsername);
 
@@ -340,11 +350,44 @@ suite(`UserService`, () => {
           .has('id', testObj.identifierGenerator.generateId())
           .and(sinon.match.has('isEnable', false)),
       );
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully disable user by username`, async () => {
+      const inputUsername = 'user1';
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
+      testObj.userRepository.update.resolves([null]);
+      testObj.packageFileRepository.update.resolves([null]);
+      testObj.proxySquidRepository.reload.resolves([null]);
+
+      const [error] = await testObj.userService.disableByUsername(inputUsername);
+
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(sinon.match.has('username', 'user1'));
+      testObj.userRepository.update.should.have.callCount(1);
+      testObj.userRepository.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('isEnable', false)),
+      );
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('deleteDate', sinon.match.instanceOf(Date))),
+      );
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
   });
 
-  suite(`enable user by username`, () => {
+  suite(`Enable user by username`, () => {
     test(`Should error enable user by username when fetch user info`, async () => {
       const inputUsername = 'user1';
       testObj.userRepository.getAll.resolves([new UnknownException()]);

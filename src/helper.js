@@ -115,15 +115,32 @@ function fakeUserController(req, res) {
 
 function fakeUserService() {
   const IUserRepository = require('~src/core/interface/iUserRepository');
+  const IPackageRepository = require('~src/core/interface/iPackageRepository');
+  const IProxyServerRepository = require('~src/core/interface/iProxyServerRepository');
   const UserService = require('~src/core/service/userService');
 
   const userRepository = sinon.createStubInstance(IUserRepository);
 
   const userSquidRepository = sinon.createStubInstance(IUserRepository);
 
-  const userService = new UserService(userRepository, userSquidRepository);
+  const packageFileRepository = sinon.createStubInstance(IPackageRepository);
 
-  return { userRepository, userSquidRepository, userService };
+  const proxySquidRepository = sinon.createStubInstance(IProxyServerRepository);
+
+  const userService = new UserService(
+    userRepository,
+    userSquidRepository,
+    packageFileRepository,
+    proxySquidRepository,
+  );
+
+  return {
+    userRepository,
+    userSquidRepository,
+    packageFileRepository,
+    proxySquidRepository,
+    userService,
+  };
 }
 
 function fakeUserPgRepository() {

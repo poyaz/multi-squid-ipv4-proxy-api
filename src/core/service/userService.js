@@ -3,6 +3,7 @@
  */
 
 const UserModel = require('~src/core/model/userModel');
+const PackageModel = require('~src/core/model/packageModel');
 const IUserService = require('~src/core/interface/iUserService');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const UserExistException = require('~src/core/exception/userExistException');
@@ -16,17 +17,29 @@ class UserService extends IUserService {
    * @type {IUserRepository}
    */
   #userSquidRepository;
+  /**
+   * @type {IPackageRepository}
+   */
+  #packageFileRepository;
+  /**
+   * @type {IProxyServerRepository}
+   */
+  #proxySquidRepository;
 
   /**
    *
    * @param {IUserRepository} userRepository
    * @param {IUserRepository} userSquidRepository
+   * @param {IPackageRepository} packageFileRepository
+   * @param {IProxyServerRepository} proxySquidRepository
    */
-  constructor(userRepository, userSquidRepository) {
+  constructor(userRepository, userSquidRepository, packageFileRepository, proxySquidRepository) {
     super();
 
     this.#userRepository = userRepository;
     this.#userSquidRepository = userSquidRepository;
+    this.#packageFileRepository = packageFileRepository;
+    this.#proxySquidRepository = proxySquidRepository;
   }
 
   async getAll(filterInput) {
@@ -99,6 +112,17 @@ class UserService extends IUserService {
       return [updateError];
     }
 
+    const disableUserPackage = new PackageModel();
+    disableUserPackage.username = username;
+    disableUserPackage.deleteDate = new Date();
+
+    const [updatePackageError] = await this.#packageFileRepository.update(disableUserPackage);
+    if (updatePackageError) {
+      return [updatePackageError];
+    }
+
+    this._reloadServer();
+
     return [null];
   }
 
@@ -132,6 +156,15 @@ class UserService extends IUserService {
     }
 
     return [null, fetchData[0]];
+  }
+
+  _reloadServer() {
+    (async () => {
+      const [error] = await this.#proxySquidRepository.reload();
+      if (error) {
+        console.error(error);
+      }
+    })().catch(console.error);
   }
 }
 
