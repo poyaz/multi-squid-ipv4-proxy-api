@@ -212,7 +212,7 @@ class PackagePgRepository extends IPackageRepository {
 
     if (typeof model.expireDate !== 'undefined') {
       param.push(this.#dateTime.gregorianWithTimezoneString(model.expireDate));
-      columns.push(`expire_date = ${param.length}`);
+      columns.push(`expire_date = $${param.length}`);
     }
 
     if (columns.length === 0) {
@@ -220,7 +220,7 @@ class PackagePgRepository extends IPackageRepository {
     }
 
     param.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
-    columns.push(`update_date = ${param.length}`);
+    columns.push(`update_date = $${param.length}`);
 
     const updateQuery = {
       text: singleLine`
