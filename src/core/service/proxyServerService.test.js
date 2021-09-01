@@ -12,9 +12,6 @@ const helper = require('~src/helper');
 const IpAddressModel = require('~src/core/model/ipAddressModel');
 const JobModel = require('~src/core/model/jobModel');
 const UnknownException = require('~src/core/exception/unknownException');
-const NotFoundException = require('~src/core/exception/notFoundException');
-const ExpireDateException = require('~src/core/exception/expireDateException');
-const DisableUserException = require('~src/core/exception/disableUserException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -28,11 +25,13 @@ suite(`ProxyServerService`, () => {
     const {
       proxyServerRepository,
       proxyServerJobService,
+      proxySquidRepository,
       proxyServerService,
     } = helper.fakeProxyServerService();
 
     testObj.proxyServerRepository = proxyServerRepository;
     testObj.proxyServerJobService = proxyServerJobService;
+    testObj.proxySquidRepository = proxySquidRepository;
     testObj.proxyServerService = proxyServerService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
@@ -157,6 +156,27 @@ suite(`ProxyServerService`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.equal(testObj.identifierGenerator.generateId());
+    });
+  });
+
+  suite(`Reload all proxy`, () => {
+    test(`Should error reload all proxy`, async () => {
+      testObj.proxySquidRepository.reload.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyServerService.reload();
+
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully reload all proxy`, async () => {
+      testObj.proxySquidRepository.reload.resolves([null]);
+
+      const [error] = await testObj.proxyServerService.reload();
+
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
+      expect(error).to.be.a('null');
     });
   });
 });

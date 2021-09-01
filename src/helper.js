@@ -318,11 +318,18 @@ function fakeProxyServerService() {
 
   const proxyServerJobService = sinon.createStubInstance(IJobService);
 
-  const proxyServerService = new ProxyServerService(proxyServerRepository, proxyServerJobService);
+  const proxySquidRepository = sinon.createStubInstance(IProxyServerRepository);
+
+  const proxyServerService = new ProxyServerService(
+    proxyServerRepository,
+    proxyServerJobService,
+    proxySquidRepository,
+  );
 
   return {
     proxyServerRepository,
     proxyServerJobService,
+    proxySquidRepository,
     proxyServerService,
   };
 }

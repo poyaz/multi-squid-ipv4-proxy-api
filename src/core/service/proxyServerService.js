@@ -17,6 +17,10 @@ class ProxyServerService extends IProxyServerService {
    */
   #proxyServerJobService;
   /**
+   * @type {IProxyServerRepository}
+   */
+  #proxySquidRepository;
+  /**
    * @type {number}
    */
   #defaultPort = 3128;
@@ -25,12 +29,14 @@ class ProxyServerService extends IProxyServerService {
    *
    * @param {IProxyServerRepository} proxyServerRepository
    * @param {IJobService} proxyServerJobService
+   * @param {IProxyServerRepository} proxySquidRepository
    */
-  constructor(proxyServerRepository, proxyServerJobService) {
+  constructor(proxyServerRepository, proxyServerJobService, proxySquidRepository) {
     super();
 
     this.#proxyServerRepository = proxyServerRepository;
     this.#proxyServerJobService = proxyServerJobService;
+    this.#proxySquidRepository = proxySquidRepository;
   }
 
   async add(model) {
@@ -82,6 +88,10 @@ class ProxyServerService extends IProxyServerService {
     }
 
     return [null, jobAddId];
+  }
+
+  async reload() {
+    return this.#proxySquidRepository.reload();
   }
 }
 
