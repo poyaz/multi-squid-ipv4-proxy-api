@@ -163,16 +163,17 @@ class PackagePgRepository extends IPackageRepository {
                 AND p.delete_date ISNULL
                 AND mbdp.delete_date ISNULL
                 AND ba.delete_date ISNULL
-                AND u.id = $1)
+                AND u.id = $1
+                AND p.expire_date < $2)
           INSERT
           INTO public.map_bind_address_package (id, bind_address_id, package_id)
-          SELECT public.uuid_generate_v4(), id, $2
+          SELECT public.uuid_generate_v4(), id, $3
           FROM unique_bind_address
           ORDER BY random()
-          LIMIT $3
-          RETURNING *
+          LIMIT $4
+          RETURNING (SELECT ip FROM public.bind_address ba WHERE ba.id = bind_address_id), (SELECT port FROM public.bind_address ba WHERE ba.id = bind_address_id)
       `,
-      values: [model.userId, packageId, model.countIp],
+      values: [model.userId, expireDate, packageId, model.countIp],
     };
 
     const transaction = { isStart: false };
@@ -186,7 +187,7 @@ class PackagePgRepository extends IPackageRepository {
 
       await client.query('END');
 
-      packageRows[0]['user_name'] = model.username;
+      packageRows[0]['username'] = model.username;
       packageRows[0]['count_ip'] = rowCount;
 
       const result = this._fillModel(packageRows[0]);
