@@ -119,7 +119,12 @@ class Loader {
     // -------
 
     const jobService = new JobService(jobRepository);
-    const userService = new UserService(userPgRepository, userSquidRepository);
+    const userService = new UserService(
+      userPgRepository,
+      userSquidRepository,
+      packageFileRepository,
+      squidServerRepository,
+    );
     const packageService = new PackageService(
       userService,
       packagePgRepository,
