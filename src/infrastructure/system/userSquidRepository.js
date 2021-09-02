@@ -115,6 +115,10 @@ class UserSquidRepository extends IUserRepository {
         executeError += chunk;
       }
       if (executeError) {
+        if (/Adding/.test(executeError)) {
+          return [null];
+        }
+
         return [new CommandExecuteException(new Error(executeError))];
       }
 
