@@ -8,6 +8,7 @@ const Config = require('~config');
 
 const ExpressApi = require('./bootstrap/api/expressApi');
 const CliApi = require('./bootstrap/api/cliApi');
+const CronjobApi = require('./bootstrap/api/cronjobApi');
 const PgDb = require('./bootstrap/db/pgDb');
 const FileUtil = require('./bootstrap/util/fileUtil');
 const JwtUtil = require('./bootstrap/util/jwtUtil');
@@ -47,6 +48,9 @@ const AddUserValidationMiddlewareFactory = require('~src/api/http/user/middlewar
 const BlockUrlForUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/blockUrlForUserValidationMiddlewareFactory');
 const ChangePasswordUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/changePasswordUserValidationMiddlewareFactory');
 const UserControllerFactory = require('~src/api/http/user/controller/userControllerFactory');
+
+const PackageCronjob = require('~src/api/cronjob/packageCronjob');
+const ReloadCronjob = require('~src/api/cronjob/reloadCronjob');
 
 class Loader {
   constructor({ cwd = '', name = '', version = '', cli = false } = {}) {
@@ -171,6 +175,12 @@ class Loader {
       urlAccessService,
     );
 
+    // Other API
+    // --------------------------
+
+    const packageCronjob = new PackageCronjob(packageService);
+    const reloadCronjob = new ReloadCronjob(proxyServerService);
+
     // Fill dependency
     // --------------------------
 
@@ -200,10 +210,17 @@ class Loader {
       userControllerFactory,
     };
 
+    this._dependency.packageCronjob = packageCronjob;
+    this._dependency.reloadCronjob = reloadCronjob;
+
     if (this._options.cli) {
       await this._cli();
 
       return;
+    }
+
+    if (cluster.isMaster) {
+      await this._cronJob();
     }
 
     await this._api();
@@ -237,6 +254,12 @@ class Loader {
     const cliApi = new CliApi(this._config, this._options, this._dependency);
 
     await cliApi.start();
+  }
+
+  async _cronJob() {
+    const cronjobApi = new CronjobApi(this._config, this._options, this._dependency);
+
+    await cronjobApi.start();
   }
 
   async _api() {
