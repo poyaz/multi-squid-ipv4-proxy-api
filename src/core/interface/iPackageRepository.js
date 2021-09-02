@@ -27,6 +27,16 @@ class IPackageRepository {
 
   /**
    *
+   * @return {Promise<(Error|Array<PackageModel>|[])[]>}
+   */
+  async getAllExpirePackage() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
+
+  /**
+   *
    * @param {PackageModel} model
    * @return {Promise<(Error|PackageModel|[])[]>}
    */

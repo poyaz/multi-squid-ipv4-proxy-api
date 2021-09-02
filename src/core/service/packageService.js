@@ -132,6 +132,37 @@ class PackageService extends IPackageService {
     return [null];
   }
 
+  async disableExpirePackage() {
+    const [
+      expirePackageError,
+      expirePackageList,
+    ] = await this.#packageRepository.getAllExpirePackage();
+    if (expirePackageError) {
+      return [expirePackageError];
+    }
+
+    if (expirePackageList.length === 0) {
+      return [null];
+    }
+
+    let totalSuccessfulExpireCount = 0;
+    for await (const expirePackage of expirePackageList) {
+      const [updateError] = await this.#packageFileRepository.update(expirePackage);
+      if (updateError) {
+        console.error('updateDisablePackage', updateError);
+        continue;
+      }
+
+      totalSuccessfulExpireCount++;
+    }
+
+    if (totalSuccessfulExpireCount > 0) {
+      this._reloadServer();
+    }
+
+    return [null];
+  }
+
   async _getUserModelByUsername(username) {
     const filterModel = new UserModel();
     filterModel.username = username;
