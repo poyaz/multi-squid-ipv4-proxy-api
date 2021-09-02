@@ -11,27 +11,6 @@ class IpAddrRepository extends IProxyServerRepository {
     const [model] = models;
 
     try {
-      const findIpExistExec = spawn('sh', [
-        `-c`,
-        `ip -4 addr | awk '{print $2}' | grep -oE '\\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b' | grep ${model.ip} | wc -l`,
-      ]);
-      let findIpExistExecuteError = '';
-      for await (const chunk of findIpExistExec.stderr) {
-        findIpExistExecuteError += chunk;
-      }
-      if (findIpExistExecuteError) {
-        return [new CommandExecuteException(new Error(findIpExistExecuteError))];
-      }
-
-      let ipExistExecuteData = '';
-      for await (const chunk of findIpExistExec.stdout) {
-        ipExistExecuteData += chunk;
-      }
-      ipExistExecuteData = Number(ipExistExecuteData);
-      if (!isNaN(ipExistExecuteData) && ipExistExecuteData > 0) {
-        return [null, []];
-      }
-
       const addIpExec = spawn('ip', [
         '-4',
         'addr',
@@ -45,6 +24,10 @@ class IpAddrRepository extends IProxyServerRepository {
         addIpExecuteError += chunk;
       }
       if (addIpExecuteError) {
+        if (/exists/.test(addIpExecuteError)) {
+          return [null, []];
+        }
+
         return [new CommandExecuteException(new Error(addIpExecuteError))];
       }
 
