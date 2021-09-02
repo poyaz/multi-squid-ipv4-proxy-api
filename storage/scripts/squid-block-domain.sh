@@ -33,7 +33,7 @@ while true; do
     echo -n "fail" >>/tmp/squid-block-url.log
     echo -en "\n[ERR] Fail fetch data from API with status code $api_status_code" >>/tmp/squid-block-url.log
 
-    echo "OK"
+    echo "ERR"
     continue
   fi
 
@@ -43,7 +43,7 @@ while true; do
     echo -n "fail" >>/tmp/squid-block-url.log
     echo -en "\n[ERR] Fail fetch data from API with status data error. Error: $api_data_error" >>/tmp/squid-block-url.log
 
-    echo "OK"
+    echo "ERR"
     continue
   fi
 
