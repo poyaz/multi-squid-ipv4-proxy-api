@@ -396,6 +396,8 @@ class ExpressApi extends IRunner {
   }
 
   _sendFail(res, error, statusCode = 400) {
+    console.error(error);
+
     const obj = {
       status: 'error',
       error: error.message.toString(),
