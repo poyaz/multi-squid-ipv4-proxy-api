@@ -111,7 +111,7 @@ class SquidServerRepository extends IProxyServerRepository {
       `auth_param basic credentialsttl 10 seconds`,
       ``,
       `external_acl_type user_ip_access %MYADDR %LOGIN /usr/lib/squid/ext_file_userip_acl -f ${squidOtherConfDir}/squid-user-ip.conf`,
-      `external_acl_type user_block_url ttl=0 negative_ttl=0 %LOGIN %DST ${squidOtherConfDir}/squid-block-url.sh`,
+      `external_acl_type user_block_url ttl=0 negative_ttl=0 %LOGIN %DST /tmp/squid-block-url.sh`,
       ``,
       `acl ncsa_users proxy_auth REQUIRED`,
       `acl user_ip_access external user_ip_access`,
@@ -218,13 +218,8 @@ class SquidServerRepository extends IProxyServerRepository {
           this.#projectPath.current,
           this.#projectPath.host,
         );
-        const squidPasswordFileVolume = this.#squidPasswordFile.replace(
-          this.#projectPath.current,
-          this.#projectPath.host,
-        );
-        const squidIpAccessFileVolume = this.#squidIpAccessFile.replace(
-          this.#projectPath.current,
-          this.#projectPath.host,
+        const squidOtherConfDir = path.dirname(
+          this.#squidPasswordFile.replace(this.#projectPath.current, this.#projectPath.host),
         );
         const squidIpAccessBashFileVolume = this.#squidIpAccessBashFile.replace(
           this.#projectPath.current,
@@ -238,15 +233,14 @@ class SquidServerRepository extends IProxyServerRepository {
             Env: [
               `API_URL=${this.#apiUrl}`,
               `API_TOKEN=${this.#apiToken}`,
-              `SQUID_BLOCK_URL_BASH=${this.#squidOtherConfDir}/squid-block-url.sh`,
+              `SQUID_BLOCK_URL_BASH=/tmp/squid-block-url.sh`,
             ],
             HostConfig: {
               Binds: [
                 `/etc/localtime:/etc/localtime:ro`,
                 `${containerPathVolume}:/etc/squid`,
-                `${squidPasswordFileVolume}:${this.#squidOtherConfDir}/squid-pwd.htpasswd`,
-                `${squidIpAccessFileVolume}:${this.#squidOtherConfDir}/squid-user-ip.conf`,
-                `${squidIpAccessBashFileVolume}:${this.#squidOtherConfDir}/squid-block-url.sh`,
+                `${squidOtherConfDir}:${this.#squidOtherConfDir}`,
+                `${squidIpAccessBashFileVolume}:/tmp/squid-block-url.sh`,
               ],
               NetworkMode: 'host',
               RestartPolicy: {
