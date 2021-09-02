@@ -24,6 +24,7 @@ services:
     volumes:
       - ${PG_DIR_DATA:-postgres-storage}:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
+      - $PWD/storage/database/migrition/:/docker-entrypoint-initdb.d/
     networks:
       main:
         ipv4_address: 10.102.0.3

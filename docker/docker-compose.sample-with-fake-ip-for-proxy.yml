@@ -1,0 +1,68 @@
+version: "2.3"
+services:
+  node:
+    restart: "no"
+    tty: true
+    environment:
+      - TZ=Asia/Tehran
+      - NODE_ENV=default
+      - SERVER_PUBLIC_HOST=127.0.0.1
+      - DB_PG_HOST=10.102.0.3
+      - DB_PG_DATABASE=postgres
+      - DB_PG_USERNAME=postgres
+      - DB_PG_PASSWORD=
+      - CLUSTER_COUNT=1
+      - REAL_PROJECT_PATH_FOR_DOCKER=$PWD
+      - SQUID_PER_IP_INSTANCE=2
+      - SQUID_SCRIPT_API_TOKEN=
+      - DOCKER_HOST=10.102.0.4
+      - JWT_SECRET_KEY=
+    command: "sh -c 'npm i; npm run nodemon"
+
+  postgres:
+    environment:
+      - TZ=Asia/Tehran
+      - POSTGRES_PASSWORD=123456
+    restart: "no"
+
+  docker-proxy:
+    restart: "no"
+
+  fake-ip-1:
+    image: node:14.15.1-alpine
+    restart: "no"
+    command: "sh -c 'while true; do sleep 30; done;'"
+    networks:
+      main:
+        ipv4_address: 10.102.0.6
+      proxy:
+        ipv4_address: 10.102.0.18
+
+  fake-ip-2:
+    image: node:14.15.1-alpine
+    restart: "no"
+    command: "sh -c 'while true; do sleep 30; done;'"
+    networks:
+      main:
+        ipv4_address: 10.102.0.7
+      proxy:
+        ipv4_address: 10.102.0.19
+
+  fake-ip-3:
+    image: node:14.15.1-alpine
+    restart: "no"
+    command: "sh -c 'while true; do sleep 30; done;'"
+    networks:
+      main:
+        ipv4_address: 10.102.0.8
+      proxy:
+        ipv4_address: 10.102.0.20
+
+networks:
+  proxy:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.102.0.16/28
+          gateway: 10.102.0.17
