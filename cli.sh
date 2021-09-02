@@ -247,7 +247,7 @@ set -- "${POSITIONAL[@]}"
 _check_dependency
 
 if [[ $execute_mode == "init" ]]; then
-  if [[ -f $DEFAULT_NODE_ENV_FILE ]] && [[ -f DEFAULT_PG_ENV_FILE ]]; then
+  if [[ -f $DEFAULT_NODE_ENV_FILE ]] && [[ -f $DEFAULT_PG_ENV_FILE ]]; then
     echo "[WARN] The service is already initialized!"
     exit
   fi
@@ -282,7 +282,7 @@ if [[ $execute_mode == "init" ]]; then
 
   SED_DIRNAME_REPLACE=$(echo $DIRNAME | sed 's/\//\\\//g')
 
-  API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$GENERATE_JWT_TOKEN" node sh -c 'node scripts/cli.js generate-token' 2>/dev/null)
+  API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$GENERATE_JWT_TOKEN" node sh -c 'npm install --production && node scripts/cli.js generate-token' 2>/dev/null)
 
   TIMEZONE_DATA=$(cat /etc/timezone | sed 's/\//\\\//g')
 

@@ -17,7 +17,7 @@ services:
     tty: false
     entrypoint: |
       ./scripts/wait-for-it -wait tcp://${PG_HOST:-10.102.0.3}:${PG_PORT:-5432} -wait-retry-interval 5s -timeout 600s
-    command: "sh -c 'npm install && npm start'"
+    command: "sh -c 'npm install --production && npm start'"
 
   postgres:
     image: postgres:11.10
