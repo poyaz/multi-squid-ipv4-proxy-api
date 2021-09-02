@@ -124,6 +124,52 @@ class PackagePgRepository extends IPackageRepository {
     }
   }
 
+  async getAllExpirePackage() {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const expireQuery = {
+      text: singleLine`
+          SELECT DISTINCT ON (p.id, p.insert_date) p.id,
+                                                   u.id                                                        AS user_id,
+                                                   u.username,
+                                                   p.expire_date,
+                                                   p.insert_date,
+                                                   count(*)                                                    AS count_ip,
+                                                   jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
+          FROM public.users u,
+               public.packages p,
+               public.map_bind_address_package mbdp,
+               public.bind_address ba
+          WHERE u.id = p.user_id
+            AND p.id = mbdp.package_id
+            AND mbdp.bind_address_id = ba.id
+            AND u.is_enable = true
+            AND ba.is_enable = true
+            AND u.delete_date ISNULL
+            AND p.delete_date ISNULL
+            AND mbdp.delete_date ISNULL
+            AND ba.delete_date ISNULL
+            AND p.expire_date < $1
+          GROUP BY p.id, u.id, u.username, p.expire_date, p.insert_date
+          ORDER BY p.insert_date DESC
+      `,
+      values: [now],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(expireQuery);
+      if (rowCount === 0) {
+        return [null, []];
+      }
+
+      const result = rows.map((v) => this._fillModel(v));
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async add(model) {
     const [errorClient, client] = await this._getDatabaseClient();
     if (errorClient) {
