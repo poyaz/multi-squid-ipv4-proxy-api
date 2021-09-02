@@ -282,6 +282,8 @@ if [[ $execute_mode == "init" ]]; then
 
   SED_DIRNAME_REPLACE=$(echo $DIRNAME | sed 's/\//\\\//g')
 
+  echo "[INFO] Please wait for init service ..."
+
   API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$GENERATE_JWT_TOKEN" node sh -c 'npm install --production && node scripts/cli.js generate-token' 2>/dev/null)
 
   TIMEZONE_DATA=$(cat /etc/timezone | sed 's/\//\\\//g')
