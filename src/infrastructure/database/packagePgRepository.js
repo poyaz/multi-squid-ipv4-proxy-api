@@ -5,6 +5,7 @@
 const { singleLine } = require('~src/utility');
 const PackageModel = require('~src/core/model/packageModel');
 const IPackageRepository = require('~src/core/interface/iPackageRepository');
+const NoUniqueIpException = require('~src/core/exception/noUniqueIpException');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
 const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
@@ -184,6 +185,12 @@ class PackagePgRepository extends IPackageRepository {
       const { rows: packageRows } = await client.query(insertToPackage);
 
       const { rowCount, rows: ipRows } = await client.query(insertToMap);
+
+      if (rowCount === 0) {
+        await client.query('ROLLBACK');
+
+        return [new NoUniqueIpException()];
+      }
 
       await client.query('END');
 
