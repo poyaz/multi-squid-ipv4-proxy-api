@@ -1,3 +1,42 @@
+Run service
+===========
+
+For run and restart service use this cli
+
+## Usage
+
+```bash
+> bash cli.sh --help
+Multiply IPv4 proxy
+
+Usage:
+  bash cli.sh [OPTIONS...]
+
+Options:
+      --install                 Install dependency
+      --init                    Init webserver and database
+      --restart                 Restart all service
+      --token                   Get token
+
+  -v, --version                 Show version information and exit
+  -h, --help                    Show help
+```
+
+### Sample
+
+```bash
+### Install dependency
+> bash cli.sh --install
+
+### Init service
+> bash cli.sh --init
+Enter webserver ip: 192.168.1.2
+Enter webserver port: 8080
+
+### Get api token
+> bash cli.sh --token
+```
+
 API
 ===
 
