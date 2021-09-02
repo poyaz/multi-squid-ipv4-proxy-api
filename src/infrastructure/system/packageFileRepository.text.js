@@ -236,7 +236,7 @@ suite(`PackageFileRepository`, () => {
       childProcess.spawn.should.have.callCount(1);
       childProcess.spawn.should.have.calledWith(
         sinon.match.string,
-        sinon.match.has('1', sinon.match(`'s/^\\([^#]\\+ ${inputModel.username}\\)$/#\\1/g'`)),
+        sinon.match.has('1', sinon.match(`s/^\\([^#]\\+ ${inputModel.username}\\)$/#\\1/g`)),
       );
       expect(error).to.be.a('null');
     });
@@ -257,7 +257,7 @@ suite(`PackageFileRepository`, () => {
       childProcess.spawn.should.have.callCount(1);
       childProcess.spawn.should.have.calledWith(
         sinon.match.string,
-        sinon.match.has('1', sinon.match(`'s/^#\\(.\\+ ${inputModel.username}\\)$/\\1/g'`)),
+        sinon.match.has('1', sinon.match(`s/^#\\(.\\+ ${inputModel.username}\\)$/\\1/g`)),
       );
       expect(error).to.be.a('null');
     });
@@ -285,7 +285,9 @@ suite(`PackageFileRepository`, () => {
         sinon.match.string,
         sinon.match.has(
           '1',
-          sinon.match(`'/^#\\?\\(192\\.168\\.1\\.1\\|192\\.168\\.1\\.2\\) ${inputModel.username}$/d'`),
+          sinon.match(
+            `/^#\\?\\(192\\.168\\.1\\.1\\|192\\.168\\.1\\.2\\) ${inputModel.username}$/d`,
+          ),
         ),
       );
       expect(error).to.be.a('null');

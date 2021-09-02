@@ -79,14 +79,14 @@ class PackageFileRepository extends IPackageRepository {
     switch (true) {
       case model.expireDate instanceof Date && model.ipList.length > 0: {
         const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
-        updatePattern = `'/^#\\?\\(${ipList}\\) ${model.username}$/d'`;
+        updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
         break;
       }
       case model.deleteDate instanceof Date:
-        updatePattern = `'s/^\\([^#]\\+ ${model.username}\\)$/#\\1/g'`;
+        updatePattern = `s/^\\([^#]\\+ ${model.username}\\)$/#\\1/g`;
         break;
       case !model.deleteDate:
-        updatePattern = `'s/^#\\(.\\+ ${model.username}\\)$/\\1/g'`;
+        updatePattern = `s/^#\\(.\\+ ${model.username}\\)$/\\1/g`;
         break;
     }
 
