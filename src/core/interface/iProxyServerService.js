@@ -5,6 +5,16 @@
 class IProxyServerService {
   /**
    *
+   * @return {Promise<(Error|Array<IpAddressModel>)[]>}
+   */
+  async getAll() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
+
+  /**
+   *
    * @param {IpAddressModel} model
    * @return {Promise<(Error|uuid)[]>}
    */

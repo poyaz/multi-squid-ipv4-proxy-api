@@ -3,6 +3,7 @@
  */
 
 const GenerateProxyInputModel = require('./model/generateProxyInputModel');
+const GetAllProxyIpOutputModel = require('./model/getAllProxyIpOutputModel');
 
 class ProxyController {
   #req;
@@ -28,6 +29,18 @@ class ProxyController {
     this.#res = res;
     this.#proxyServerService = proxyServerService;
     this.#dateTime = dateTime;
+  }
+
+  async getAll() {
+    const [error, data] = await this.#proxyServerService.getAll();
+    if (error) {
+      return [error];
+    }
+
+    const getAllProxyIpOutputModel = new GetAllProxyIpOutputModel(this.#dateTime);
+    const result = getAllProxyIpOutputModel.getOutput(data);
+
+    return [null, result];
   }
 
   async generateIp() {

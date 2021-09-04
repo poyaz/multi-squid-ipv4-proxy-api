@@ -41,6 +41,45 @@ suite(`ProxyController`, () => {
     testObj.expireRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}/;
   });
 
+  suite(`Get all proxy ip`, () => {
+    test(`Should error get all proxy ip`, async () => {
+      testObj.proxyServerService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyController.getAll();
+
+      testObj.proxyServerService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all proxy ip`, async () => {
+      const outputModel1 = new IpAddressModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.ip = '192.168.1.1';
+      outputModel1.port = 8080;
+      outputModel1.mask = 24;
+      outputModel1.interface = 'ens192';
+      outputModel1.gateway = '192.168.1.224';
+      outputModel1.insertDate = new Date();
+      testObj.proxyServerService.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.proxyController.getAll();
+
+      testObj.proxyServerService.getAll.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.length(1);
+      expect(result[0]).to.be.a('object');
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        ip: '192.168.1.1',
+        port: 8080,
+        mask: 24,
+        interface: 'ens192',
+        gateway: '192.168.1.224',
+      });
+      expect(result[0].insertDate).to.have.match(testObj.dateRegex);
+    });
+  });
+
   suite(`Generate ip for proxy`, () => {
     test(`Should error generate ip for proxy`, async () => {
       testObj.req.body = {
