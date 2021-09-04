@@ -26,12 +26,14 @@ suite(`ProxyServerService`, () => {
       proxyServerRepository,
       proxyServerJobService,
       proxySquidRepository,
+      proxyServerDeleteJobService,
       proxyServerService,
     } = helper.fakeProxyServerService();
 
     testObj.proxyServerRepository = proxyServerRepository;
     testObj.proxyServerJobService = proxyServerJobService;
     testObj.proxySquidRepository = proxySquidRepository;
+    testObj.proxyServerDeleteJobService = proxyServerDeleteJobService;
     testObj.proxyServerService = proxyServerService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
@@ -164,7 +166,9 @@ suite(`ProxyServerService`, () => {
         testObj.outputModel6,
       ];
       testObj.proxyServerRepository.add.resolves([null, outputIpModel]);
-      testObj.proxyServerJobService.add.resolves([null, testObj.identifierGenerator.generateId()]);
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerJobService.add.resolves([null, outputJobModel]);
 
       const [error, result] = await testObj.proxyServerService.add(inputModel);
 
@@ -181,7 +185,7 @@ suite(`ProxyServerService`, () => {
           .and(sinon.match.has('totalRecord', 5)),
       );
       expect(error).to.be.a('null');
-      expect(result).to.be.equal(testObj.identifierGenerator.generateId());
+      expect(result).to.be.instanceOf(JobModel);
     });
   });
 
@@ -203,6 +207,75 @@ suite(`ProxyServerService`, () => {
 
       testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Delete ip list of proxy`, () => {
+    setup(() => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error delete ip list of proxy when remove ip list`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.proxyServerRepository.delete.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyServerService.delete(inputModel);
+
+      testObj.proxyServerRepository.delete.should.have.callCount(1);
+      testObj.proxyServerRepository.delete.should.have.calledWith(
+        sinon.match.instanceOf(IpAddressModel),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error delete ip list of proxy when add job`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.proxyServerRepository.delete.resolves([null, 10]);
+      testObj.proxyServerDeleteJobService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyServerService.delete(inputModel);
+
+      testObj.proxyServerRepository.delete.should.have.callCount(1);
+      testObj.proxyServerRepository.delete.should.have.calledWith(
+        sinon.match.instanceOf(IpAddressModel),
+      );
+      testObj.proxyServerDeleteJobService.add.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully delete ip list of proxy`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.proxyServerRepository.delete.resolves([null, 10]);
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerDeleteJobService.add.resolves([null, outputJobModel]);
+
+      const [error, result] = await testObj.proxyServerService.delete(inputModel);
+
+      testObj.proxyServerRepository.delete.should.have.callCount(1);
+      testObj.proxyServerRepository.delete.should.have.calledWith(
+        sinon.match.instanceOf(IpAddressModel),
+      );
+      testObj.proxyServerDeleteJobService.add.should.have.callCount(1);
+      testObj.proxyServerDeleteJobService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(JobModel)
+          .and(sinon.match.has('type', JobModel.TYPE_REMOVE_IP))
+          .and(sinon.match.has('data', `${testObj.inputModel.ip}/${testObj.inputModel.mask}`))
+          .and(sinon.match.has('status', JobModel.STATUS_PENDING))
+          .and(sinon.match.has('totalRecord', 10))
+          .and(sinon.match.has('totalRecordDelete', 10)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(JobModel);
     });
   });
 });

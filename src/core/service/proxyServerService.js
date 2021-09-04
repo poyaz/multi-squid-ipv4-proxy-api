@@ -21,6 +21,10 @@ class ProxyServerService extends IProxyServerService {
    */
   #proxySquidRepository;
   /**
+   * @type {IJobService}
+   */
+  #proxyServerDeleteJobService;
+  /**
    * @type {number}
    */
   #defaultPort = 3128;
@@ -30,13 +34,15 @@ class ProxyServerService extends IProxyServerService {
    * @param {IProxyServerRepository} proxyServerRepository
    * @param {IJobService} proxyServerJobService
    * @param {IProxyServerRepository} proxySquidRepository
+   * @param {IJobService} proxyServerDeleteJobService
    */
-  constructor(proxyServerRepository, proxyServerJobService, proxySquidRepository) {
+  constructor(proxyServerRepository, proxyServerJobService, proxySquidRepository, proxyServerDeleteJobService) {
     super();
 
     this.#proxyServerRepository = proxyServerRepository;
     this.#proxyServerJobService = proxyServerJobService;
     this.#proxySquidRepository = proxySquidRepository;
+    this.#proxyServerDeleteJobService = proxyServerDeleteJobService;
   }
 
   async getAll() {
@@ -86,16 +92,39 @@ class ProxyServerService extends IProxyServerService {
     jobModel.status = JobModel.STATUS_PENDING;
     jobModel.totalRecord = ipModels.length;
 
-    const [jobAddError, jobAddId] = await this.#proxyServerJobService.add(jobModel);
+    const [jobAddError, jobAddData] = await this.#proxyServerJobService.add(jobModel);
     if (jobAddError) {
       return [jobAddError];
     }
 
-    return [null, jobAddId];
+    return [null, jobAddData];
   }
 
   async reload() {
     return this.#proxySquidRepository.reload();
+  }
+
+  async delete(model) {
+    const ipMask = `${model.ip}/${model.mask}`;
+
+    const [deleteError, deleteCount] = await this.#proxyServerRepository.delete(model);
+    if (deleteError) {
+      return [deleteError];
+    }
+
+    const jobModel = new JobModel();
+    jobModel.type = JobModel.TYPE_REMOVE_IP;
+    jobModel.data = ipMask;
+    jobModel.status = JobModel.STATUS_PENDING;
+    jobModel.totalRecord = deleteCount;
+    jobModel.totalRecordDelete = deleteCount;
+
+    const [jobAddError, jobAddData] = await this.#proxyServerDeleteJobService.add(jobModel);
+    if (jobAddError) {
+      return [jobAddError];
+    }
+
+    return [null, jobAddData];
   }
 }
 

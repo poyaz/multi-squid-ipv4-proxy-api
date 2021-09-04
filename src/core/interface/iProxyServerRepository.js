@@ -65,6 +65,17 @@ class IProxyServerRepository {
     error['args'] = {};
     throw error;
   }
+
+  /**
+   *
+   * @param {IpAddressModel} model
+   * @return {Promise<(Error|number)[]>}
+   */
+  async delete(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
 }
 
 module.exports = IProxyServerRepository;
