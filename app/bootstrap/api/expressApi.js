@@ -87,7 +87,7 @@ class ExpressApi extends IRunner {
     router.get('/v1/job/:jobId', async (req, res, next) => {
       try {
         const jobController = jobHttpApi.jobControllerFactory.create(req, res);
-        const response = await jobController.getJobByid();
+        const response = await jobController.getJobById();
 
         this._sendResponse(req, res, response);
 
@@ -318,10 +318,10 @@ class ExpressApi extends IRunner {
   _proxyRoute() {
     const proxyHttpApi = this._dependency.proxyHttpApi;
 
-    router.get('/v1/proxy/reload', async (req, res, next) => {
+    router.get('/v1/proxy/ip', async (req, res, next) => {
       try {
         const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
-        const response = await proxyController.reload();
+        const response = await proxyController.getAll();
 
         this._sendResponse(req, res, response);
 
@@ -357,6 +357,46 @@ class ExpressApi extends IRunner {
         }
       },
     );
+
+    router.post('/v1/proxy/reload', async (req, res, next) => {
+      try {
+        const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
+        const response = await proxyController.reload();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
+
+    router.delete(
+      '/v1/proxy/ip',
+      async (req, res, next) => {
+        try {
+          const middleware = proxyHttpApi.deleteProxyIpValidatorMiddlewareFactory.create(req, res);
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
+          const response = await proxyController.deleteProxyIp();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
   }
 
   _sendResponse(req, res, response) {
@@ -379,7 +419,7 @@ class ExpressApi extends IRunner {
         statusCode = 200;
         break;
       case 'delete':
-        statusCode = 204;
+        statusCode = 200;
         break;
     }
 
@@ -389,6 +429,7 @@ class ExpressApi extends IRunner {
   _sendResult(res, data, statusCode = 200) {
     const obj = {
       status: 'success',
+      ...(Array.isArray(data) && { totalItem: data.length }),
       data,
     };
 

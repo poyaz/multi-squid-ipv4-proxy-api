@@ -31,6 +31,7 @@ const UserSquidRepository = require('~src/infrastructure/system/userSquidReposit
 const JobService = require('~src/core/service/jobService');
 const PackageService = require('~src/core/service/packageService');
 const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
+const ProxyServerRegenerateJobService = require('~src/core/service/proxyServerRegenerateJobService');
 const ProxyServerService = require('~src/core/service/proxyServerService');
 const UrlAccessService = require('~src/core/service/urlAccessService');
 const UserService = require('~src/core/service/userService');
@@ -41,6 +42,7 @@ const CreatePackageValidationMiddlewareFactory = require('~src/api/http/package/
 const RenewPackageValidatorMiddlewareFactory = require('~src/api/http/package/middleware/renewPackageValidatorMiddlewareFactory');
 const PackageControllerFactory = require('~src/api/http/package/controller/packageControllerFactory');
 
+const DeleteProxyIpValidatorMiddlewareFactory = require('~src/api/http/proxy/middleware/deleteProxyIpValidatorMiddlewareFactory');
 const GenerateProxyValidatorMiddlewareFactory = require('~src/api/http/proxy/middleware/generateProxyValidatorMiddlewareFactory');
 const ProxyControllerFactory = require('~src/api/http/proxy/controller/proxyControllerFactory');
 
@@ -142,10 +144,16 @@ class Loader {
       squidServerRepository,
       ipAddrRepository,
     );
+    const proxyServerRegenerateJobService = new ProxyServerRegenerateJobService(
+      jobRepository,
+      proxyServerRepository,
+      squidServerRepository,
+    );
     const proxyServerService = new ProxyServerService(
       proxyServerRepository,
       proxyServerJobService,
       squidServerRepository,
+      proxyServerRegenerateJobService,
     );
 
     // Controller and middleware
@@ -160,6 +168,7 @@ class Loader {
     const packageControllerFactory = new PackageControllerFactory(packageService, dateTime);
 
     const proxyMiddleware = {
+      deleteProxyIpValidation: new DeleteProxyIpValidatorMiddlewareFactory(),
       generateProxyValidation: new GenerateProxyValidatorMiddlewareFactory(),
     };
     const proxyControllerFactory = new ProxyControllerFactory(proxyServerService, dateTime);
@@ -199,6 +208,7 @@ class Loader {
     };
 
     this._dependency.proxyHttpApi = {
+      deleteProxyIpValidatorMiddlewareFactory: proxyMiddleware.deleteProxyIpValidation,
       generateProxyValidatorMiddlewareFactory: proxyMiddleware.generateProxyValidation,
       proxyControllerFactory,
     };
