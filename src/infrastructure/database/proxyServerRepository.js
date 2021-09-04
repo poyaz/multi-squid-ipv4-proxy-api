@@ -179,6 +179,37 @@ class ProxyServerRepository extends IProxyServerRepository {
     }
   }
 
+  async delete(model) {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+    const updateQuery = { text: '', values: [] };
+
+    if (model.mask === 32) {
+      updateQuery.text = singleLine`
+          UPDATE public.bind_address
+          SET delete_date = $1
+          WHERE delete_date ISNULL
+            AND ip = $2
+      `;
+      updateQuery.values = [now, model.ip];
+    } else {
+      updateQuery.text = singleLine`
+          UPDATE public.bind_address
+          SET delete_date = $1
+          WHERE delete_date ISNULL
+            AND ip :: inet << $2 :: inet
+      `;
+      updateQuery.values = [now, `${model.ip}/${model.mask}`];
+    }
+
+    try {
+      const { rowCount } = await this.#db.query(updateQuery);
+
+      return [null, rowCount];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new IpAddressModel();
     model.id = row['id'];

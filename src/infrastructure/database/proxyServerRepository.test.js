@@ -10,11 +10,7 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const IpAddressModel = require('~src/core/model/ipAddressModel');
-const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
-const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
-const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
-const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -336,6 +332,43 @@ suite(`ProxyServerRepository`, () => {
         sinon.match.has('values', sinon.match.array.deepEquals([inputIpWithMask])),
       );
       expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Delete ip list of proxy`, () => {
+    test(`Should error delete ip list of proxy when execute query`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.port = 29;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.proxyServerRepository.delete(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully delete ip list of proxy`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.port = 29;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.proxyServerRepository.delete(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(sinon.match.hasNested('values.length', 2));
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal(1);
     });
   });
 });
