@@ -131,11 +131,13 @@ suite(`JobRepository`, () => {
   suite(`Add new job`, () => {
     setup(() => {
       const inputModel = new JobModel();
+      inputModel.type = JobModel.TYPE_GENERATE_IP;
       inputModel.data = '192.168.1.1/28';
       inputModel.status = JobModel.STATUS_SUCCESS;
       inputModel.totalRecord = 3;
       inputModel.totalRecordAdd = 2;
       inputModel.totalRecordExist = 1;
+      inputModel.totalRecordDelete = 0;
       inputModel.totalRecordError = 0;
 
       testObj.inputModel = inputModel;
@@ -168,11 +170,13 @@ suite(`JobRepository`, () => {
           return [
             {
               id: testObj.identifierGenerator.generateId(),
+              type: JobModel.TYPE_GENERATE_IP,
               data: '192.168.1.1/28',
               status: JobModel.STATUS_SUCCESS,
               total_record: 3,
               total_record_add: 2,
               total_record_exist: 1,
+              total_record_delete: 0,
               total_record_error: 0,
               insert_date: '2021-08-31 11:29:50',
             },
@@ -193,21 +197,24 @@ suite(`JobRepository`, () => {
           sinon.match.array
             .startsWith([
               testObj.identifierGenerator.generateId(),
+              inputModel.type,
               inputModel.data,
               inputModel.status,
             ])
-            .and(sinon.match.has('length', 4)),
+            .and(sinon.match.has('length', 5)),
         ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.have.instanceOf(JobModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
+        type: JobModel.TYPE_GENERATE_IP,
         data: '192.168.1.1/28',
         status: JobModel.STATUS_SUCCESS,
         totalRecord: 3,
         totalRecordAdd: 2,
         totalRecordExist: 1,
+        totalRecordDelete: 0,
         totalRecordError: 0,
       });
     });

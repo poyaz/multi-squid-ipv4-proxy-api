@@ -74,11 +74,11 @@ class JobRepository extends IJobRepository {
 
     const addQuery = {
       text: singleLine`
-          INSERT INTO public.jobs (id, data, status, insert_date)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO public.jobs (id, type, data, status, insert_date)
+          VALUES ($1, $2, $3, $4, $5)
           RETURNING *
       `,
-      values: [id, model.data, model.status, now],
+      values: [id, model.type, model.data, model.status, now],
     };
 
     try {
