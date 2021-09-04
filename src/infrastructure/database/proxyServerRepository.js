@@ -127,7 +127,11 @@ class ProxyServerRepository extends IProxyServerRepository {
           WHERE delete_date ISNULL
               DO
           UPDATE
-          SET update_date = EXCLUDED.insert_date
+          SET interface   = EXCLUDED.interface,
+              ip          = EXCLUDED.ip,
+              port        = EXCLUDED.port,
+              gateway     = EXCLUDED.gateway,
+              update_date = EXCLUDED.insert_date
       `,
       values: [now, JSON.stringify(insertRecordList)],
     };
