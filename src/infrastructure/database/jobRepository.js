@@ -119,6 +119,10 @@ class JobRepository extends IJobRepository {
       params.push(model.totalRecordExist);
       columns.push(`total_record_exist = $${params.length}`);
     }
+    if (typeof model.totalRecordDelete !== 'undefined') {
+      params.push(model.totalRecordDelete);
+      columns.push(`total_record_delete = $${params.length}`);
+    }
     if (typeof model.totalRecordError !== 'undefined') {
       params.push(model.totalRecordError);
       columns.push(`total_record_error = $${params.length}`);

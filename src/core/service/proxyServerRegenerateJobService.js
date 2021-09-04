@@ -41,6 +41,9 @@ class ProxyServerRegenerateJobService extends IJobService {
       return [addJobError];
     }
 
+    jobData.totalRecord = model.totalRecord;
+    jobData.totalRecordDelete = model.totalRecordDelete;
+
     process.nextTick(async () => {
       await this.execute(jobData);
     });
