@@ -211,7 +211,7 @@ while [[ $# -gt 0 ]]; do
     shift
     ;;
 
-  -restart)
+  --restart)
     execute_mode="restart"
     shift
     ;;
