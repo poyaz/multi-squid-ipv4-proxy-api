@@ -91,10 +91,12 @@ suite(`JobRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               data: '192.168.1.1/28',
+              type: JobModel.TYPE_GENERATE_IP,
               status: JobModel.STATUS_SUCCESS,
               total_record: 3,
               total_record_add: 2,
               total_record_exist: 1,
+              total_record_delete: 0,
               total_record_error: 0,
               insert_date: '2021-08-31 11:29:50',
             },
@@ -114,11 +116,13 @@ suite(`JobRepository`, () => {
       expect(result).to.be.an.instanceof(JobModel);
       expect(result).to.be.includes({
         id: testObj.identifierGenerator.generateId(),
+        type: JobModel.TYPE_GENERATE_IP,
         data: '192.168.1.1/28',
         status: JobModel.STATUS_SUCCESS,
         totalRecord: 3,
         totalRecordAdd: 2,
         totalRecordExist: 1,
+        totalRecordDelete: 0,
         totalRecordError: 0,
       });
     });

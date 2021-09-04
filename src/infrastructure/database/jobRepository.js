@@ -38,11 +38,13 @@ class JobRepository extends IJobRepository {
     const fetchQuery = {
       text: singleLine`
           SELECT id,
+                 type,
                  data,
                  status,
                  total_record,
                  total_record_add,
                  total_record_exist,
+                 total_record_delete,
                  total_record_error,
                  insert_date
           FROM public.jobs
@@ -151,11 +153,13 @@ class JobRepository extends IJobRepository {
   _fillModel(row) {
     const model = new JobModel();
     model.id = row['id'];
+    model.type = row['type'];
     model.data = row['data'];
     model.status = row['status'];
     model.totalRecord = row['total_record'];
     model.totalRecordAdd = row['total_record_add'];
     model.totalRecordExist = row['total_record_exist'];
+    model.totalRecordDelete = row['total_record_delete'];
     model.totalRecordError = row['total_record_error'];
     model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
 
