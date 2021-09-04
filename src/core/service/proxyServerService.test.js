@@ -36,6 +36,32 @@ suite(`ProxyServerService`, () => {
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
 
+  suite(`Get all proxy ip`, () => {
+    test(`Should error get all proxy ip`, async () => {
+      testObj.proxyServerRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyServerService.getAll();
+
+      testObj.proxyServerRepository.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error get all proxy ip`, async () => {
+      const outputModel1 = new IpAddressModel();
+      const outputModel2 = new IpAddressModel();
+      testObj.proxyServerRepository.getAll.resolves([null, [outputModel1, outputModel2]]);
+
+      const [error, result] = await testObj.proxyServerService.getAll();
+
+      testObj.proxyServerRepository.getAll.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.length(2);
+      expect(result[0]).to.be.an.instanceof(IpAddressModel);
+      expect(result[1]).to.be.an.instanceof(IpAddressModel);
+    });
+  });
+
   suite(`Generate ip address`, () => {
     setup(() => {
       const inputModel = new IpAddressModel();

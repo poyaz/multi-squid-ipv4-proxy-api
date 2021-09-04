@@ -39,6 +39,10 @@ class ProxyServerService extends IProxyServerService {
     this.#proxySquidRepository = proxySquidRepository;
   }
 
+  async getAll() {
+    return this.#proxyServerRepository.getAll();
+  }
+
   async add(model) {
     const ipMask = `${model.ip}/${model.mask}`;
     const generateIp = ipAddresses.v4.subnet(ipMask);
