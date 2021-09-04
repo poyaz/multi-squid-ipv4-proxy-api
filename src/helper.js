@@ -309,6 +309,14 @@ function fakeGenerateProxyValidationMiddleware(req, res) {
   return { generateProxyValidatorMiddleware };
 }
 
+function fakeDeleteProxyIpValidationMiddleware(req, res) {
+  const DeleteProxyIpValidatorMiddleware = require('~src/api/http/proxy/middleware/deleteProxyIpValidatorMiddleware');
+
+  const deleteProxyIpValidatorMiddleware = new DeleteProxyIpValidatorMiddleware(req, res);
+
+  return { deleteProxyIpValidatorMiddleware };
+}
+
 function fakeProxyController(req, res) {
   const IProxyServerService = require('~src/core/interface/iProxyServerService');
   const DateTime = require('~src/infrastructure/system/dateTime');
@@ -541,6 +549,7 @@ module.exports = {
   fakeUrlAccessService,
   fakeUrlAccessPgRepository,
   fakeGenerateProxyValidationMiddleware,
+  fakeDeleteProxyIpValidationMiddleware,
   fakeProxyController,
   fakeProxyServerService,
   fakeProxyServerJobService,
