@@ -180,6 +180,7 @@ suite(`ProxyServerService`, () => {
       testObj.proxyServerJobService.add.should.have.calledWith(
         sinon.match
           .instanceOf(JobModel)
+          .and(sinon.match.has('type', JobModel.TYPE_GENERATE_IP))
           .and(sinon.match.has('data', `${testObj.inputModel.ip}/${testObj.inputModel.mask}`))
           .and(sinon.match.has('status', JobModel.STATUS_PENDING))
           .and(sinon.match.has('totalRecord', 5)),

@@ -93,6 +93,7 @@ class ProxyServerService extends IProxyServerService {
     }
 
     const jobModel = new JobModel();
+    jobModel.type = JobModel.TYPE_GENERATE_IP;
     jobModel.data = ipMask;
     jobModel.status = JobModel.STATUS_PENDING;
     jobModel.totalRecord = ipModels.length;
