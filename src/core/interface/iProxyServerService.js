@@ -16,7 +16,7 @@ class IProxyServerService {
   /**
    *
    * @param {IpAddressModel} model
-   * @return {Promise<(Error|uuid)[]>}
+   * @return {Promise<(Error|JobModel)[]>}
    */
   async add(model) {
     const error = new Error('The method has to be overridden by subclasses.');
@@ -47,7 +47,7 @@ class IProxyServerService {
   /**
    *
    * @param {IpAddressModel} model
-   * @return {Promise<(Error|uuid)[]>}
+   * @return {Promise<(Error|JobModel)[]>}
    */
   async delete(model) {
     const error = new Error('The method has to be overridden by subclasses.');
