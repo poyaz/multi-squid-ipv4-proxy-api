@@ -138,4 +138,47 @@ suite(`ProxyController`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Delete ip list of proxy`, () => {
+    test(`Should error delete ip list of proxy`, async () => {
+      testObj.req.body = {
+        ip: '192.168.1.2',
+        mask: 32,
+        gateway: '192.168.1.1',
+        interface: 'ens192',
+      };
+      testObj.proxyServerService.delete.resolves([new UnknownException()]);
+
+      const [error] = await testObj.proxyController.deleteProxyIp();
+
+      testObj.proxyServerService.delete.should.have.callCount(1);
+      testObj.proxyServerService.delete.should.have.calledWith(
+        sinon.match.instanceOf(IpAddressModel),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully delete ip list of proxy with job id`, async () => {
+      testObj.req.body = {
+        ip: '192.168.1.2',
+        mask: 32,
+        gateway: '192.168.1.1',
+        interface: 'ens192',
+      };
+      const outputModel = new JobModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerService.delete.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.proxyController.deleteProxyIp();
+
+      testObj.proxyServerService.delete.should.have.callCount(1);
+      testObj.proxyServerService.delete.should.have.calledWith(
+        sinon.match.instanceOf(IpAddressModel),
+      );
+      expect(error).to.be.a('null');
+      expect(result)
+        .to.be.a('object')
+        .and.have.include({ jobId: testObj.identifierGenerator.generateId() });
+    });
+  });
 });

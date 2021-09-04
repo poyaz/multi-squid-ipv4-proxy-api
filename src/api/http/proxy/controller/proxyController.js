@@ -4,6 +4,7 @@
 
 const GenerateProxyInputModel = require('./model/generateProxyInputModel');
 const GetAllProxyIpOutputModel = require('./model/getAllProxyIpOutputModel');
+const DeleteProxyIpInputModel = require('./model/deleteProxyIpInputModel');
 
 class ProxyController {
   #req;
@@ -59,6 +60,20 @@ class ProxyController {
 
   async reload() {
     return this.#proxyServerService.reload();
+  }
+
+  async deleteProxyIp() {
+    const { body } = this.#req;
+
+    const deleteProxyIpInputModel = new DeleteProxyIpInputModel();
+    const inputModel = deleteProxyIpInputModel.getModel(body);
+
+    const [error, data] = await this.#proxyServerService.delete(inputModel);
+    if (error) {
+      return [error];
+    }
+
+    return [null, { jobId: data.id }];
   }
 }
 
