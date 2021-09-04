@@ -45,7 +45,7 @@ suite(`JobController`, () => {
       testObj.req.params = { jobId: testObj.identifierGenerator.generateId() };
       testObj.jobService.getById.resolves([new UnknownException()]);
 
-      const [error] = await testObj.jobController.getJobByid();
+      const [error] = await testObj.jobController.getJobById();
 
       testObj.jobService.getById.should.have.callCount(1);
       testObj.jobService.getById.should.have.calledWith(
@@ -58,16 +58,18 @@ suite(`JobController`, () => {
       testObj.req.params = { jobId: testObj.identifierGenerator.generateId() };
       const outputModel = new JobModel();
       outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.type = JobModel.TYPE_GENERATE_IP;
       outputModel.data = '192.168.1.1/29';
       outputModel.status = JobModel.STATUS_SUCCESS;
       outputModel.totalRecord = 5;
       outputModel.totalRecordAdd = 3;
       outputModel.totalRecordExist = 2;
+      outputModel.totalRecordDelete = 0;
       outputModel.totalRecordError = 0;
       outputModel.insertDate = new Date();
       testObj.jobService.getById.resolves([null, outputModel]);
 
-      const [error, result] = await testObj.jobController.getJobByid();
+      const [error, result] = await testObj.jobController.getJobById();
 
       testObj.jobService.getById.should.have.callCount(1);
       testObj.jobService.getById.should.have.calledWith(
@@ -76,11 +78,13 @@ suite(`JobController`, () => {
       expect(error).to.be.a('null');
       expect(result).to.be.a('object').and.have.include({
         id: testObj.identifierGenerator.generateId(),
+        type: JobModel.TYPE_GENERATE_IP,
         data: '192.168.1.1/29',
         status: JobModel.STATUS_SUCCESS,
         totalRecord: 5,
         totalRecordAdd: 3,
         totalRecordExist: 2,
+        totalRecordDelete: 0,
         totalRecordError: 0,
       });
       expect(result.insertDate).to.have.match(testObj.dateRegex);

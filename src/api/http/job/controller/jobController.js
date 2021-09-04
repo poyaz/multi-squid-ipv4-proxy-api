@@ -30,7 +30,7 @@ class JobController {
     this.#dateTime = dateTime;
   }
 
-  async getJobByid() {
+  async getJobById() {
     const { jobId } = this.#req.params;
 
     const [error, data] = await this.#jobService.getById(jobId);

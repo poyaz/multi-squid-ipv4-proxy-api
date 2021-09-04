@@ -24,11 +24,13 @@ class BaseJobOutputModel {
   getOutput(model) {
     const obj = {};
     obj.id = model.id;
+    obj.type = model.type;
     obj.data = model.data;
     obj.status = model.status;
     obj.totalRecord = model.totalRecord;
     obj.totalRecordAdd = model.totalRecordAdd;
     obj.totalRecordExist = model.totalRecordExist;
+    obj.totalRecordDelete = model.totalRecordDelete;
     obj.totalRecordError = model.totalRecordError;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
 
