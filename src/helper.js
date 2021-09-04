@@ -337,20 +337,20 @@ function fakeProxyServerService() {
 
   const proxySquidRepository = sinon.createStubInstance(IProxyServerRepository);
 
-  const proxyServerDeleteJobService = sinon.createStubInstance(IJobService);
+  const proxyServerRegenerateJobService = sinon.createStubInstance(IJobService);
 
   const proxyServerService = new ProxyServerService(
     proxyServerRepository,
     proxyServerJobService,
     proxySquidRepository,
-    proxyServerDeleteJobService,
+    proxyServerRegenerateJobService,
   );
 
   return {
     proxyServerRepository,
     proxyServerJobService,
     proxySquidRepository,
-    proxyServerDeleteJobService,
+    proxyServerRegenerateJobService,
     proxyServerService,
   };
 }

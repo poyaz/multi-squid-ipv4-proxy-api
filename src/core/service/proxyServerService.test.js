@@ -26,14 +26,14 @@ suite(`ProxyServerService`, () => {
       proxyServerRepository,
       proxyServerJobService,
       proxySquidRepository,
-      proxyServerDeleteJobService,
+      proxyServerRegenerateJobService,
       proxyServerService,
     } = helper.fakeProxyServerService();
 
     testObj.proxyServerRepository = proxyServerRepository;
     testObj.proxyServerJobService = proxyServerJobService;
     testObj.proxySquidRepository = proxySquidRepository;
-    testObj.proxyServerDeleteJobService = proxyServerDeleteJobService;
+    testObj.proxyServerRegenerateJobService = proxyServerRegenerateJobService;
     testObj.proxyServerService = proxyServerService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
@@ -238,7 +238,7 @@ suite(`ProxyServerService`, () => {
     test(`Should error delete ip list of proxy when add job`, async () => {
       const inputModel = testObj.inputModel;
       testObj.proxyServerRepository.delete.resolves([null, 10]);
-      testObj.proxyServerDeleteJobService.add.resolves([new UnknownException()]);
+      testObj.proxyServerRegenerateJobService.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.proxyServerService.delete(inputModel);
 
@@ -246,7 +246,7 @@ suite(`ProxyServerService`, () => {
       testObj.proxyServerRepository.delete.should.have.calledWith(
         sinon.match.instanceOf(IpAddressModel),
       );
-      testObj.proxyServerDeleteJobService.add.should.have.callCount(1);
+      testObj.proxyServerRegenerateJobService.add.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
@@ -256,7 +256,7 @@ suite(`ProxyServerService`, () => {
       testObj.proxyServerRepository.delete.resolves([null, 10]);
       const outputJobModel = new JobModel();
       outputJobModel.id = testObj.identifierGenerator.generateId();
-      testObj.proxyServerDeleteJobService.add.resolves([null, outputJobModel]);
+      testObj.proxyServerRegenerateJobService.add.resolves([null, outputJobModel]);
 
       const [error, result] = await testObj.proxyServerService.delete(inputModel);
 
@@ -264,8 +264,8 @@ suite(`ProxyServerService`, () => {
       testObj.proxyServerRepository.delete.should.have.calledWith(
         sinon.match.instanceOf(IpAddressModel),
       );
-      testObj.proxyServerDeleteJobService.add.should.have.callCount(1);
-      testObj.proxyServerDeleteJobService.add.should.have.calledWith(
+      testObj.proxyServerRegenerateJobService.add.should.have.callCount(1);
+      testObj.proxyServerRegenerateJobService.add.should.have.calledWith(
         sinon.match
           .instanceOf(JobModel)
           .and(sinon.match.has('type', JobModel.TYPE_REMOVE_IP))

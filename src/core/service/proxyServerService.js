@@ -23,7 +23,7 @@ class ProxyServerService extends IProxyServerService {
   /**
    * @type {IJobService}
    */
-  #proxyServerDeleteJobService;
+  #proxyServerRegenerateJobService;
   /**
    * @type {number}
    */
@@ -34,15 +34,20 @@ class ProxyServerService extends IProxyServerService {
    * @param {IProxyServerRepository} proxyServerRepository
    * @param {IJobService} proxyServerJobService
    * @param {IProxyServerRepository} proxySquidRepository
-   * @param {IJobService} proxyServerDeleteJobService
+   * @param {IJobService} proxyServerRegenerateJobService
    */
-  constructor(proxyServerRepository, proxyServerJobService, proxySquidRepository, proxyServerDeleteJobService) {
+  constructor(
+    proxyServerRepository,
+    proxyServerJobService,
+    proxySquidRepository,
+    proxyServerRegenerateJobService,
+  ) {
     super();
 
     this.#proxyServerRepository = proxyServerRepository;
     this.#proxyServerJobService = proxyServerJobService;
     this.#proxySquidRepository = proxySquidRepository;
-    this.#proxyServerDeleteJobService = proxyServerDeleteJobService;
+    this.#proxyServerRegenerateJobService = proxyServerRegenerateJobService;
   }
 
   async getAll() {
@@ -119,7 +124,7 @@ class ProxyServerService extends IProxyServerService {
     jobModel.totalRecord = deleteCount;
     jobModel.totalRecordDelete = deleteCount;
 
-    const [jobAddError, jobAddData] = await this.#proxyServerDeleteJobService.add(jobModel);
+    const [jobAddError, jobAddData] = await this.#proxyServerRegenerateJobService.add(jobModel);
     if (jobAddError) {
       return [jobAddError];
     }
