@@ -50,6 +50,13 @@ For generate new IP address you should use this API. If your ip range exist, thi
 * URL: `api/v1/proxy/generate`
 * Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>"}`
 
+### Body format
+
+* `ip` string ip (Example: **192.168.1.1** or **10.10.10.3**)
+* `mask` number mask ip between 1 and 32 (Example: **22** or 24 or **32**)
+* `gateway` string ip (Example: **192.168.1.0** or **10.10.10.224**)
+* `interface` string (Example: **ens18**)
+
 ```bash
 curl \
   -X POST \
@@ -81,18 +88,65 @@ curl \
 }
 ```
 
+## Remove IP
+
+For the remove exist IP address you should use this API
+
+### Information:
+
+* Method: `DELETE`
+* URL: `api/v1/proxy/ip`
+* Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "interface": "<interface-name>"}`
+
+### Body format
+
+* `ip` string ip (Example: **192.168.1.1** or **10.10.10.3**)
+* `mask` number mask ip between 1 and 32 (Example: **22** or **24** or **32**)
+* `interface` string (Example: **ens18**)
+
+```bash
+curl \
+  -X DELETE \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/proxy/ip' \
+  -d '{"ip": "<your-ip-address>", "mask": <ip-mask>, "interface": "<interface-name>"}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X DELETE \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/proxy/ip' \
+    -d '{"ip": "192.168.1.1", "mask": 24, "interface": "ens192"}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "jobId": "751c4a35-ed2a-489d-870f-b09dc7b0f8a5"
+  }
+}
+```
+
 ## Reload all proxy
 
 Reload all proxy
 
 ### Information:
 
-* Method: `GET`
+* Method: `POST`
 * URL: `api/v1/user`
 
 ```bash
 curl \
-  -X GET \
+  -X POST \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/proxy/reload'
@@ -150,6 +204,8 @@ curl \
   "status": "success",
   "data": {
     "id": "7bc4d68da9974543aa119aca7d13b684",
+    // type of your job (contain: job_remove_ip or job_remove_ip)
+    "type": "job_remove_ip",
     // status list: processing, error, finish
     "status": "processing",
     // total ip record should be added
@@ -158,6 +214,8 @@ curl \
     "totalRecordAdd": 25,
     // total record exist in system
     "totalRecordExist": 200,
+    // total record delete from system
+    "totalRecordDelete": 200,
     // total record has been error
     "totalRecordError": 0
   }
@@ -185,7 +243,7 @@ curl \
 
 ```bash
 curl \
-    -X POST \
+    -X GET \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/user'
@@ -216,6 +274,11 @@ This API use for create new user
 * Method: `POST`
 * URL: `api/v1/user`
 * Body: `{"username": "<your-username>", "password": "<your-password>"}`
+
+### Body format
+
+* `username` string with [a-zA-Z0-9_.] between 3 and 20 (Example: **test1** or **test_1** or **test**.1)
+* `password` string at least 6 character
 
 ```bash
 curl \
@@ -258,6 +321,10 @@ Change password for exist user in system
 * Method: `PUT`
 * URL: `api/v1/user/:username/password`
 * Body: `{"password": "<your-new-password>"}`
+
+### Body format
+
+* `password` string at least 6 character
 
 ```bash
 curl \
@@ -311,7 +378,7 @@ curl \
     -X PUT \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/user/:username/disable'
+    '<your-hostname-or-ip>/api/v1/user/my_username/disable'
 ```
 
 ### Output:
@@ -346,7 +413,7 @@ curl \
     -X PUT \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/user/:username/enable'
+    '<your-hostname-or-ip>/api/v1/user/my_username/enable'
 ```
 
 ### Output:
@@ -367,6 +434,12 @@ You can add the blacklist url for users
 * URL: `api/v1/user/:username/website/block`
 * Body: `{"urls": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}`
 
+### Body format
+
+* `urls` Array of domain url
+* `startDate` Date format for start block time and greater than **now** with a format YYYY-MM-DD HH:mm:ss (Example: **2021-09-04 12:02:25**)
+* `endDate` Date format for end block time and greater than **startDate** with a format YYYY-MM-DD HH:mm:ss (Example: **2021-09-05 12:02:25**)
+
 ```bash
 curl \
   -X POST \
@@ -383,8 +456,8 @@ curl \
     -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/user/:username/website/block' \
-    -d '{"url": ["www.google.com", "google.com"], "startDate": "<start-date>", "endDate": "<end-date>"}'
+    '<your-hostname-or-ip>/api/v1/user/my_username/website/block' \
+    -d '{"urls": ["www.google.com", "google.com"], "startDate": "2021-09-03 12:00:00", "endDate": "2021-09-03 13:00:00"}'
 ```
 
 ### Output:
@@ -416,10 +489,10 @@ curl \
 
 ```bash
 curl \
-    -X POST \
+    -X GET \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/user/:username/domain/google.com/status'
+    '<your-hostname-or-ip>/api/v1/user/my_username/domain/google.com/status'
 ```
 
 ### Output:
@@ -443,13 +516,19 @@ Create new package for users
 * URL: `api/v1/package`
 * Body: `{"username": "<your-username>", "count": <total-ip-need-use>, "expire": "<expire-date>"}`
 
+### Body format
+
+* `username` string with [a-zA-Z0-9_.] between 3 and 20 (Example: **test1** or **test_1** or **test**.1)
+* `count` number greater than equal 1 (Example: **3**)
+* `expire` Date format for start block time with a format YYYY-MM-DD (Example: **2021-10-04**)
+
 ```bash
 curl \
   -X POST \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/package' \
-  -d '{"username": "<your-username>", "countIp": <total-ip-need-use>, "expire": "<expire-date>"}'
+  -d '{"username": "<your-username>", "count": <total-ip-need-use>, "expire": "<expire-date>"}'
 ```
 
 ### Example:
@@ -460,7 +539,7 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/package'
-    -d '{"username": "my_username", "countIp": 25, "expire": "2021-10-25"}'
+    -d '{"username": "my_username", "count": 25, "expire": "2021-10-25"}'
 ```
 
 ### Output:
@@ -471,7 +550,13 @@ curl \
   "data": {
     "id": "cb194947-29b2-47cc-bb7f-24e10d4515e2",
     "username": "my_username",
-    "countIp": 25,
+    "countIp": 1,
+    "ipList": [
+      {
+        "ip": "192.168.1.3",
+        "port": 3128
+      }
+    ],
     "expire": "2021-10-25"
   }
 }
@@ -535,6 +620,10 @@ If package expire date not end, You can renew expire date
 * Method: `PUT`
 * URL: `api/v1/package/:packageId/renew`
 * Body: `{"expire": "<expire-date>"}`
+
+### Body format
+
+* `expire` Date format for start block time with a format YYYY-MM-DD (Example: **2021-10-04**)
 
 ```bash
 curl \
