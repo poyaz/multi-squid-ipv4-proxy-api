@@ -183,6 +183,8 @@ class PackageService extends IPackageService {
       return [removePackageError];
     }
 
+    this._reloadServer();
+
     return [null];
   }
 

@@ -606,6 +606,7 @@ suite(`PackageService`, () => {
       testObj.packageRepository.update.should.have.calledWith(
         sinon.match.instanceOf(PackageModel).and(sinon.match.has('deleteDate', sinon.match.date)),
       );
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
   });
