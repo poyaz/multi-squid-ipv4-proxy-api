@@ -502,4 +502,111 @@ suite(`PackageService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Remove package`, () => {
+    test(`Should error remove package when check exist package id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.packageRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.remove(inputId);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.getById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error remove package when package not found`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.packageRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.packageService.remove(inputId);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.getById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error remove package when remove package from proxy`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.username = 'user1';
+      outputPackageModel.countIp = 2;
+      outputPackageModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      testObj.packageRepository.getById.resolves([null, outputPackageModel]);
+      testObj.packageFileRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.remove(inputId);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.getById.should.have.calledWith(sinon.match(inputId));
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error remove package when remove package from database`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.username = 'user1';
+      outputPackageModel.countIp = 2;
+      outputPackageModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      testObj.packageRepository.getById.resolves([null, outputPackageModel]);
+      testObj.packageFileRepository.update.resolves([null]);
+      testObj.packageRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.remove(inputId);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.getById.should.have.calledWith(sinon.match(inputId));
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel),
+      );
+      testObj.packageRepository.update.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel).and(sinon.match.has('deleteDate', sinon.match.date)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully remove package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.username = 'user1';
+      outputPackageModel.countIp = 2;
+      outputPackageModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      testObj.packageRepository.getById.resolves([null, outputPackageModel]);
+      testObj.packageFileRepository.update.resolves([null]);
+      testObj.packageRepository.update.resolves([null]);
+
+      const [error] = await testObj.packageService.remove(inputId);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.getById.should.have.calledWith(sinon.match(inputId));
+      testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel),
+      );
+      testObj.packageRepository.update.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel).and(sinon.match.has('deleteDate', sinon.match.date)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

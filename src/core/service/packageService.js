@@ -163,6 +163,29 @@ class PackageService extends IPackageService {
     return [null];
   }
 
+  async remove(id) {
+    const [packageError, packageData] = await this.#packageRepository.getById(id);
+    if (packageError) {
+      return [packageError];
+    }
+    if (!packageData) {
+      return [new NotFoundException()];
+    }
+
+    const [removeProxyError] = await this.#packageFileRepository.update(packageData);
+    if (removeProxyError) {
+      return [removeProxyError];
+    }
+
+    packageData.deleteDate = new Date();
+    const [removePackageError] = await this.#packageRepository.update(packageData);
+    if (removePackageError) {
+      return [removePackageError];
+    }
+
+    return [null];
+  }
+
   async _getUserModelByUsername(username) {
     const filterModel = new UserModel();
     filterModel.username = username;
