@@ -46,6 +46,17 @@ class IPackageService {
     error['args'] = {};
     throw error;
   }
+
+  /**
+   *
+   * @param {uuid} id
+   * @return {Promise<(Error)[]>}
+   */
+  async remove(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
 }
 
 module.exports = IPackageService;

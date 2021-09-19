@@ -80,6 +80,17 @@ class PackageController {
 
     return [null, { expireDate: body.expire }];
   }
+
+  async removePackage() {
+    const { packageId } = this.#req.params;
+
+    const [error] = await this.#packageService.remove(packageId);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = PackageController;

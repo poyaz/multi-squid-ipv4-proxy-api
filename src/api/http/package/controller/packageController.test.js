@@ -192,4 +192,33 @@ suite(`PackageController`, () => {
       expect(result).to.have.include({ expireDate: testObj.req.body.expire });
     });
   });
+
+  suite(`Delete package`, () => {
+    test(`Should error delete package`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.packageService.remove.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageController.removePackage();
+
+      testObj.packageService.remove.should.have.callCount(1);
+      testObj.packageService.remove.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully delete package`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.packageService.remove.resolves([null]);
+
+      const [error, result] = await testObj.packageController.removePackage();
+
+      testObj.packageService.remove.should.have.callCount(1);
+      testObj.packageService.remove.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('undefined');
+    });
+  });
 });
