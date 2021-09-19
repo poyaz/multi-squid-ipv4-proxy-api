@@ -652,3 +652,38 @@ curl \
   "status": "success"
 }
 ```
+
+## Delete package
+
+For a remove exist package
+
+### Information:
+
+* Method: `DELETE`
+* URL: `api/v1/package/:packageId`
+
+```bash
+curl \
+  -X DELETE \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/package/:packageId'
+```
+
+### Example:
+
+```bash
+curl \
+    -X DELETE \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/package/cb194947-29b2-47cc-bb7f-24e10d4515e2'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```

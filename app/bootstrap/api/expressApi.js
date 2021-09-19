@@ -313,6 +313,19 @@ class ExpressApi extends IRunner {
         }
       },
     );
+
+    router.delete('/v1/package/:packageId', async (req, res, next) => {
+      try {
+        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+        const response = await packageController.removePackage();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
   }
 
   _proxyRoute() {
