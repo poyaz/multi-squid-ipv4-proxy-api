@@ -7,7 +7,7 @@ const IDateTime = require('~src/core/interface/iDateTime');
 
 class DateTime extends IDateTime {
   #locales = 'en';
-  #zone = 'Asia/Tehran';
+  #zone = 'US/Eastern';
 
   constructor(locales, zone) {
     super();

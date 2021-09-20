@@ -83,7 +83,10 @@ class Loader {
     const { docker } = await this._docker();
 
     const identifierGenerator = new IdentifierGenerator();
-    const dateTime = new DateTime();
+    const dateTime = new DateTime(
+      this._config.getStr('custom.timezone.locales'),
+      this._config.getStr('custom.timezone.zone'),
+    );
 
     const httpPublicApiHostConfig = this._config.getStr('server.public.host');
     const httpPublicApiPortConfig = this._config.getNum('server.public.http.port');
