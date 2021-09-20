@@ -22,13 +22,14 @@ class BlockUrlForUserValidationMiddleware extends IHttpMiddleware {
   async act() {
     const { body } = this.#req;
 
-    const dateFormat = Joi.date().format('YYYY-MM-DD HH:mm:ss').min(new Date());
+    const startDateFormat = Joi.date().format('YYYY-MM-DD HH:mm:ss');
+    const endDateFormat = Joi.date().format('YYYY-MM-DD HH:mm:ss').min(new Date());
     const urlList = Joi.array().items(Joi.string()).min(1);
 
     const schema = Joi.object({
       urls: urlList.required(),
-      startDate: dateFormat.required(),
-      endDate: dateFormat.required(),
+      startDate: startDateFormat.required(),
+      endDate: endDateFormat.required(),
     });
 
     const result = schema.validate(body);
