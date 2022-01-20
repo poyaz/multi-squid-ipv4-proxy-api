@@ -286,7 +286,7 @@ if [[ $execute_mode == "init" ]]; then
 
   API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$GENERATE_JWT_TOKEN" node sh -c 'npm install --production &> /dev/null; node scripts/cli.js generate-token' 2>/dev/null)
 
-  if ! [[ -f /etc/timezone ]]; then:
+  if ! [[ -f /etc/timezone ]]; then
     echo $(timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g') >> /etc/timezone
   fi
 
