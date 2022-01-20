@@ -142,7 +142,7 @@ Reload all proxy
 ### Information:
 
 * Method: `POST`
-* URL: `api/v1/user`
+* URL: `api/v1/proxy/reload`
 
 ```bash
 curl \
