@@ -29,7 +29,6 @@ services:
       main:
         ipv4_address: 10.102.0.3
     restart: "always"
-    oom_kill_disable: true
 
   docker-proxy:
     image: rancher/socat-docker:v0.2.0
