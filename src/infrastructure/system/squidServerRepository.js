@@ -101,6 +101,8 @@ class SquidServerRepository extends IProxyServerRepository {
     this.#defaultConfig = [
       `visible_hostname localhost`,
       ``,
+      `dns_nameservers 1.1.1.1`,
+      `dns_v4_first on`,
       `cache deny all`,
       ``,
       `acl localnet src all`,
