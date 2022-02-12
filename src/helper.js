@@ -546,6 +546,14 @@ function fakeServerController(req, res) {
   };
 }
 
+function fakeAddServerValidationMiddleware(req, res) {
+  const AddServerValidationMiddleware = require('~src/api/http/server/middleware/addServerValidationMiddleware');
+
+  const addServerValidationMiddleware = new AddServerValidationMiddleware(req, res);
+
+  return { addServerValidationMiddleware };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -578,4 +586,5 @@ module.exports = {
   fakeJobController,
   fakeJobService,
   fakeServerController,
+  fakeAddServerValidationMiddleware,
 };
