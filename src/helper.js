@@ -529,6 +529,23 @@ function fakeJobService() {
   };
 }
 
+function fakeServerController(req, res) {
+  const IServerService = require('~src/core/interface/iServerService');
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const ServerController = require('~src/api/http/server/controller/serverController');
+
+  const serverService = sinon.createStubInstance(IServerService);
+
+  const dateTime = new DateTime();
+
+  const serverController = new ServerController(req, res, serverService, dateTime);
+
+  return {
+    serverService,
+    serverController,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -560,4 +577,5 @@ module.exports = {
   fakeJobPgRepository,
   fakeJobController,
   fakeJobService,
+  fakeServerController,
 };
