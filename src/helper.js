@@ -562,6 +562,14 @@ function fakeAppendIpRangeValidationMiddleware(req, res) {
   return { appendIpRangeValidationMiddleware };
 }
 
+function fakeUpdateServerValidationMiddleware(req, res) {
+  const UpdateServerValidationMiddleware = require('~src/api/http/server/middleware/updateServerValidationMiddleware');
+
+  const updateServerValidationMiddleware = new UpdateServerValidationMiddleware(req, res);
+
+  return { updateServerValidationMiddleware };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -596,4 +604,5 @@ module.exports = {
   fakeServerController,
   fakeAddServerValidationMiddleware,
   fakeAppendIpRangeValidationMiddleware,
+  fakeUpdateServerValidationMiddleware,
 };
