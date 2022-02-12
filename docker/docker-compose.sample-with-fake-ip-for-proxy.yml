@@ -17,7 +17,7 @@ services:
       - SQUID_SCRIPT_API_TOKEN=
       - DOCKER_HOST=10.102.0.4
       - JWT_SECRET_KEY=
-    command: "sh -c 'npm i; npm run nodemon"
+    command: "sh -c 'npm i; npm run nodemon'"
 
   postgres:
     environment:
