@@ -127,6 +127,42 @@ suite(`ServerController`, () => {
     });
   });
 
+  suite(`Update server`, () => {
+    test(`Should error update server`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.req.body = {
+        name: 'server-1',
+        ipRange: ['192.168.1.1/32', '192.168.2.1/24'],
+        hostIpAddress: '10.10.10.1',
+        hostApiPort: 8080,
+        isEnable: true,
+      };
+      testObj.serverService.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.serverController.update();
+
+      testObj.serverService.update.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error update server`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.req.body = {
+        name: 'server-1',
+        ipRange: ['192.168.1.1/32', '192.168.2.1/24'],
+        hostIpAddress: '10.10.10.1',
+        hostApiPort: 8080,
+        isEnable: true,
+      };
+      testObj.serverService.update.resolves([null]);
+
+      const [error] = await testObj.serverController.update();
+
+      testObj.serverService.update.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
   suite('Add new ip range to exist server', () => {
     test(`Should error add new ip range to exist server`, async () => {
       testObj.req.params = { id: testObj.identifierGenerator.generateId() };

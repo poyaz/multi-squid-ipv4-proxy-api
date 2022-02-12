@@ -4,6 +4,7 @@
 
 const GetAllServerOutputModel = require('./model/getAllServerOutputModel');
 const AddServerInputModel = require('./model/addServerInputModel');
+const UpdateServerInputModel = require('./model/updateServerInputModel');
 const BaseServerOutputModel = require('./model/baseServerOutputModel');
 
 class ServerController {
@@ -59,6 +60,21 @@ class ServerController {
     const result = baseServerOutputModel.getOutput(data);
 
     return [null, result];
+  }
+
+  async update() {
+    const { id } = this.#req.params;
+    const { body } = this.#req;
+
+    const updateServerInputModel = new UpdateServerInputModel();
+    const inputModel = updateServerInputModel.getModel(id, body);
+
+    const [error] = await this.#serverService.update(inputModel);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
   }
 
   async appendIpRange() {

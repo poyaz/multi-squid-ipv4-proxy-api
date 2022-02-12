@@ -26,6 +26,17 @@ class IServerService {
 
   /**
    *
+   * @param {ServerModel} model
+   * @return {Promise<(Error)[]>}
+   */
+  async update(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} id
    * @param {Array<string>} range
    * @return {Promise<(Error)[]>}
