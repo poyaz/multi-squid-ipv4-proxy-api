@@ -2,7 +2,7 @@
  * Created by pooya on 2/12/22.
  */
 
-const AddUserValidationMiddleware = require('./addUserValidationMiddleware');
+const AddUserValidationMiddleware = require('./addServerValidationMiddleware');
 
 class AddServerValidationMiddlewawreFactory {
   create(req, res) {
