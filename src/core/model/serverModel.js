@@ -9,6 +9,7 @@
  * @property {Array<string>} ipRange
  * @property {string} hostIpAddress
  * @property {number} hostApiPort
+ * @property {boolean} isEnable
  * @property {Date} insertDate
  */
 class ServerModel {
@@ -17,6 +18,7 @@ class ServerModel {
   ipRange = undefined;
   hostIpAddress = undefined;
   hostApiPort = undefined;
+  isEnable = undefined;
   insertDate = undefined;
 }
 

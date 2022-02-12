@@ -28,6 +28,7 @@ class BaseServerOutputModel {
     obj.ipRange = model.ipRange;
     obj.hostIpAddress = model.hostIpAddress;
     obj.hostApiPort = model.hostApiPort;
+    obj.isEnable = model.isEnable;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
 
     return obj;
