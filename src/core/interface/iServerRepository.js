@@ -16,6 +16,17 @@ class IServerRepository {
 
   /**
    *
+   * @param {string} ip
+   * @return {Promise<(Error|ServerModel)[]>}
+   */
+  async getByIpAddress(ip) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { ip };
+    throw error;
+  }
+
+  /**
+   *
    * @return {Promise<(Error|Array<ServerModel>)[]>}
    */
   async getAll() {
