@@ -1,8 +1,19 @@
 /**
- * Created by pooya on 8/30/21.
+ * Created by pooya on 2/13/22.
  */
 
-class IServerService {
+class IServerRepository {
+  /**
+   *
+   * @param {string} id
+   * @return {Promise<(Error|ServerModel)[]>}
+   */
+  async getById(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
+
   /**
    *
    * @return {Promise<(Error|Array<ServerModel>)[]>}
@@ -38,18 +49,6 @@ class IServerService {
   /**
    *
    * @param {string} id
-   * @param {Array<string>} range
-   * @return {Promise<(Error)[]>}
-   */
-  async appendIpRangeByServiceId(id, range) {
-    const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { id, range };
-    throw error;
-  }
-
-  /**
-   *
-   * @param {string} id
    * @return {Promise<(Error)[]>}
    */
   async delete(id) {
@@ -59,4 +58,4 @@ class IServerService {
   }
 }
 
-module.exports = IServerService;
+module.exports = IServerRepository;

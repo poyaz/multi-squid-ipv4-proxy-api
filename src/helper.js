@@ -570,6 +570,20 @@ function fakeUpdateServerValidationMiddleware(req, res) {
   return { updateServerValidationMiddleware };
 }
 
+function fakeServerService() {
+  const IServerRepository = require('~src/core/interface/iServerRepository');
+  const ServerService = require('~src/core/service/serverService');
+
+  const serverRepository = sinon.createStubInstance(IServerRepository);
+
+  const serverService = new ServerService(serverRepository);
+
+  return {
+    serverRepository,
+    serverService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -605,4 +619,5 @@ module.exports = {
   fakeAddServerValidationMiddleware,
   fakeAppendIpRangeValidationMiddleware,
   fakeUpdateServerValidationMiddleware,
+  fakeServerService,
 };
