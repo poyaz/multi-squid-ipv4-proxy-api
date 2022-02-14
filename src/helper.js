@@ -584,6 +584,23 @@ function fakeServerService() {
   };
 }
 
+function fakeServerPgRepository() {
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const ServerRepository = require('~src/infrastructure/database/serverRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = new DateTime();
+
+  const serverRepository = new ServerRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, identifierGenerator, serverRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -620,4 +637,5 @@ module.exports = {
   fakeAppendIpRangeValidationMiddleware,
   fakeUpdateServerValidationMiddleware,
   fakeServerService,
+  fakeServerPgRepository,
 };
