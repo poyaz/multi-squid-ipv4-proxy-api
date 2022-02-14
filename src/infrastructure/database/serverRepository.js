@@ -75,7 +75,8 @@ class ServerRepository extends IServerRepository {
                  is_enable,
                  insert_date
           FROM public.servers
-          WHERE id = $1
+          WHERE $1::inet = any (ip_range)
+             OR $1::inet << any (ip_range)
       `,
       values: [ip],
     };
