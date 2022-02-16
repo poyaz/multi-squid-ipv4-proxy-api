@@ -19,10 +19,6 @@ class FindClusterProxyServerService extends IProxyServerService {
    * @type {IServerApiRepository}
    */
   #serverApiRepository;
-  /**
-   * @string
-   */
-  #currentInstanceIp;
 
   /**
    *
