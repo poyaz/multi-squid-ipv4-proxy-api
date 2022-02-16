@@ -601,6 +601,41 @@ function fakeServerPgRepository() {
   return { postgresDb, identifierGenerator, serverRepository };
 }
 
+function fakeFindClusterProxyServerService(currentInstanceIp, otherInstanceIp) {
+  const IProxyServerService = require('~src/core/interface/iProxyServerService');
+  const IServerRepository = require('~src/core/interface/iServerRepository');
+  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
+  const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
+
+  const proxyServerService = sinon.createStubInstance(IProxyServerService);
+
+  const serverRepository = sinon.createStubInstance(IServerRepository);
+
+  const proxyServerApiRepository = sinon.createStubInstance(IServerApiRepository);
+
+  const findClusterProxyServerService = new FindClusterProxyServerService(
+    proxyServerService,
+    serverRepository,
+    proxyServerApiRepository,
+    currentInstanceIp,
+  );
+
+  const otherFindClusterProxyServerService = new FindClusterProxyServerService(
+    proxyServerService,
+    serverRepository,
+    proxyServerApiRepository,
+    otherInstanceIp,
+  );
+
+  return {
+    proxyServerService,
+    serverRepository,
+    proxyServerApiRepository,
+    findClusterProxyServerService,
+    otherFindClusterProxyServerService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -638,4 +673,5 @@ module.exports = {
   fakeUpdateServerValidationMiddleware,
   fakeServerService,
   fakeServerPgRepository,
+  fakeFindClusterProxyServerService,
 };

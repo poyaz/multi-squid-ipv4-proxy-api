@@ -214,7 +214,7 @@ suite(`FindClusterProxyServerService`, () => {
       testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
       const outputJobModel = new JobModel();
       outputJobModel.id = testObj.identifierGenerator.generateId();
-      testObj.proxyServerApiRepository.generate.resolves([new UnknownException()]);
+      testObj.proxyServerApiRepository.generateIp.resolves([new UnknownException()]);
 
       const [error] = await testObj.otherFindClusterProxyServerService.add(inputModel);
 
@@ -222,7 +222,7 @@ suite(`FindClusterProxyServerService`, () => {
       testObj.serverRepository.getByIpAddress.should.have.calledWith(
         sinon.match(`${inputModel.ip}/${inputModel.mask}`),
       );
-      testObj.proxyServerApiRepository.generate.should.have.callCount(1);
+      testObj.proxyServerApiRepository.generateIp.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
@@ -243,7 +243,7 @@ suite(`FindClusterProxyServerService`, () => {
       testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
       const outputJobModel = new JobModel();
       outputJobModel.id = testObj.identifierGenerator.generateId();
-      testObj.proxyServerApiRepository.generate.resolves([null, outputJobModel]);
+      testObj.proxyServerApiRepository.generateIp.resolves([null, outputJobModel]);
 
       const [error, result] = await testObj.otherFindClusterProxyServerService.add(inputModel);
 
@@ -251,7 +251,206 @@ suite(`FindClusterProxyServerService`, () => {
       testObj.serverRepository.getByIpAddress.should.have.calledWith(
         sinon.match(`${inputModel.ip}/${inputModel.mask}`),
       );
-      testObj.proxyServerApiRepository.generate.should.have.callCount(1);
+      testObj.proxyServerApiRepository.generateIp.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(JobModel);
+    });
+  });
+
+  suite(`Reload all proxy`, () => {
+    test(`Should error reload all proxy`, async () => {
+      testObj.proxyServerService.reload.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterProxyServerService.reload();
+
+      testObj.proxyServerService.reload.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully reload all proxy`, async () => {
+      testObj.proxyServerService.reload.resolves([null]);
+
+      const [error] = await testObj.findClusterProxyServerService.reload();
+
+      testObj.proxyServerService.reload.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Delete ip list of proxy`, () => {
+    test(`Should error delete when find ip mask in server ipRange`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      testObj.serverRepository.getByIpAddress.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error delete when not found any server and execute in current instance`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      testObj.serverRepository.getByIpAddress.resolves([null, null]);
+      testObj.proxyServerService.delete.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      testObj.proxyServerService.delete.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful delete in current instance when not found any server`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      testObj.serverRepository.getByIpAddress.resolves([null, null]);
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerService.delete.resolves([null, outputJobModel]);
+
+      const [error, result] = await testObj.findClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      testObj.proxyServerService.delete.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(JobModel);
+    });
+
+    test(`Should successful delete in current instance when found server but should stay in current server`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '10.10.10.1';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerService.delete.resolves([null, outputJobModel]);
+
+      const [error, result] = await testObj.findClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      testObj.proxyServerService.delete.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(JobModel);
+    });
+
+    test(`Should successful delete in current instance when found server with use NAT ip but should stay in current server`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '123.40.52.6';
+      outputServerModel.internalHostIpAddress = '10.10.10.1';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+      testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerService.delete.resolves([null, outputJobModel]);
+
+      const [error, result] = await testObj.findClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      testObj.proxyServerService.delete.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(JobModel);
+    });
+
+    test(`Should error delete in other instance`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '123.40.52.6';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+      testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerApiRepository.deleteIp.resolves([new UnknownException()]);
+
+      const [error] = await testObj.otherFindClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      testObj.proxyServerApiRepository.deleteIp.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful delete in other instance`, async () => {
+      const inputModel = new IpAddressModel();
+      inputModel.ip = '192.168.1.0';
+      inputModel.mask = 29;
+      inputModel.gateway = '192.168.1.6';
+      inputModel.interface = 'ens192';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '123.40.52.6';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+      testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
+      const outputJobModel = new JobModel();
+      outputJobModel.id = testObj.identifierGenerator.generateId();
+      testObj.proxyServerApiRepository.deleteIp.resolves([null, outputJobModel]);
+
+      const [error, result] = await testObj.otherFindClusterProxyServerService.delete(inputModel);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(
+        sinon.match(`${inputModel.ip}/${inputModel.mask}`),
+      );
+      testObj.proxyServerApiRepository.deleteIp.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.instanceOf(JobModel);
     });
