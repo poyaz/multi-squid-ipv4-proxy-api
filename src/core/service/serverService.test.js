@@ -7,11 +7,15 @@ const sinon = require('sinon');
 const dirtyChai = require('dirty-chai');
 const sinonChai = require('sinon-chai');
 
+const os = require('os');
+const networkInterfaces = sinon.stub(os, 'networkInterfaces');
+
 const helper = require('~src/helper');
 
 const ServerModel = require('~src/core/model/serverModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
+const IServerService = require('~src/core/interface/iServerService');
 
 chai.should();
 chai.use(dirtyChai);
@@ -22,11 +26,26 @@ const testObj = {};
 
 suite(`ServerService`, () => {
   setup(() => {
-    const { serverRepository, serverService } = helper.fakeServerService();
+    const currentInstanceIp = '10.10.10.1';
+    const otherInstanceIp = '10.10.10.2';
 
+    const { serverRepository, serverService, otherServerService } = helper.fakeServerService(
+      currentInstanceIp,
+      otherInstanceIp,
+    );
+
+    testObj.currentInstanceIp = currentInstanceIp;
+    testObj.otherInstanceIp = otherInstanceIp;
     testObj.serverRepository = serverRepository;
     testObj.serverService = serverService;
+    testObj.otherServerService = otherServerService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+    testObj.networkInterfaces = networkInterfaces;
+  });
+
+  teardown(() => {
+    testObj.networkInterfaces.restore();
   });
 
   suite(`Get all server`, () => {
@@ -57,6 +76,89 @@ suite(`ServerService`, () => {
       expect(error).to.be.a('null');
       expect(result.length).to.be.eq(1);
       expect(result[0]).to.be.instanceof(ServerModel);
+    });
+  });
+
+  suite(`Find server instance`, () => {
+    test(`Should error find server when fetch data`, async () => {
+      const inputIpMask = '192.168.1.0/29';
+      testObj.serverRepository.getByIpAddress.resolves([new UnknownException()]);
+
+      const [error] = await testObj.serverService.findInstanceExecute(inputIpMask);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(sinon.match(inputIpMask));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful return current server when not found any server`, async () => {
+      const inputIpMask = '192.168.1.0/29';
+      testObj.serverRepository.getByIpAddress.resolves([null, null]);
+
+      const [error, result] = await testObj.serverService.findInstanceExecute(inputIpMask);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(sinon.match(inputIpMask));
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal(IServerService.INTERNAL_SERVER_INSTANCE);
+    });
+
+    test(`Should successful return current server when found server but should stay in current server`, async () => {
+      const inputIpMask = '192.168.1.0/29';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '10.10.10.1';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+
+      const [error, result] = await testObj.serverService.findInstanceExecute(inputIpMask);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(sinon.match(inputIpMask));
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal(IServerService.INTERNAL_SERVER_INSTANCE);
+    });
+
+    test(`Should successful return current server when found server with use NAT ip but should stay in current server`, async () => {
+      const inputIpMask = '192.168.1.0/29';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '123.40.52.6';
+      outputServerModel.internalHostIpAddress = '10.10.10.1';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+      testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
+
+      const [error, result] = await testObj.serverService.findInstanceExecute(inputIpMask);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(sinon.match(inputIpMask));
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal(IServerService.INTERNAL_SERVER_INSTANCE);
+    });
+
+    test(`Should successful return other server`, async () => {
+      const inputIpMask = '192.168.1.0/29';
+      const outputServerModel = new ServerModel();
+      outputServerModel.name = 'server-1';
+      outputServerModel.ipRange = ['192.168.1.0/29'];
+      outputServerModel.hostIpAddress = '123.40.52.6';
+      outputServerModel.hostApiPort = 8080;
+      outputServerModel.isEnable = true;
+      testObj.serverRepository.getByIpAddress.resolves([null, outputServerModel]);
+      testObj.networkInterfaces.returns({ ens192: [{ address: '10.10.10.1' }] });
+
+      const [error, result] = await testObj.serverService.findInstanceExecute(inputIpMask);
+
+      testObj.serverRepository.getByIpAddress.should.have.callCount(1);
+      testObj.serverRepository.getByIpAddress.should.have.calledWith(sinon.match(inputIpMask));
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal(IServerService.EXTERNAL_SERVER_INSTANCE);
     });
   });
 

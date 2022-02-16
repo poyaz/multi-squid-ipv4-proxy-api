@@ -570,17 +570,20 @@ function fakeUpdateServerValidationMiddleware(req, res) {
   return { updateServerValidationMiddleware };
 }
 
-function fakeServerService() {
+function fakeServerService(currentInstanceIp, otherInstanceIp) {
   const IServerRepository = require('~src/core/interface/iServerRepository');
   const ServerService = require('~src/core/service/serverService');
 
   const serverRepository = sinon.createStubInstance(IServerRepository);
 
-  const serverService = new ServerService(serverRepository);
+  const serverService = new ServerService(serverRepository, currentInstanceIp);
+
+  const otherServerService = new ServerService(serverRepository, otherInstanceIp);
 
   return {
     serverRepository,
     serverService,
+    otherServerService,
   };
 }
 

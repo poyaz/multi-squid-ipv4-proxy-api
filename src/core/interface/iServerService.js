@@ -3,6 +3,9 @@
  */
 
 class IServerService {
+  static INTERNAL_SERVER_INSTANCE = 'internal';
+  static EXTERNAL_SERVER_INSTANCE = 'external';
+
   /**
    *
    * @return {Promise<(Error|Array<ServerModel>)[]>}
@@ -10,6 +13,17 @@ class IServerService {
   async getAll() {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = {};
+    throw error;
+  }
+
+  /**
+   *
+   * @param {string} ipMask
+   * @return {Promise<(Error|string|ServerModel)[]>}
+   */
+  async findInstanceExecute(ipMask) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { ipMask };
     throw error;
   }
 
