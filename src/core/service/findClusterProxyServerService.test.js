@@ -7,9 +7,6 @@ const sinon = require('sinon');
 const dirtyChai = require('dirty-chai');
 const sinonChai = require('sinon-chai');
 
-const os = require('os');
-const networkInterfaces = sinon.stub(os, 'networkInterfaces');
-
 const helper = require('~src/helper');
 
 const ServerModel = require('~src/core/model/serverModel');
@@ -39,12 +36,6 @@ suite(`FindClusterProxyServerService`, () => {
     testObj.serverApiRepository = serverApiRepository;
     testObj.findClusterProxyServerService = findClusterProxyServerService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
-
-    testObj.networkInterfaces = networkInterfaces;
-  });
-
-  teardown(() => {
-    testObj.networkInterfaces.restore();
   });
 
   suite(`Get all`, () => {
