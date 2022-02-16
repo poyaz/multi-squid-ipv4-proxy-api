@@ -3,6 +3,7 @@
  */
 
 const IProxyServerService = require('~src/core/interface/iProxyServerService');
+const IServerService = require('~src/core/interface/iServerService');
 const { networkInterfaces } = require('os');
 
 class FindClusterProxyServerService extends IProxyServerService {
@@ -11,35 +12,30 @@ class FindClusterProxyServerService extends IProxyServerService {
    */
   #proxyServerService;
   /**
-   * @type {IServerRepository}
+   * @type {IServerService}
    */
-  #serverRepository;
+  #serverService;
   /**
    * @type {IServerApiRepository}
    */
-  #proxyServerApiRepository;
+  #serverApiRepository;
   /**
    * @string
    */
   #currentInstanceIp;
 
-  static INTERNAL_SERVER_INSTANCE = 'internal';
-  static EXTERNAL_SERVER_INSTANCE = 'external';
-
   /**
    *
    * @param {IProxyServerService} proxyServerService
-   * @param {IServerRepository} serverRepository
-   * @param {IServerApiRepository} proxyServerApiRepository
-   * @param {string} currentInstanceIp
+   * @param {IServerService} serverService
+   * @param {IServerApiRepository} serverApiRepository
    */
-  constructor(proxyServerService, serverRepository, proxyServerApiRepository, currentInstanceIp) {
+  constructor(proxyServerService, serverService, serverApiRepository) {
     super();
 
     this.#proxyServerService = proxyServerService;
-    this.#serverRepository = serverRepository;
-    this.#proxyServerApiRepository = proxyServerApiRepository;
-    this.#currentInstanceIp = currentInstanceIp;
+    this.#serverService = serverService;
+    this.#serverApiRepository = serverApiRepository;
   }
 
   async getAll() {
@@ -48,16 +44,16 @@ class FindClusterProxyServerService extends IProxyServerService {
 
   async add(model) {
     const ipMask = `${model.ip}/${model.mask}`;
-    const [error, instanceMode, dataServer] = await this._findServerInstance(ipMask);
+    const [error, instanceMode, dataServer] = await this.#serverService.findInstanceExecute(ipMask);
     if (error) {
       return [error];
     }
 
     switch (instanceMode) {
-      case FindClusterProxyServerService.INTERNAL_SERVER_INSTANCE:
+      case IServerService.INTERNAL_SERVER_INSTANCE:
         return this.#proxyServerService.add(model);
-      case FindClusterProxyServerService.EXTERNAL_SERVER_INSTANCE:
-        return this.#proxyServerApiRepository.generateIp(model, dataServer);
+      case IServerService.EXTERNAL_SERVER_INSTANCE:
+        return this.#serverApiRepository.generateIp(model, dataServer);
     }
   }
 
@@ -67,42 +63,17 @@ class FindClusterProxyServerService extends IProxyServerService {
 
   async delete(model) {
     const ipMask = `${model.ip}/${model.mask}`;
-    const [error, instanceMode, dataServer] = await this._findServerInstance(ipMask);
+    const [error, instanceMode, dataServer] = await this.#serverService.findInstanceExecute(ipMask);
     if (error) {
       return [error];
     }
 
     switch (instanceMode) {
-      case FindClusterProxyServerService.INTERNAL_SERVER_INSTANCE:
+      case IServerService.INTERNAL_SERVER_INSTANCE:
         return this.#proxyServerService.delete(model);
-      case FindClusterProxyServerService.EXTERNAL_SERVER_INSTANCE:
-        return this.#proxyServerApiRepository.deleteIp(model, dataServer);
+      case IServerService.EXTERNAL_SERVER_INSTANCE:
+        return this.#serverApiRepository.deleteIp(model, dataServer);
     }
-  }
-
-  async _findServerInstance(ipMask) {
-    const [errorServer, dataServer] = await this.#serverRepository.getByIpAddress(ipMask);
-    if (errorServer) {
-      return [errorServer];
-    }
-    if (!dataServer) {
-      return [null, FindClusterProxyServerService.INTERNAL_SERVER_INSTANCE, dataServer];
-    }
-
-    if (dataServer.hostIpAddress === this.#currentInstanceIp) {
-      return [null, FindClusterProxyServerService.INTERNAL_SERVER_INSTANCE, dataServer];
-    }
-
-    const nets = networkInterfaces();
-    for (const name of Object.keys(nets)) {
-      for (const net of nets[name]) {
-        if (dataServer.internalHostIpAddress && net.address === dataServer.internalHostIpAddress) {
-          return [null, FindClusterProxyServerService.INTERNAL_SERVER_INSTANCE, dataServer];
-        }
-      }
-    }
-
-    return [null, FindClusterProxyServerService.EXTERNAL_SERVER_INSTANCE, dataServer];
   }
 }
 

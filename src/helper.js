@@ -604,38 +604,29 @@ function fakeServerPgRepository() {
   return { postgresDb, identifierGenerator, serverRepository };
 }
 
-function fakeFindClusterProxyServerService(currentInstanceIp, otherInstanceIp) {
+function fakeFindClusterProxyServerService() {
   const IProxyServerService = require('~src/core/interface/iProxyServerService');
-  const IServerRepository = require('~src/core/interface/iServerRepository');
+  const IServerService = require('~src/core/interface/iServerService');
   const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
   const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
 
   const proxyServerService = sinon.createStubInstance(IProxyServerService);
 
-  const serverRepository = sinon.createStubInstance(IServerRepository);
+  const serverService = sinon.createStubInstance(IServerService);
 
-  const proxyServerApiRepository = sinon.createStubInstance(IServerApiRepository);
+  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
 
   const findClusterProxyServerService = new FindClusterProxyServerService(
     proxyServerService,
-    serverRepository,
-    proxyServerApiRepository,
-    currentInstanceIp,
-  );
-
-  const otherFindClusterProxyServerService = new FindClusterProxyServerService(
-    proxyServerService,
-    serverRepository,
-    proxyServerApiRepository,
-    otherInstanceIp,
+    serverService,
+    serverApiRepository,
   );
 
   return {
     proxyServerService,
-    serverRepository,
-    proxyServerApiRepository,
+    serverService,
+    serverApiRepository,
     findClusterProxyServerService,
-    otherFindClusterProxyServerService,
   };
 }
 
