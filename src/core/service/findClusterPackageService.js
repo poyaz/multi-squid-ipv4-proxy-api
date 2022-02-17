@@ -38,6 +38,10 @@ class FindClusterPackageService extends IPackageService {
       return [errorAllServer];
     }
 
+    if (dataAllServer.length === 0) {
+      return this.#packageService.getAllByUsername(username);
+    }
+
     const tasks = [];
     for (let i = 0; i < dataAllServer.length; i++) {
       const serverModel = dataAllServer[i];

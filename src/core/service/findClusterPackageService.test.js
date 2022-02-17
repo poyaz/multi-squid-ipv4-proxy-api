@@ -49,6 +49,36 @@ suite(`FindClusterPackageService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
+    test(`Should error get all package in current instance because not found any server`, async () => {
+      const inputUsername = 'user1';
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.packageService.getAllByUsername.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.getAllByUsername(inputUsername);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.getAllByUsername.should.have.callCount(1);
+      testObj.packageService.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful get all package in current instance because not found any server`, async () => {
+      const inputUsername = 'user1';
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.packageService.getAllByUsername.resolves([null, []]);
+
+      const [error, result] = await testObj.findClusterPackageService.getAllByUsername(
+        inputUsername,
+      );
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.getAllByUsername.should.have.callCount(1);
+      testObj.packageService.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
     test(`Should error get all package in all instance when send request has been fail`, async () => {
       const inputUsername = 'user1';
       const outputServerModel1 = new ServerModel();
