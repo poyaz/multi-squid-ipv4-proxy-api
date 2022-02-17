@@ -630,6 +630,32 @@ function fakeFindClusterProxyServerService() {
   };
 }
 
+function fakeFindClusterPackageService() {
+  const IPackageService = require('~src/core/interface/iPackageService');
+  const IServerService = require('~src/core/interface/iServerService');
+  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
+  const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
+
+  const packageService = sinon.createStubInstance(IPackageService);
+
+  const serverService = sinon.createStubInstance(IServerService);
+
+  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
+
+  const findClusterPackageService = new FindClusterPackageService(
+    packageService,
+    serverService,
+    serverApiRepository,
+  );
+
+  return {
+    packageService,
+    serverService,
+    serverApiRepository,
+    findClusterPackageService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -668,4 +694,5 @@ module.exports = {
   fakeServerService,
   fakeServerPgRepository,
   fakeFindClusterProxyServerService,
+  fakeFindClusterPackageService,
 };
