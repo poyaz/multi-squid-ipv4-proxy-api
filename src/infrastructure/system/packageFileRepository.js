@@ -75,6 +75,33 @@ class PackageFileRepository extends IPackageRepository {
       return [new ModelUsernameNotExistException()];
     }
 
+    if (!model.expireDate && !model.deleteDate && model.ipList.length > 0) {
+      try {
+        const lines = await fsAsync.readFile(this.#accessUserIpPath, 'utf8');
+
+        const ipList = lines
+          .split(/\n/g)
+          .map((v) => v.match(/(.+)\s(.+)$/))
+          .filter((v) => v && v[2] === model.username)
+          .map((v) => v[1].replace('#', ''));
+
+        const appendModel = new PackageModel();
+        appendModel.id = model.id;
+        appendModel.userId = model.userId;
+        appendModel.username = model.username;
+
+        appendModel.ipList = model.ipList.filter((n) => ipList.findIndex((m) => n.ip === m) === -1);
+        appendModel.countIp = appendModel.ipList.length;
+
+        const [error] = await this.add(appendModel);
+        if (error) {
+          return [error];
+        }
+      } catch (error) {
+        return [new CommandExecuteException(error)];
+      }
+    }
+
     let updatePattern = '';
     switch (true) {
       case model.expireDate instanceof Date && model.ipList.length > 0: {
@@ -82,9 +109,15 @@ class PackageFileRepository extends IPackageRepository {
         updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
         break;
       }
+      /**
+       * Disable all user proxy
+       */
       case model.deleteDate instanceof Date:
         updatePattern = `s/^\\([^#]\\+ ${model.username}\\)$/#\\1/g`;
         break;
+      /**
+       * Enable all user proxy
+       */
       case !model.deleteDate:
         updatePattern = `s/^#\\(.\\+ ${model.username}\\)$/\\1/g`;
         break;
