@@ -13,6 +13,7 @@ const ServerModel = require('~src/core/model/serverModel');
 const IpAddressModel = require('~src/core/model/ipAddressModel');
 const PackageModel = require('~src/core/model/packageModel');
 const UnknownException = require('~src/core/exception/unknownException');
+const SyncPackageProxyException = require('~src/core/exception/syncPackageProxyException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -38,7 +39,7 @@ suite(`FindClusterPackageService`, () => {
   });
 
   suite(`Get all package by username`, () => {
-    test(`Should error get all package in all instance when get all instance has fail`, async () => {
+    test(`Should error get all package when get all instance has fail`, async () => {
       const inputUsername = 'user1';
       testObj.serverService.getAll.resolves([new UnknownException()]);
 
@@ -178,6 +179,382 @@ suite(`FindClusterPackageService`, () => {
       expect(result[0].ipList[2]).to.have.include({ ip: '192.168.1.4', port: 8080 });
       expect(result[0].ipList[3]).to.have.include({ ip: '192.168.1.5', port: 8080 });
       expect(result[0].ipList[4]).to.have.include({ ip: '192.168.1.6', port: 8080 });
+    });
+  });
+
+  suite(`Add new package`, () => {
+    test(`Should error add new package when get all instance has fail`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.countIp = 1;
+      inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      testObj.serverService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error add new package in current instance because not found any server`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.countIp = 1;
+      inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.packageService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.add.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful add new package in current instance because not found any server`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.countIp = 1;
+      inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      testObj.serverService.getAll.resolves([null, []]);
+      const outputAddPackage = new PackageModel();
+      outputAddPackage.username = 'user1';
+      outputAddPackage.countIp = 1;
+      outputAddPackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputAddPackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputAddPackage.insertDate = new Date();
+      testObj.packageService.add.resolves([null, outputAddPackage]);
+
+      const [error, result] = await testObj.findClusterPackageService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.add.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceOf(PackageModel);
+    });
+
+    test(`Should error add new package in all instance when send request has been fail in all server`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.countIp = 1;
+      inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3],
+      ]);
+      const outputAddPackage = new PackageModel();
+      outputAddPackage.id = testObj.identifierGenerator.generateId();
+      outputAddPackage.username = 'user1';
+      outputAddPackage.countIp = 1;
+      outputAddPackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputAddPackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputAddPackage.insertDate = new Date();
+      testObj.packageService.add.resolves([null, outputAddPackage]);
+      testObj.serverApiRepository.syncPackageById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.add.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputAddPackage.id),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.an.instanceof(SyncPackageProxyException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful add new package in all instance when send request has been fail in at least one server`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.countIp = 1;
+      inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3],
+      ]);
+      const outputAddPackage = new PackageModel();
+      outputAddPackage.id = testObj.identifierGenerator.generateId();
+      outputAddPackage.username = 'user1';
+      outputAddPackage.countIp = 1;
+      outputAddPackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputAddPackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputAddPackage.insertDate = new Date();
+      testObj.packageService.add.resolves([null, outputAddPackage]);
+      testObj.serverApiRepository.syncPackageById
+        .onCall(0)
+        .resolves([null])
+        .onCall(1)
+        .resolves([new UnknownException()])
+        .onCall(2)
+        .resolves([null]);
+
+      const [error, result] = await testObj.findClusterPackageService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.add.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputAddPackage.id),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceOf(PackageModel);
+    });
+
+    test(`Should successful add new package in all instance`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.countIp = 1;
+      inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3],
+      ]);
+      const outputAddPackage = new PackageModel();
+      outputAddPackage.id = testObj.identifierGenerator.generateId();
+      outputAddPackage.username = 'user1';
+      outputAddPackage.countIp = 1;
+      outputAddPackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputAddPackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputAddPackage.insertDate = new Date();
+      testObj.packageService.add.resolves([null, outputAddPackage]);
+      testObj.serverApiRepository.syncPackageById.resolves([null]);
+
+      const [error, result] = await testObj.findClusterPackageService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.add.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputAddPackage.id),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceOf(PackageModel);
+    });
+  });
+
+  suite(`Renew expire date`, () => {
+    test(`Should error renew expire package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 60000);
+      testObj.packageService.renew.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.renew(inputId, inputExpireDate);
+
+      testObj.packageService.renew.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful renew expire package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputExpireDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 60000);
+      testObj.packageService.renew.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.renew(inputId, inputExpireDate);
+
+      testObj.packageService.renew.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Disable expire package`, () => {
+    test(`Should error disable expire package`, async () => {
+      testObj.packageService.disableExpirePackage.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.disableExpirePackage();
+
+      testObj.packageService.disableExpirePackage.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful disable expire package`, async () => {
+      testObj.packageService.disableExpirePackage.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.disableExpirePackage();
+
+      testObj.packageService.disableExpirePackage.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Remove package`, () => {
+    test(`Should error remove package when get all instance has fail`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.serverService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.remove(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error remove package in current instance because not found any server`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.packageService.remove.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.remove(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.remove.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful remove package in current instance because not found any server`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.packageService.remove.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.remove(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.remove.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should error remove package in all instance when send request has been fail in all server or at least one server`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3],
+      ]);
+      const outputAddPackage = new PackageModel();
+      outputAddPackage.id = testObj.identifierGenerator.generateId();
+      outputAddPackage.username = 'user1';
+      outputAddPackage.countIp = 1;
+      outputAddPackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputAddPackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputAddPackage.insertDate = new Date();
+      testObj.packageService.remove.resolves([null, outputAddPackage]);
+      testObj.serverApiRepository.syncPackageById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.remove(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.remove.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputAddPackage.id),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.an.instanceof(SyncPackageProxyException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful remove package in all instance`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3],
+      ]);
+      const outputAddPackage = new PackageModel();
+      outputAddPackage.id = testObj.identifierGenerator.generateId();
+      outputAddPackage.username = 'user1';
+      outputAddPackage.countIp = 1;
+      outputAddPackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputAddPackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputAddPackage.insertDate = new Date();
+      testObj.packageService.remove.resolves([null, outputAddPackage]);
+      testObj.serverApiRepository.syncPackageById.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.remove(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.remove.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputAddPackage.id),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.a('null');
     });
   });
 });

@@ -49,10 +49,21 @@ class IPackageService {
 
   /**
    *
-   * @param {uuid} id
+   * @param {string} id
    * @return {Promise<(Error)[]>}
    */
   async remove(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {string} id
+   * @return {Promise<(Error)[]>}
+   */
+  syncPackageById(id) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { id };
     throw error;

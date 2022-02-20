@@ -3,6 +3,7 @@
  */
 
 const IPackageService = require('~src/core/interface/iPackageService');
+const SyncPackageProxyException = require('~src/core/exception/syncPackageProxyException');
 
 class FindClusterPackageService extends IPackageService {
   /**
@@ -80,6 +81,89 @@ class FindClusterPackageService extends IPackageService {
     }
 
     return [null, dataPackageList];
+  }
+
+  async add(model) {
+    const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
+    if (errorAllServer) {
+      return [errorAllServer];
+    }
+
+    const [errorAddPackage, dataAddPackage] = await this.#packageService.add(model);
+    if (errorAddPackage) {
+      return [errorAddPackage];
+    }
+
+    if (dataAllServer.length === 0) {
+      return [null, dataAddPackage];
+    }
+
+    const tasks = [];
+    for (let i = 0; i < dataAllServer.length; i++) {
+      const serverModel = dataAllServer[i];
+      if (serverModel.isEnable) {
+        tasks.push(this.#serverApiRepository.syncPackageById(dataAddPackage.id, serverModel));
+      }
+    }
+
+    const resultTasks = await Promise.all(tasks);
+
+    let totalError = 0;
+    for (let i = 0; i < resultTasks.length; i++) {
+      const [errorExecute] = resultTasks[i];
+      if (errorExecute) {
+        totalError++;
+      }
+    }
+
+    if (totalError === resultTasks.length) {
+      return [new SyncPackageProxyException()];
+    }
+
+    return [null, dataAddPackage];
+  }
+
+  async renew(id, expireDate) {
+    return this.#packageService.renew(id, expireDate);
+  }
+
+  async disableExpirePackage() {
+    return this.#packageService.disableExpirePackage();
+  }
+
+  async remove(id) {
+    const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
+    if (errorAllServer) {
+      return [errorAllServer];
+    }
+
+    const [errorRemovePackage, dataRemovePackage] = await this.#packageService.remove(id);
+    if (errorRemovePackage) {
+      return [errorRemovePackage];
+    }
+
+    if (dataAllServer.length === 0) {
+      return [null, dataRemovePackage];
+    }
+
+    const tasks = [];
+    for (let i = 0; i < dataAllServer.length; i++) {
+      const serverModel = dataAllServer[i];
+      if (serverModel.isEnable) {
+        tasks.push(this.#serverApiRepository.syncPackageById(id, serverModel));
+      }
+    }
+
+    const resultTasks = await Promise.all(tasks);
+
+    for (let i = 0; i < resultTasks.length; i++) {
+      const [errorExecute] = resultTasks[i];
+      if (errorExecute) {
+        return [new SyncPackageProxyException()];
+      }
+    }
+
+    return [null];
   }
 }
 
