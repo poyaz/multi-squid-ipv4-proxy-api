@@ -172,12 +172,13 @@ class PackageService extends IPackageService {
       return [new NotFoundException()];
     }
 
+    packageData.deleteDate = new Date();
+
     const [removeProxyError] = await this.#packageFileRepository.update(packageData);
     if (removeProxyError) {
       return [removeProxyError];
     }
 
-    packageData.deleteDate = new Date();
     const [removePackageError] = await this.#packageRepository.update(packageData);
     if (removePackageError) {
       return [removePackageError];
