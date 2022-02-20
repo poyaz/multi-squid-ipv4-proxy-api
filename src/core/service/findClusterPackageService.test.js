@@ -10,7 +10,6 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const ServerModel = require('~src/core/model/serverModel');
-const IpAddressModel = require('~src/core/model/ipAddressModel');
 const PackageModel = require('~src/core/model/packageModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const SyncPackageProxyException = require('~src/core/exception/syncPackageProxyException');
@@ -554,6 +553,29 @@ suite(`FindClusterPackageService`, () => {
         sinon.match(outputAddPackage.id),
         sinon.match.instanceOf(ServerModel),
       );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Sync package with id`, () => {
+    test(`Should error sync package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.packageService.syncPackageById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
+
+      testObj.packageService.syncPackageById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful sync package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.packageService.syncPackageById.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
+
+      testObj.packageService.syncPackageById.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
   });

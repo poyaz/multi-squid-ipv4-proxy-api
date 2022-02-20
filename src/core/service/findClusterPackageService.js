@@ -165,6 +165,10 @@ class FindClusterPackageService extends IPackageService {
 
     return [null];
   }
+
+  async syncPackageById(id) {
+    return this.#packageService.syncPackageById(id);
+  }
 }
 
 module.exports = FindClusterPackageService;
