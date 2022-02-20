@@ -68,7 +68,7 @@ class PackageService extends IPackageService {
     const validRunningIpList = fetchFileData[0].ipList;
     for (let i = 0; i < fetchData.length; i++) {
       const data = fetchData[i];
-      if (data.expireDate.getTime() < new Date().getTime()) {
+      if (data.expireDate instanceof Date && data.expireDate.getTime() < new Date().getTime()) {
         continue;
       }
 
@@ -116,7 +116,10 @@ class PackageService extends IPackageService {
     if (!fetchData) {
       return [new NotFoundException()];
     }
-    if (fetchData.expireDate.getTime() <= new Date().getTime()) {
+    if (
+      fetchData.expireDate instanceof Date &&
+      fetchData.expireDate.getTime() <= new Date().getTime()
+    ) {
       return [new ExpireDateException()];
     }
 
@@ -181,6 +184,39 @@ class PackageService extends IPackageService {
     const [removePackageError] = await this.#packageRepository.update(packageData);
     if (removePackageError) {
       return [removePackageError];
+    }
+
+    this._reloadServer();
+
+    return [null];
+  }
+
+  async syncPackageById(id) {
+    const [errorFetchPackage, dataFetchPackage] = await this.#packageRepository.getById(id);
+    if (errorFetchPackage) {
+      return [errorFetchPackage];
+    }
+    if (!dataFetchPackage) {
+      return [new NotFoundException()];
+    }
+    const [errorFetchUser, dataFetchUser] = await this._getUserModelByUsername(
+      dataFetchPackage.username,
+    );
+    if (errorFetchUser) {
+      return [errorFetchUser];
+    }
+    if (
+      (dataFetchPackage.expireDate instanceof Date &&
+        dataFetchPackage.expireDate.getTime() <= new Date().getTime()) ||
+      dataFetchPackage.deleteDate ||
+      !dataFetchUser.isEnable
+    ) {
+      return [null];
+    }
+
+    const [error] = await this.#packageFileRepository.update(dataFetchPackage);
+    if (error) {
+      return [error];
     }
 
     this._reloadServer();
