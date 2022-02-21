@@ -51,6 +51,31 @@ class ProxyServerApiRepository extends IServerApiRepository {
     }
   }
 
+  async deleteIp(model, serverModel) {
+    try {
+      const response = await axios.delete(
+        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/proxy/ip`,
+        {
+          data: {
+            ip: model.ip,
+            mask: model.mask,
+            interface: model.interface,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: this.#apiToken,
+          },
+        },
+      );
+
+      const result = this._fillJobModel(response.data);
+
+      return [null, result];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   _errorHandler(error) {
     if (error.response) {
       switch (error.response.status) {

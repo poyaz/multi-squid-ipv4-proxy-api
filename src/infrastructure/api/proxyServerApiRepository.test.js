@@ -13,6 +13,7 @@ const sinonChai = require('sinon-chai');
 
 const axios = require('axios');
 const axiosPostStub = sinon.stub(axios, 'post');
+const axiosDeleteStub = sinon.stub(axios, 'delete');
 
 const helper = require('~src/helper');
 
@@ -52,6 +53,7 @@ suite(`ProxyServerApiRepository`, () => {
 
   teardown(() => {
     axiosPostStub.resetHistory();
+    axiosDeleteStub.resetHistory();
     testObj.consoleError.restore();
   });
 
@@ -344,6 +346,72 @@ suite(`ProxyServerApiRepository`, () => {
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
           .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(JobModel);
+      expect(result.id).to.be.equal(testObj.identifierGenerator.generateId());
+    });
+  });
+
+  suite(`Delete ip address`, () => {
+    test(`Should error delete ip address`, async () => {
+      const inputIpAddressModel = new IpAddressModel();
+      inputIpAddressModel.ip = '192.168.1.0';
+      inputIpAddressModel.mask = 24;
+      inputIpAddressModel.interface = 'ens192';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosDeleteStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.deleteIp(
+        inputIpAddressModel,
+        inputServerModel,
+      );
+
+      axiosDeleteStub.should.have.callCount(1);
+      axiosDeleteStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match
+          .hasNested('data.ip', inputIpAddressModel.ip)
+          .and(sinon.match.hasNested('data.mask', inputIpAddressModel.mask))
+          .and(sinon.match.hasNested('data.interface', inputIpAddressModel.interface)),
+      );
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful delete ip address`, async () => {
+      const inputIpAddressModel = new IpAddressModel();
+      inputIpAddressModel.ip = '192.168.1.0';
+      inputIpAddressModel.mask = 24;
+      inputIpAddressModel.interface = 'ens192';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const outputObj = {
+        status: 'success',
+        data: {
+          jobId: testObj.identifierGenerator.generateId(),
+        },
+      };
+      axiosDeleteStub.resolves(outputObj);
+
+      const [error, result] = await testObj.proxyServerApiRepository.deleteIp(
+        inputIpAddressModel,
+        inputServerModel,
+      );
+
+      axiosDeleteStub.should.have.callCount(1);
+      axiosDeleteStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match
+          .hasNested('data.ip', inputIpAddressModel.ip)
+          .and(sinon.match.hasNested('data.mask', inputIpAddressModel.mask))
+          .and(sinon.match.hasNested('data.interface', inputIpAddressModel.interface)),
       );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(JobModel);
