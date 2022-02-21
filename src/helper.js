@@ -675,6 +675,32 @@ function fakeProxyServerApiRepository() {
   return { dateTime, proxyServerApiRepository };
 }
 
+function fakeFindClusterUserService() {
+  const IUserService = require('~src/core/interface/iUserService');
+  const IServerService = require('~src/core/interface/iServerService');
+  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
+  const FindClusterUserService = require('~src/core/service/findClusterUserService');
+
+  const userService = sinon.createStubInstance(IUserService);
+
+  const serverService = sinon.createStubInstance(IServerService);
+
+  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
+
+  const findClusterUserService = new FindClusterUserService(
+    userService,
+    serverService,
+    serverApiRepository,
+  );
+
+  return {
+    userService,
+    serverService,
+    serverApiRepository,
+    findClusterUserService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -715,4 +741,5 @@ module.exports = {
   fakeFindClusterProxyServerService,
   fakeFindClusterPackageService,
   fakeProxyServerApiRepository,
+  fakeFindClusterUserService,
 };
