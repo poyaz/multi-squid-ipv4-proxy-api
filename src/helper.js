@@ -638,7 +638,7 @@ function fakeFindClusterProxyServerService() {
   };
 }
 
-function fakeFindClusterPackageService() {
+function fakeFindClusterPackageService(currentInstanceIp) {
   const IPackageService = require('~src/core/interface/iPackageService');
   const IServerService = require('~src/core/interface/iServerService');
   const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
@@ -654,6 +654,7 @@ function fakeFindClusterPackageService() {
     packageService,
     serverService,
     serverApiRepository,
+    currentInstanceIp,
   );
 
   return {

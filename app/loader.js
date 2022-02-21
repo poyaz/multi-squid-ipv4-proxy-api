@@ -83,6 +83,8 @@ class Loader {
       this._cluster();
     }
 
+    const currentInstanceIp = this._config.getStr('server.host');
+
     const {
       squidVolumeFolder,
       squidPasswordFile,
@@ -174,11 +176,12 @@ class Loader {
       squidServerRepository,
       proxyServerRegenerateJobService,
     );
-    const serverService = new ServerService(serverRepository, this._config.getStr('server.host'));
+    const serverService = new ServerService(serverRepository, currentInstanceIp);
     const findClusterPackageService = new FindClusterPackageService(
       packageService,
       serverService,
       proxyServerApiRepository,
+      currentInstanceIp,
     );
     const findClusterProxyServerService = new FindClusterProxyServerService(
       proxyServerService,

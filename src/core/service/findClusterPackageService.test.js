@@ -28,7 +28,7 @@ suite(`FindClusterPackageService`, () => {
       serverService,
       serverApiRepository,
       findClusterPackageService,
-    } = helper.fakeFindClusterPackageService();
+    } = helper.fakeFindClusterPackageService('10.10.10.4');
 
     testObj.packageService = packageService;
     testObj.serverService = serverService;
@@ -96,9 +96,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       testObj.serverApiRepository.getAllPackageByUsername
         .onCall(0)
@@ -131,9 +136,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       const outputPackageModel1 = new PackageModel();
       outputPackageModel1.id = testObj.identifierGenerator.generateId();
@@ -254,9 +264,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       const outputAddPackage = new PackageModel();
       outputAddPackage.id = testObj.identifierGenerator.generateId();
@@ -301,9 +316,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       const outputAddPackage = new PackageModel();
       outputAddPackage.id = testObj.identifierGenerator.generateId();
@@ -354,9 +374,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       const outputAddPackage = new PackageModel();
       outputAddPackage.id = testObj.identifierGenerator.generateId();
@@ -486,9 +511,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       const outputAddPackage = new PackageModel();
       outputAddPackage.id = testObj.identifierGenerator.generateId();
@@ -530,9 +560,14 @@ suite(`FindClusterPackageService`, () => {
       outputServerModel3.hostIpAddress = '10.10.10.3';
       outputServerModel3.hostApiPort = 8080;
       outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
       testObj.serverService.getAll.resolves([
         null,
-        [outputServerModel1, outputServerModel2, outputServerModel3],
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
       ]);
       const outputAddPackage = new PackageModel();
       outputAddPackage.id = testObj.identifierGenerator.generateId();

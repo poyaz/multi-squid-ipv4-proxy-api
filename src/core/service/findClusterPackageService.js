@@ -18,6 +18,10 @@ class FindClusterPackageService extends IPackageService {
    * @type {IServerApiRepository}
    */
   #serverApiRepository;
+  /**
+   * @type {string}
+   */
+  #currentInstanceIp;
 
   /**
    *
@@ -25,12 +29,13 @@ class FindClusterPackageService extends IPackageService {
    * @param {IServerService} serverService
    * @param {IServerApiRepository} serverApiRepository
    */
-  constructor(packageService, serverService, serverApiRepository) {
+  constructor(packageService, serverService, serverApiRepository, currentInstanceIp) {
     super();
 
     this.#packageService = packageService;
     this.#serverService = serverService;
     this.#serverApiRepository = serverApiRepository;
+    this.#currentInstanceIp = currentInstanceIp;
   }
 
   async getAllByUsername(username) {
@@ -46,7 +51,7 @@ class FindClusterPackageService extends IPackageService {
     const tasks = [];
     for (let i = 0; i < dataAllServer.length; i++) {
       const serverModel = dataAllServer[i];
-      if (serverModel.isEnable) {
+      if (serverModel.isEnable && serverModel.hostIpAddress !== this.#currentInstanceIp) {
         tasks.push(this.#serverApiRepository.getAllPackageByUsername(username, serverModel));
       }
     }
@@ -101,7 +106,7 @@ class FindClusterPackageService extends IPackageService {
     const tasks = [];
     for (let i = 0; i < dataAllServer.length; i++) {
       const serverModel = dataAllServer[i];
-      if (serverModel.isEnable) {
+      if (serverModel.isEnable && serverModel.hostIpAddress !== this.#currentInstanceIp) {
         tasks.push(this.#serverApiRepository.syncPackageById(dataAddPackage.id, serverModel));
       }
     }
@@ -149,7 +154,7 @@ class FindClusterPackageService extends IPackageService {
     const tasks = [];
     for (let i = 0; i < dataAllServer.length; i++) {
       const serverModel = dataAllServer[i];
-      if (serverModel.isEnable) {
+      if (serverModel.isEnable && serverModel.hostIpAddress !== this.#currentInstanceIp) {
         tasks.push(this.#serverApiRepository.syncPackageById(id, serverModel));
       }
     }
