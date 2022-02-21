@@ -479,4 +479,44 @@ suite(`ProxyServerApiRepository`, () => {
       expect(result[1]).to.be.an.instanceof(PackageModel);
     });
   });
+
+  suite(`Sync package by id`, () => {
+    test(`Should error sync package by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosPostStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.syncPackageById(
+        inputId,
+        inputServerModel,
+      );
+
+      axiosPostStub.should.have.callCount(1);
+      axiosPostStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully sync package by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      axiosPostStub.resolves();
+
+      const [error] = await testObj.proxyServerApiRepository.syncPackageById(
+        inputId,
+        inputServerModel,
+      );
+
+      axiosPostStub.should.have.callCount(1);
+      axiosPostStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.a('null');
+    });
+  });
 });

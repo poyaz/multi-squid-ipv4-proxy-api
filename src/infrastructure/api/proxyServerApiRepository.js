@@ -107,6 +107,25 @@ class ProxyServerApiRepository extends IServerApiRepository {
     }
   }
 
+  async syncPackageById(id, serverModel) {
+    try {
+      await axios.post(
+        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/package/${id}/sync`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: this.#apiToken,
+          },
+        },
+      );
+
+      return [null];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   _errorHandler(error) {
     if (error.response) {
       switch (error.response.status) {
