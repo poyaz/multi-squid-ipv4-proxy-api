@@ -190,13 +190,21 @@ function fakePackageController(req, res) {
   const PackageController = require('~src/api/http/package/controller/packageController');
 
   const packageService = sinon.createStubInstance(IPackageService);
+  const findClusterPackageService = sinon.createStubInstance(IPackageService);
 
   const dateTime = new DateTime();
 
-  const packageController = new PackageController(req, res, packageService, dateTime);
+  const packageController = new PackageController(
+    req,
+    res,
+    packageService,
+    findClusterPackageService,
+    dateTime,
+  );
 
   return {
     packageService,
+    findClusterPackageService,
     packageController,
   };
 }

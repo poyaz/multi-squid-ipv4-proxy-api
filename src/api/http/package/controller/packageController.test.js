@@ -27,12 +27,14 @@ suite(`PackageController`, () => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const { packageService, packageController } = helper.fakePackageController(
-      testObj.req,
-      testObj.res,
-    );
+    const {
+      packageService,
+      findClusterPackageService,
+      packageController,
+    } = helper.fakePackageController(testObj.req, testObj.res);
 
     testObj.packageService = packageService;
+    testObj.findClusterPackageService = findClusterPackageService;
     testObj.packageController = packageController;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
@@ -43,12 +45,14 @@ suite(`PackageController`, () => {
   suite(`Create new package`, () => {
     test(`Should error create new package`, async () => {
       testObj.req.body = { username: 'user1', countIp: 1, expire: '2021-08-25' };
-      testObj.packageService.add.resolves([new UnknownException()]);
+      testObj.findClusterPackageService.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.packageController.addPackage();
 
-      testObj.packageService.add.should.have.callCount(1);
-      testObj.packageService.add.should.have.calledWith(sinon.match.instanceOf(PackageModel));
+      testObj.findClusterPackageService.add.should.have.callCount(1);
+      testObj.findClusterPackageService.add.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
@@ -62,12 +66,14 @@ suite(`PackageController`, () => {
       outputModel.ipList = [{ ip: '192.168.1.2', port: 8080 }];
       outputModel.insertDate = new Date();
       outputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-      testObj.packageService.add.resolves([null, outputModel]);
+      testObj.findClusterPackageService.add.resolves([null, outputModel]);
 
       const [error, result] = await testObj.packageController.addPackage();
 
-      testObj.packageService.add.should.have.callCount(1);
-      testObj.packageService.add.should.have.calledWith(sinon.match.instanceOf(PackageModel));
+      testObj.findClusterPackageService.add.should.have.callCount(1);
+      testObj.findClusterPackageService.add.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel),
+      );
       expect(error).to.be.a('null');
       expect(result).to.be.a('object');
       expect(result).to.have.include({
@@ -84,12 +90,12 @@ suite(`PackageController`, () => {
   suite(`Get all package by username`, () => {
     test(`Should error get all package with username`, async () => {
       testObj.req.params = { username: 'user1' };
-      testObj.packageService.getAllByUsername.resolves([new UnknownException()]);
+      testObj.findClusterPackageService.getAllByUsername.resolves([new UnknownException()]);
 
       const [error] = await testObj.packageController.getAllByUsername();
 
-      testObj.packageService.getAllByUsername.should.have.callCount(1);
-      testObj.packageService.getAllByUsername.should.have.calledWith(
+      testObj.findClusterPackageService.getAllByUsername.should.have.callCount(1);
+      testObj.findClusterPackageService.getAllByUsername.should.have.calledWith(
         sinon.match(testObj.req.params.username),
       );
       expect(error).to.be.an.instanceof(UnknownException);
@@ -116,12 +122,15 @@ suite(`PackageController`, () => {
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
-      testObj.packageService.getAllByUsername.resolves([null, [outputModel1, outputModel2]]);
+      testObj.findClusterPackageService.getAllByUsername.resolves([
+        null,
+        [outputModel1, outputModel2],
+      ]);
 
       const [error, result] = await testObj.packageController.getAllByUsername();
 
-      testObj.packageService.getAllByUsername.should.have.callCount(1);
-      testObj.packageService.getAllByUsername.should.have.calledWith(
+      testObj.findClusterPackageService.getAllByUsername.should.have.callCount(1);
+      testObj.findClusterPackageService.getAllByUsername.should.have.calledWith(
         sinon.match(testObj.req.params.username),
       );
       expect(error).to.be.a('null');
@@ -163,12 +172,12 @@ suite(`PackageController`, () => {
     test(`Should error renew expire date`, async () => {
       testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
       testObj.req.body = { expire: '2021-08-26' };
-      testObj.packageService.renew.resolves([new UnknownException()]);
+      testObj.findClusterPackageService.renew.resolves([new UnknownException()]);
 
       const [error] = await testObj.packageController.renewPackage();
 
-      testObj.packageService.renew.should.have.callCount(1);
-      testObj.packageService.renew.should.have.calledWith(
+      testObj.findClusterPackageService.renew.should.have.callCount(1);
+      testObj.findClusterPackageService.renew.should.have.calledWith(
         sinon.match(testObj.identifierGenerator.generateId()),
         sinon.match.instanceOf(Date),
       );
@@ -178,12 +187,12 @@ suite(`PackageController`, () => {
     test(`Should successfully renew expire date`, async () => {
       testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
       testObj.req.body = { expire: '2021-08-26' };
-      testObj.packageService.renew.resolves([null]);
+      testObj.findClusterPackageService.renew.resolves([null]);
 
       const [error, result] = await testObj.packageController.renewPackage();
 
-      testObj.packageService.renew.should.have.callCount(1);
-      testObj.packageService.renew.should.have.calledWith(
+      testObj.findClusterPackageService.renew.should.have.callCount(1);
+      testObj.findClusterPackageService.renew.should.have.calledWith(
         sinon.match(testObj.identifierGenerator.generateId()),
         sinon.match.instanceOf(Date),
       );
@@ -196,12 +205,12 @@ suite(`PackageController`, () => {
   suite(`Delete package`, () => {
     test(`Should error delete package`, async () => {
       testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
-      testObj.packageService.remove.resolves([new UnknownException()]);
+      testObj.findClusterPackageService.remove.resolves([new UnknownException()]);
 
       const [error] = await testObj.packageController.removePackage();
 
-      testObj.packageService.remove.should.have.callCount(1);
-      testObj.packageService.remove.should.have.calledWith(
+      testObj.findClusterPackageService.remove.should.have.callCount(1);
+      testObj.findClusterPackageService.remove.should.have.calledWith(
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       expect(error).to.be.an.instanceof(UnknownException);
@@ -209,12 +218,12 @@ suite(`PackageController`, () => {
 
     test(`Should successfully delete package`, async () => {
       testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
-      testObj.packageService.remove.resolves([null]);
+      testObj.findClusterPackageService.remove.resolves([null]);
 
       const [error, result] = await testObj.packageController.removePackage();
 
-      testObj.packageService.remove.should.have.callCount(1);
-      testObj.packageService.remove.should.have.calledWith(
+      testObj.findClusterPackageService.remove.should.have.callCount(1);
+      testObj.findClusterPackageService.remove.should.have.calledWith(
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       expect(error).to.be.a('null');
