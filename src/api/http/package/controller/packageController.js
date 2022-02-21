@@ -113,6 +113,17 @@ class PackageController {
 
     return [null];
   }
+
+  async syncPackage() {
+    const { packageId } = this.#req.params;
+
+    const [error] = await this.#findClusterPackageService.syncPackageById(packageId);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = PackageController;
