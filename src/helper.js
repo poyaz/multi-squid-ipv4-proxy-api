@@ -656,6 +656,14 @@ function fakeFindClusterPackageService() {
   };
 }
 
+function fakeProxyServerApiRepository() {
+  const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
+
+  const proxyServerApiRepository = new ProxyServerApiRepository('Bearer token');
+
+  return { proxyServerApiRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -695,4 +703,5 @@ module.exports = {
   fakeServerPgRepository,
   fakeFindClusterProxyServerService,
   fakeFindClusterPackageService,
+  fakeProxyServerApiRepository,
 };
