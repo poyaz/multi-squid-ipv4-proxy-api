@@ -12,6 +12,7 @@ const dirtyChai = require('dirty-chai');
 const sinonChai = require('sinon-chai');
 
 const axios = require('axios');
+const axiosGetStub = sinon.stub(axios, 'get');
 const axiosPostStub = sinon.stub(axios, 'post');
 const axiosDeleteStub = sinon.stub(axios, 'delete');
 
@@ -19,6 +20,7 @@ const helper = require('~src/helper');
 
 const JobModel = require('~src/core/model/jobModel');
 const ServerModel = require('~src/core/model/serverModel');
+const PackageModel = require('~src/core/model/packageModel');
 const IpAddressModel = require('~src/core/model/ipAddressModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const ApiCallException = require('~src/core/exception/apiCallException');
@@ -40,18 +42,17 @@ const testObj = {};
 
 suite(`ProxyServerApiRepository`, () => {
   setup(() => {
-    const { proxyServerApiRepository } = helper.fakeProxyServerApiRepository();
+    const { dateTime, proxyServerApiRepository } = helper.fakeProxyServerApiRepository();
 
+    testObj.dateTime = dateTime;
     testObj.proxyServerApiRepository = proxyServerApiRepository;
 
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
-
-    testObj.fillJobModelSpy = sinon.spy(testObj.proxyServerApiRepository, '_fillJobModel');
-
     testObj.consoleError = sinon.stub(console, 'error');
   });
 
   teardown(() => {
+    axiosGetStub.resetHistory();
     axiosPostStub.resetHistory();
     axiosDeleteStub.resetHistory();
     testObj.consoleError.restore();
@@ -315,7 +316,7 @@ suite(`ProxyServerApiRepository`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successful execute generate ip `, async () => {
+    test(`Should successfully execute generate ip `, async () => {
       const inputIpAddressModel = new IpAddressModel();
       inputIpAddressModel.ip = '192.168.1.0';
       inputIpAddressModel.mask = 24;
@@ -383,7 +384,7 @@ suite(`ProxyServerApiRepository`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successful delete ip address`, async () => {
+    test(`Should successfully delete ip address`, async () => {
       const inputIpAddressModel = new IpAddressModel();
       inputIpAddressModel.ip = '192.168.1.0';
       inputIpAddressModel.mask = 24;
@@ -416,6 +417,66 @@ suite(`ProxyServerApiRepository`, () => {
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(JobModel);
       expect(result.id).to.be.equal(testObj.identifierGenerator.generateId());
+    });
+  });
+
+  suite(`Get all package by username for each instance`, () => {
+    test(`Should error get all package by username for each instance`, async () => {
+      const inputUsername = 'user1';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosGetStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
+        inputUsername,
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully get all package by username for each instance`, async () => {
+      const inputUsername = 'user1';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const outputObj = {
+        status: 'success',
+        data: [
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            countIp: 25,
+            expireDate: '2021-10-25',
+          },
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            countIp: 10,
+            expireDate: '2021-08-25',
+          },
+        ],
+      };
+      axiosGetStub.resolves(outputObj);
+
+      const [error, result] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
+        inputUsername,
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.equal(2);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[1]).to.be.an.instanceof(PackageModel);
     });
   });
 });
