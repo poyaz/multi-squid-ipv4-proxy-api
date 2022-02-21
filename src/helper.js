@@ -658,10 +658,13 @@ function fakeFindClusterPackageService() {
 
 function fakeProxyServerApiRepository() {
   const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
+  const IDateTime = require('~src/core/interface/iDateTime');
 
-  const proxyServerApiRepository = new ProxyServerApiRepository('Bearer token');
+  const dateTime = sinon.createStubInstance(IDateTime);
 
-  return { proxyServerApiRepository };
+  const proxyServerApiRepository = new ProxyServerApiRepository(dateTime, 'Bearer token');
+
+  return { dateTime, proxyServerApiRepository };
 }
 
 module.exports = {
