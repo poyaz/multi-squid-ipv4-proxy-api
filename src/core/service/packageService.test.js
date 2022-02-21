@@ -575,7 +575,7 @@ suite(`PackageService`, () => {
       );
       testObj.packageRepository.update.should.have.callCount(1);
       testObj.packageRepository.update.should.have.calledWith(
-        sinon.match.instanceOf(PackageModel).and(sinon.match.has('deleteDate', sinon.match.date)),
+        sinon.match.instanceOf(PackageModel).and(sinon.match.has('expireDate', sinon.match.date)),
       );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
@@ -605,7 +605,7 @@ suite(`PackageService`, () => {
       );
       testObj.packageRepository.update.should.have.callCount(1);
       testObj.packageRepository.update.should.have.calledWith(
-        sinon.match.instanceOf(PackageModel).and(sinon.match.has('deleteDate', sinon.match.date)),
+        sinon.match.instanceOf(PackageModel).and(sinon.match.has('expireDate', sinon.match.date)),
       );
       testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');

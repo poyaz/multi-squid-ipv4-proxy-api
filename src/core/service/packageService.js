@@ -180,7 +180,7 @@ class PackageService extends IPackageService {
       return [removeProxyError];
     }
 
-    packageData.deleteDate = new Date();
+    packageData.expireDate = new Date();
     const [removePackageError] = await this.#packageRepository.update(packageData);
     if (removePackageError) {
       return [removePackageError];
