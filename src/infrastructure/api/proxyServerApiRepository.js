@@ -90,7 +90,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async getAllPackageByUsername(username, serverModel) {
     try {
       const response = await axios.get(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/package/user/${username}`,
+        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/package/user/${username}`,
         {
           headers: {
             'Content-Type': 'application/json',
