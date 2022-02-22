@@ -14,6 +14,7 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const UserModel = require('~src/core/model/userModel');
+const ServerModel = require('~src/core/model/serverModel');
 const PackageModel = require('~src/core/model/packageModel');
 const UserExistException = require('~src/core/exception/userExistException');
 const UnknownException = require('~src/core/exception/unknownException');
@@ -33,7 +34,7 @@ suite(`FindClusterUserService`, () => {
       serverService,
       serverApiRepository,
       findClusterUserService,
-    } = helper.fakeFindClusterUserService();
+    } = helper.fakeFindClusterUserService('10.10.10.4');
 
     testObj.userService = userService;
     testObj.serverService = serverService;
@@ -76,6 +77,150 @@ suite(`FindClusterUserService`, () => {
       expect(result).to.have.length(2);
       expect(result[0]).to.have.instanceOf(UserModel);
       expect(result[1]).to.have.instanceOf(UserModel);
+    });
+  });
+
+  suite(`Add new user`, () => {
+    test(`Should error add new user when get all instance has fail`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = '123456';
+      testObj.serverService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error add user package in current instance because not found any server`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = '123456';
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.userService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.add.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful add new user in current instance because not found any server`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = '123456';
+      testObj.serverService.getAll.resolves([null, []]);
+      const outputAddUser = new PackageModel();
+      outputAddUser.username = 'user1';
+      outputAddUser.password = '123456';
+      outputAddUser.insertDate = new Date();
+      testObj.userService.add.resolves([null, outputAddUser]);
+
+      const [error, result] = await testObj.findClusterUserService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.add.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceOf(PackageModel);
+    });
+
+    test(`Should error add new user in all instance when send request has been fail in all server or at least one server`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = '123456';
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputAddUser = new PackageModel();
+      outputAddUser.username = 'user1';
+      outputAddUser.password = '123456';
+      outputAddUser.insertDate = new Date();
+      testObj.userService.add.resolves([null, outputAddUser]);
+      testObj.serverApiRepository.addUser.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.add.should.have.callCount(1);
+      testObj.serverApiRepository.addUser.should.have.callCount(2);
+      testObj.serverApiRepository.addUser.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('password', inputModel.password)),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful add new user in all instance`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = '123456';
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputAddUser = new PackageModel();
+      outputAddUser.username = 'user1';
+      outputAddUser.password = '123456';
+      outputAddUser.insertDate = new Date();
+      testObj.userService.add.resolves([null, outputAddUser]);
+      testObj.serverApiRepository.addUser.resolves([null]);
+
+      const [error] = await testObj.findClusterUserService.add(inputModel);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.add.should.have.callCount(1);
+      testObj.serverApiRepository.addUser.should.have.callCount(2);
+      testObj.serverApiRepository.addUser.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('password', inputModel.password)),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.a('null');
     });
   });
 });
