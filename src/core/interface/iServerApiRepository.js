@@ -75,6 +75,19 @@ class IServerApiRepository {
     error['args'] = { username, password, serverModel };
     throw error;
   }
+
+  /**
+   *
+   * @param {string} username
+   * @param {boolean} isEnable
+   * @param {ServerModel} serverModel
+   * @return {Promise<(Error)[]>}
+   */
+  async changeUserStatus(username, isEnable, serverModel) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username, isEnable, serverModel };
+    throw error;
+  }
 }
 
 module.exports = IServerApiRepository;

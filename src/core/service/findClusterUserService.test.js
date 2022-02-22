@@ -267,7 +267,7 @@ suite(`FindClusterUserService`, () => {
       testObj.serverService.getAll.resolves([null, []]);
       testObj.userService.changePassword.resolves([null, outputAddUser]);
 
-      const [error, result] = await testObj.findClusterUserService.changePassword(
+      const [error] = await testObj.findClusterUserService.changePassword(
         inputUsername,
         inputPassword,
       );
@@ -275,7 +275,6 @@ suite(`FindClusterUserService`, () => {
       testObj.serverService.getAll.should.have.callCount(1);
       testObj.userService.changePassword.should.have.callCount(1);
       expect(error).to.be.a('null');
-      expect(result).to.be.an.instanceOf(PackageModel);
     });
 
     test(`Should error change password in all instance when send request has been fail in all server or at least one server`, async () => {
@@ -374,6 +373,141 @@ suite(`FindClusterUserService`, () => {
       testObj.serverApiRepository.changeUserPassword.should.have.calledWith(
         sinon.match(inputUsername),
         sinon.match(inputPassword),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Disable user`, () => {
+    test(`Should error disable user when get all instance has fail`, async () => {
+      const inputUsername = 'user1';
+      testObj.serverService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.disableByUsername(inputUsername);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error disable user in current instance because not found any server`, async () => {
+      const inputUsername = 'user1';
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.userService.disableByUsername.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.disableByUsername(inputUsername);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.disableByUsername.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful disable user in current instance because not found any server`, async () => {
+      const inputUsername = 'user1';
+      const outputAddUser = new PackageModel();
+      outputAddUser.username = 'user1';
+      outputAddUser.password = '123456';
+      outputAddUser.insertDate = new Date();
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.userService.disableByUsername.resolves([null, outputAddUser]);
+
+      const [error] = await testObj.findClusterUserService.disableByUsername(inputUsername);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.disableByUsername.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should error disable user in all instance when send request has been fail in all server or at least one server`, async () => {
+      const inputUsername = 'user1';
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputAddUser = new PackageModel();
+      outputAddUser.username = 'user1';
+      outputAddUser.password = '123456';
+      outputAddUser.insertDate = new Date();
+      testObj.userService.disableByUsername.resolves([null, outputAddUser]);
+      testObj.serverApiRepository.changeUserStatus.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.disableByUsername(inputUsername);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.disableByUsername.should.have.callCount(1);
+      testObj.serverApiRepository.changeUserStatus.should.have.callCount(2);
+      testObj.serverApiRepository.changeUserStatus.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(false),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful disable user in all instance`, async () => {
+      const inputUsername = 'user1';
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputAddUser = new PackageModel();
+      outputAddUser.username = 'user1';
+      outputAddUser.password = '123456';
+      outputAddUser.insertDate = new Date();
+      testObj.userService.disableByUsername.resolves([null, outputAddUser]);
+      testObj.serverApiRepository.changeUserStatus.resolves([null]);
+
+      const [error] = await testObj.findClusterUserService.disableByUsername(inputUsername);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.userService.disableByUsername.should.have.callCount(1);
+      testObj.serverApiRepository.changeUserStatus.should.have.callCount(2);
+      testObj.serverApiRepository.changeUserStatus.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(false),
         sinon.match.instanceOf(ServerModel),
       );
       expect(error).to.be.a('null');
