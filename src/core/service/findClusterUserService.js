@@ -83,9 +83,9 @@ class FindClusterUserService extends IUserService {
       return [errorAllServer];
     }
 
-    const [errorAddUser] = await this.#userService.changePassword(username, password);
-    if (errorAddUser) {
-      return [errorAddUser];
+    const [errorChangePassword] = await this.#userService.changePassword(username, password);
+    if (errorChangePassword) {
+      return [errorChangePassword];
     }
 
     if (dataAllServer.length === 0) {
@@ -118,9 +118,9 @@ class FindClusterUserService extends IUserService {
       return [errorAllServer];
     }
 
-    const [errorAddUser] = await this.#userService.disableByUsername(username);
-    if (errorAddUser) {
-      return [errorAddUser];
+    const [errorDisableUser] = await this.#userService.disableByUsername(username);
+    if (errorDisableUser) {
+      return [errorDisableUser];
     }
 
     if (dataAllServer.length === 0) {
@@ -153,9 +153,9 @@ class FindClusterUserService extends IUserService {
       return [errorAllServer];
     }
 
-    const [errorAddUser] = await this.#userService.enableByUsername(username);
-    if (errorAddUser) {
-      return [errorAddUser];
+    const [errorEnableUser] = await this.#userService.enableByUsername(username);
+    if (errorEnableUser) {
+      return [errorEnableUser];
     }
 
     if (dataAllServer.length === 0) {
