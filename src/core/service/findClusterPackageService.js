@@ -28,6 +28,7 @@ class FindClusterPackageService extends IPackageService {
    * @param {IPackageService} packageService
    * @param {IServerService} serverService
    * @param {IServerApiRepository} serverApiRepository
+   * @param {string} currentInstanceIp
    */
   constructor(packageService, serverService, serverApiRepository, currentInstanceIp) {
     super();
