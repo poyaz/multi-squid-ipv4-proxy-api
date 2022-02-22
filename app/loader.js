@@ -34,6 +34,7 @@ const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApi
 
 const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
 const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
+const FindClusterUserService = require('~src/core/service/findClusterUserService');
 const JobService = require('~src/core/service/jobService');
 const PackageService = require('~src/core/service/packageService');
 const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
@@ -188,6 +189,12 @@ class Loader {
       serverService,
       proxyServerApiRepository,
     );
+    const findClusterUserService = new FindClusterUserService(
+      userService,
+      serverService,
+      proxyServerApiRepository,
+      currentInstanceIp,
+    );
 
     // Controller and middleware
     // -------------------------
@@ -219,7 +226,7 @@ class Loader {
       changePasswordUserValidation: new ChangePasswordUserValidationMiddlewareFactory(),
     };
     const userControllerFactory = new UserControllerFactory(
-      userService,
+      findClusterUserService,
       dateTime,
       urlAccessService,
     );
