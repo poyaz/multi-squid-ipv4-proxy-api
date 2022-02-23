@@ -18,6 +18,7 @@ const axiosDeleteStub = sinon.stub(axios, 'delete');
 
 const helper = require('~src/helper');
 
+const UserModel = require('~src/core/model/userModel');
 const JobModel = require('~src/core/model/jobModel');
 const ServerModel = require('~src/core/model/serverModel');
 const PackageModel = require('~src/core/model/packageModel');
@@ -516,6 +517,54 @@ suite(`ProxyServerApiRepository`, () => {
 
       axiosPostStub.should.have.callCount(1);
       axiosPostStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Add new user`, () => {
+    test(`Should error add new user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = 'password';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosPostStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.addUser(inputModel, inputServerModel);
+
+      axiosPostStub.should.have.callCount(1);
+      axiosPostStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match
+          .has('username', inputModel.username)
+          .and(sinon.match.has('password', inputModel.password)),
+      );
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully add new user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'user1';
+      inputModel.password = 'password';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      axiosPostStub.resolves();
+
+      const [error] = await testObj.proxyServerApiRepository.addUser(inputModel, inputServerModel);
+
+      axiosPostStub.should.have.callCount(1);
+      axiosPostStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match
+          .has('username', inputModel.username)
+          .and(sinon.match.has('password', inputModel.password)),
+      );
       expect(error).to.be.a('null');
     });
   });

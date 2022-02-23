@@ -126,6 +126,28 @@ class ProxyServerApiRepository extends IServerApiRepository {
     }
   }
 
+  async addUser(model, serverModel) {
+    try {
+      await axios.post(
+        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user`,
+        {
+          username: model.username,
+          password: model.password,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: this.#apiToken,
+          },
+        },
+      );
+
+      return [null];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   _errorHandler(error) {
     if (error.response) {
       switch (error.response.status) {
