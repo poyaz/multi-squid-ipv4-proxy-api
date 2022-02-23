@@ -194,7 +194,7 @@ curl \
     -X GET \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
-    '<your-hostname-or-ip>/api/v1/job/7bc4d68da9974543aa119aca7d13b684'
+    '<your-hostname-or-ip>/api/v1/job/751c4a35-ed2a-489d-870f-b09dc7b0f8a5'
 ```
 
 ### Output:
@@ -203,7 +203,7 @@ curl \
 {
   "status": "success",
   "data": {
-    "id": "7bc4d68da9974543aa119aca7d13b684",
+    "id": "751c4a35-ed2a-489d-870f-b09dc7b0f8a5",
     // type of your job (contain: job_remove_ip or job_remove_ip)
     "type": "job_remove_ip",
     // status list: processing, error, finish
@@ -437,8 +437,10 @@ You can add the blacklist url for users
 ### Body format
 
 * `urls` Array of domain url
-* `startDate` Date format for start block time and greater than **now** with a format YYYY-MM-DD HH:mm:ss (Example: **2021-09-04 12:02:25**)
-* `endDate` Date format for end block time and greater than **startDate** with a format YYYY-MM-DD HH:mm:ss (Example: **2021-09-05 12:02:25**)
+* `startDate` Date format for start block time and greater than **now** with a format YYYY-MM-DD HH:mm:ss (Example: **
+  2021-09-04 12:02:25**)
+* `endDate` Date format for end block time and greater than **startDate** with a format YYYY-MM-DD HH:mm:ss (Example: **
+  2021-09-05 12:02:25**)
 
 ```bash
 curl \
@@ -678,6 +680,184 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/package/cb194947-29b2-47cc-bb7f-24e10d4515e2'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
+## Get all servers
+
+Get list of servers cluster
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/server`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/server'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/server'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "751c4a35-ed2a-489d-870f-b09dc7b0f8a5",
+      "name": "server-1",
+      // list of ip supported by this server
+      "ipRange": [
+        "192.168.1.1/24",
+        "10.10.10.1/32"
+      ],
+      // Global IP address
+      "hostIpAddress": "23.110.2.50",
+      // Internal IP or Hostname (Use for NAT network)
+      "internalHostIpAddress": "192.168.1.1",
+      "hostApiPort": 8080,
+      "isEnable": true,
+      "insertDate": "2022-01-20 10:02:30"
+    }
+  ]
+}
+```
+
+## Create new server
+
+Create new server
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/server`
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/server' \
+  -d '{"name": "<your-server-name>", "ipRange": ["<list-of-ip-with-mask>"], "hostIpAddress": "<your-public-host-ip-address>", "internalHostIpAddress": "<your-internal-host-ip-address>", "hostApiPort": <host-api-port>}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/server' \
+  -d '{"name": "server-1", "ipRange": ["192.168.1.1/24", "10.10.10.1/32"], "hostIpAddress": "23.110.2.50", "internalHostIpAddress": "192.168.1.1", "hostApiPort": 8080}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "id": "751c4a35-ed2a-489d-870f-b09dc7b0f8a5",
+    "name": "server-1",
+    // list of ip supported by this server
+    "ipRange": [
+      "192.168.1.1/24",
+      "10.10.10.1/32"
+    ],
+    // Global IP address
+    "hostIpAddress": "23.110.2.50",
+    // Internal IP or Hostname (Use for NAT network)
+    "internalHostIpAddress": "192.168.1.1",
+    "hostApiPort": 8080,
+    "isEnable": true,
+    "insertDate": "2022-01-20 10:02:30"
+  }
+}
+```
+
+## Create new server
+
+Update information of server with server id
+
+### Information:
+
+* Method: `PUT`
+* URL: `api/v1/server/:id`
+
+```bash
+curl \
+  -X PUT \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/server/:id' \
+  -d '{"name": "<your-server-name>", "ipRange": ["<list-of-ip-with-mask>"], "hostIpAddress": "<your-public-host-ip-address>", "internalHostIpAddress": "<your-internal-host-ip-address>", "hostApiPort": <host-api-port>}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X PUT \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/server/751c4a35-ed2a-489d-870f-b09dc7b0f8a5' \
+  -d '{"name": "server-1", "ipRange": ["192.168.1.1/24", "10.10.10.1/32"], "hostIpAddress": "23.110.2.50", "internalHostIpAddress": "192.168.1.1", "hostApiPort": 8080}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
+## Remove server
+
+Remove server with server id
+
+### Information:
+
+* Method: `DELETE`
+* URL: `api/v1/server/:id`
+
+```bash
+curl \
+  -X DELETE \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/server/:id'
+```
+
+### Example:
+
+```bash
+curl \
+    -X DELETE \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/server/751c4a35-ed2a-489d-870f-b09dc7b0f8a5'
 ```
 
 ### Output:
