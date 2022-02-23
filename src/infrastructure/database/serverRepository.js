@@ -113,7 +113,7 @@ class ServerRepository extends IServerRepository {
     try {
       const { rowCount, rows } = await this.#db.query(fetchQuery);
       if (rowCount === 0) {
-        return [null, null];
+        return [null, []];
       }
 
       const result = rows.map((v) => this._fillModel(v));

@@ -239,7 +239,7 @@ suite(`ServerRepository`, () => {
       );
       testObj.fillModelSpy.should.have.callCount(0);
       expect(error).to.be.a('null');
-      expect(result).to.be.a('null');
+      expect(result.length).to.be.equal(0);
     });
 
     test(`Should successfully get all`, async () => {
