@@ -14,6 +14,7 @@ const sinonChai = require('sinon-chai');
 const axios = require('axios');
 const axiosGetStub = sinon.stub(axios, 'get');
 const axiosPostStub = sinon.stub(axios, 'post');
+const axiosPutStub = sinon.stub(axios, 'put');
 const axiosDeleteStub = sinon.stub(axios, 'delete');
 
 const helper = require('~src/helper');
@@ -55,6 +56,7 @@ suite(`ProxyServerApiRepository`, () => {
   teardown(() => {
     axiosGetStub.resetHistory();
     axiosPostStub.resetHistory();
+    axiosPutStub.resetHistory();
     axiosDeleteStub.resetHistory();
     testObj.consoleError.restore();
   });
@@ -564,6 +566,56 @@ suite(`ProxyServerApiRepository`, () => {
         sinon.match
           .has('username', inputModel.username)
           .and(sinon.match.has('password', inputModel.password)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Change password of user`, () => {
+    test(`Should error change password of user`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosPutStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.changeUserPassword(
+        inputUsername,
+        inputPassword,
+        inputServerModel,
+      );
+
+      axiosPutStub.should.have.callCount(1);
+      axiosPutStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.has('password', inputPassword),
+      );
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully change password of user`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      axiosPutStub.resolves();
+
+      const [error] = await testObj.proxyServerApiRepository.changeUserPassword(
+        inputUsername,
+        inputPassword,
+        inputServerModel,
+      );
+
+      axiosPutStub.should.have.callCount(1);
+      axiosPutStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.has('password', inputPassword),
       );
       expect(error).to.be.a('null');
     });
