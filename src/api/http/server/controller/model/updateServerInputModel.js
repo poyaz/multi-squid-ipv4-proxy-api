@@ -11,6 +11,7 @@ class UpdateServerInputModel {
     model.name = body.name;
     model.ipRange = body.ipRange;
     model.hostIpAddress = body.hostIpAddress;
+    model.internalHostIpAddress = body.internalHostIpAddress;
     model.hostApiPort = body.hostApiPort;
     model.isEnable = body.isEnable;
 

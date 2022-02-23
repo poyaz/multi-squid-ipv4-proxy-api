@@ -180,6 +180,46 @@ suite(`AddServerValidation`, () => {
       );
   });
 
+  test(`Should error for add new server if internalHostIpAddress is invalid (check with hostname)`, async () => {
+    testObj.req.body = {
+      name: 'server-1',
+      ipRange: ['192.168.1.1/24'],
+      hostIpAddress: '10.10.10.10',
+      internalHostIpAddress: '1',
+      hostApiPort: 8080,
+    };
+
+    const badCall = testObj.addServerValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property(
+        'additionalInfo[0].message',
+        `"internalHostIpAddress" does not match any of the allowed types`,
+      );
+  });
+
+  test(`Should error for add new server if internalHostIpAddress is invalid (check with ip)`, async () => {
+    testObj.req.body = {
+      name: 'server-1',
+      ipRange: ['192.168.1.1/24'],
+      hostIpAddress: '10.10.10.10',
+      internalHostIpAddress: '10.10.10.10/23',
+      hostApiPort: 8080,
+    };
+
+    const badCall = testObj.addServerValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property(
+        'additionalInfo[0].message',
+        `"internalHostIpAddress" does not match any of the allowed types`,
+      );
+  });
+
   test(`Should error for add new server if hostApiPort is invalid`, async () => {
     testObj.req.body = {
       name: 'server-1',

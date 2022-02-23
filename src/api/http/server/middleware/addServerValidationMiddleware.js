@@ -35,6 +35,9 @@ class AddServerValidationMiddleware extends IHttpMiddleware {
       hostIpAddress: Joi.alternatives()
         .try(Joi.string().ip({ version: ['ipv4'], cidr: 'forbidden' }), Joi.string().domain())
         .required(),
+      internalHostIpAddress: Joi.alternatives()
+        .try(Joi.string().ip({ version: ['ipv4'], cidr: 'forbidden' }), Joi.string().domain())
+        .optional(),
       hostApiPort: Joi.number().required(),
     });
 

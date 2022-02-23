@@ -56,6 +56,7 @@ suite(`ServerController`, () => {
       outputModel1.name = 'server-1';
       outputModel1.ipRange = ['192.168.1.1/32', '192.168.2.1/24'];
       outputModel1.hostIpAddress = '10.10.10.1';
+      outputModel1.internalHostIpAddress = '10.10.10.1';
       outputModel1.hostApiPort = 8080;
       outputModel1.isEnable = true;
       outputModel1.insertDate = new Date();
@@ -71,6 +72,7 @@ suite(`ServerController`, () => {
         id: testObj.identifierGenerator.generateId(),
         name: 'server-1',
         hostIpAddress: '10.10.10.1',
+        internalHostIpAddress: '10.10.10.1',
         hostApiPort: 8080,
         isEnable: true,
       });
@@ -84,6 +86,7 @@ suite(`ServerController`, () => {
         name: 'server-1',
         ipRange: ['192.168.1.1/32', '192.168.2.1/24'],
         hostIpAddress: '10.10.10.1',
+        internalHostIpAddress: '10.10.10.1',
         hostApiPort: 8080,
       };
       testObj.serverService.add.resolves([new UnknownException()]);
@@ -99,6 +102,7 @@ suite(`ServerController`, () => {
         name: 'server-1',
         ipRange: ['192.168.1.1/32', '192.168.2.1/24'],
         hostIpAddress: '10.10.10.1',
+        internalHostIpAddress: '10.10.10.1',
         hostApiPort: 8080,
       };
       const outputModel = new ServerModel();
@@ -106,6 +110,7 @@ suite(`ServerController`, () => {
       outputModel.name = 'server-1';
       outputModel.ipRange = ['192.168.1.1/32', '192.168.2.1/24'];
       outputModel.hostIpAddress = '10.10.10.1';
+      outputModel.internalHostIpAddress = '10.10.10.1';
       outputModel.hostApiPort = 8080;
       outputModel.isEnable = true;
       outputModel.insertDate = new Date();
@@ -120,6 +125,7 @@ suite(`ServerController`, () => {
         id: testObj.identifierGenerator.generateId(),
         name: 'server-1',
         hostIpAddress: '10.10.10.1',
+        internalHostIpAddress: '10.10.10.1',
         hostApiPort: 8080,
         isEnable: true,
       });
@@ -134,6 +140,7 @@ suite(`ServerController`, () => {
         name: 'server-1',
         ipRange: ['192.168.1.1/32', '192.168.2.1/24'],
         hostIpAddress: '10.10.10.1',
+        internalHostIpAddress: '10.10.10.1',
         hostApiPort: 8080,
         isEnable: true,
       };
@@ -151,6 +158,7 @@ suite(`ServerController`, () => {
         name: 'server-1',
         ipRange: ['192.168.1.1/32', '192.168.2.1/24'],
         hostIpAddress: '10.10.10.1',
+        internalHostIpAddress: '10.10.10.1',
         hostApiPort: 8080,
         isEnable: true,
       };

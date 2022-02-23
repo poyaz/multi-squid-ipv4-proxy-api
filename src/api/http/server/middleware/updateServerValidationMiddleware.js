@@ -35,10 +35,13 @@ class UpdateServerValidationMiddleware extends IHttpMiddleware {
       hostIpAddress: Joi.alternatives()
         .try(Joi.string().ip({ version: ['ipv4'], cidr: 'forbidden' }), Joi.string().domain())
         .optional(),
+      internalHostIpAddress: Joi.alternatives()
+        .try(Joi.string().ip({ version: ['ipv4'], cidr: 'forbidden' }), Joi.string().domain())
+        .optional(),
       hostApiPort: Joi.number().optional(),
       isEnable: Joi.boolean().optional(),
     })
-      .or('name', 'ipRange', 'hostIpAddress', 'hostApiPort', 'isEnable')
+      .or('name', 'ipRange', 'hostIpAddress', 'internalHostIpAddress', 'hostApiPort', 'isEnable')
       .required();
 
     const result = schema.validate(body);

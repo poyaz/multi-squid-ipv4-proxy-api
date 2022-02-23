@@ -47,7 +47,7 @@ suite(`UpdateServerValidation`, () => {
       .and.have.property('httpCode', 400)
       .and.have.nested.property(
         'additionalInfo[0].message',
-        `"value" must contain at least one of [name, ipRange, hostIpAddress, hostApiPort, isEnable]`,
+        `"value" must contain at least one of [name, ipRange, hostIpAddress, internalHostIpAddress, hostApiPort, isEnable]`,
       );
   });
 
@@ -128,6 +128,46 @@ suite(`UpdateServerValidation`, () => {
       .and.have.nested.property(
         'additionalInfo[0].message',
         `"hostIpAddress" does not match any of the allowed types`,
+      );
+  });
+
+  test(`Should error for update server if internalHostIpAddress is invalid (check with hostname)`, async () => {
+    testObj.req.body = {
+      name: 'server-1',
+      ipRange: ['192.168.1.1/24'],
+      hostIpAddress: '10.10.10.10',
+      internalHostIpAddress: '1',
+      hostApiPort: 8080,
+    };
+
+    const badCall = testObj.updateServerValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property(
+        'additionalInfo[0].message',
+        `"internalHostIpAddress" does not match any of the allowed types`,
+      );
+  });
+
+  test(`Should error for update server if internalHostIpAddress is invalid (check with ip)`, async () => {
+    testObj.req.body = {
+      name: 'server-1',
+      ipRange: ['192.168.1.1/24'],
+      hostIpAddress: '10.10.10.10',
+      internalHostIpAddress: '10.10.10.10/23',
+      hostApiPort: 8080,
+    };
+
+    const badCall = testObj.updateServerValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property(
+        'additionalInfo[0].message',
+        `"internalHostIpAddress" does not match any of the allowed types`,
       );
   });
 

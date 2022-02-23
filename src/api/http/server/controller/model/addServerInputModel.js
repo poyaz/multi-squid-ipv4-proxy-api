@@ -10,6 +10,7 @@ class AddServerInputModel {
     model.name = body.name;
     model.ipRange = body.ipRange;
     model.hostIpAddress = body.hostIpAddress;
+    model.internalHostIpAddress = body.internalHostIpAddress;
     model.hostApiPort = body.hostApiPort;
 
     return model;
