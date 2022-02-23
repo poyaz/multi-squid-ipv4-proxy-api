@@ -102,6 +102,7 @@ class Loader {
       this._config.getStr('custom.timezone.locales'),
       this._config.getStr('custom.timezone.zone'),
     );
+    const overrideSquidPort = this._config.getNum('custom.squid.portListener');
 
     const httpPublicApiHostConfig = this._config.getStr('server.public.host');
     const httpPublicApiPortConfig = this._config.getNum('server.public.http.port');
@@ -130,6 +131,7 @@ class Loader {
       squidPerIpInstanceConfig,
       httpApiUrlConfig,
       squidScriptApiTokenConfig,
+      overrideSquidPort,
     );
     const userSquidRepository = new UserSquidRepository(squidPasswordFile);
 
