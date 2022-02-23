@@ -620,4 +620,68 @@ suite(`ProxyServerApiRepository`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Change user status`, () => {
+    test(`Should error change user status`, async () => {
+      const inputUsername = 'user1';
+      const inputStatus = false;
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosPutStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.changeUserStatus(
+        inputUsername,
+        inputStatus,
+        inputServerModel,
+      );
+
+      axiosPutStub.should.have.callCount(1);
+      axiosPutStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully change user status to disable`, async () => {
+      const inputUsername = 'user1';
+      const inputStatus = false;
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      axiosPutStub.resolves();
+
+      const [error] = await testObj.proxyServerApiRepository.changeUserStatus(
+        inputUsername,
+        inputStatus,
+        inputServerModel,
+      );
+
+      axiosPutStub.should.have.callCount(1);
+      axiosPutStub.should.have.calledWith(sinon.match(/disable/));
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should successfully change user status to enable`, async () => {
+      const inputUsername = 'user1';
+      const inputStatus = true;
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      axiosPutStub.resolves();
+
+      const [error] = await testObj.proxyServerApiRepository.changeUserStatus(
+        inputUsername,
+        inputStatus,
+        inputServerModel,
+      );
+
+      axiosPutStub.should.have.callCount(1);
+      axiosPutStub.should.have.calledWith(sinon.match(/enable/));
+      expect(error).to.be.a('null');
+    });
+  });
 });

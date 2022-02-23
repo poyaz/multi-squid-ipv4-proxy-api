@@ -169,6 +169,27 @@ class ProxyServerApiRepository extends IServerApiRepository {
     }
   }
 
+  async changeUserStatus(username, isEnable, serverModel) {
+    const status = isEnable ? 'enable' : 'disable';
+
+    try {
+      await axios.put(
+        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/${status}`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: this.#apiToken,
+          },
+        },
+      );
+
+      return [null];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   _errorHandler(error) {
     if (error.response) {
       switch (error.response.status) {
