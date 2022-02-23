@@ -39,7 +39,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async generateIp(model, serverModel) {
     try {
       const response = await axios.post(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/proxy/generate`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/proxy/generate`,
         {
           ip: model.ip,
           mask: model.mask,
@@ -54,7 +54,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
         },
       );
 
-      const result = this._fillJobModel(response.data);
+      const result = this._fillJobModel(response.data.data);
 
       return [null, result];
     } catch (error) {
@@ -65,7 +65,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async deleteIp(model, serverModel) {
     try {
       const response = await axios.delete(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/proxy/ip`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/proxy/ip`,
         {
           data: {
             ip: model.ip,
@@ -79,7 +79,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
         },
       );
 
-      const result = this._fillJobModel(response.data);
+      const result = this._fillJobModel(response.data.data);
 
       return [null, result];
     } catch (error) {
@@ -90,7 +90,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async getAllPackageByUsername(username, serverModel) {
     try {
       const response = await axios.get(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/package/user/${username}`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/package/user/${username}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
         },
       );
 
-      const result = response.data.map((v) => this._fillPackageModel(v));
+      const result = response.data.data.map((v) => this._fillPackageModel(v));
 
       return [null, result];
     } catch (error) {
@@ -110,7 +110,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async syncPackageById(id, serverModel) {
     try {
       await axios.post(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/package/${id}/sync`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/package/${id}/sync`,
         {},
         {
           headers: {
@@ -129,7 +129,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async addUser(model, serverModel) {
     try {
       await axios.post(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user`,
         {
           username: model.username,
           password: model.password,
@@ -151,7 +151,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async changeUserPassword(username, password, serverModel) {
     try {
       await axios.put(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/password`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/password`,
         {
           password,
         },
@@ -174,7 +174,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
 
     try {
       await axios.put(
-        `${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/${status}`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/${status}`,
         {},
         {
           headers: {
