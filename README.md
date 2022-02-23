@@ -761,6 +761,13 @@ curl \
   -d '{"name": "<your-server-name>", "ipRange": ["<list-of-ip-with-mask>"], "hostIpAddress": "<your-public-host-ip-address>", "internalHostIpAddress": "<your-internal-host-ip-address>", "hostApiPort": <host-api-port>}'
 ```
 
+### Body format
+
+* `name` string name (Example: **server-1** or **my-server**)
+* `ipRange` Array of ip with a mask (Example: **192.168.1.1/24** or **10.10.10.1/32**)
+* `hostIpAddress` string ip or hostname (Example: **192.168.1.0** or **my-domain.con**)
+* `hostApiPort` number (Example: **80**)
+
 ### Example:
 
 ```bash
@@ -796,7 +803,7 @@ curl \
 }
 ```
 
-## Create new server
+## Update exist server
 
 Update information of server with server id
 
@@ -813,6 +820,13 @@ curl \
   '<your-hostname-or-ip>/api/v1/server/:id' \
   -d '{"name": "<your-server-name>", "ipRange": ["<list-of-ip-with-mask>"], "hostIpAddress": "<your-public-host-ip-address>", "internalHostIpAddress": "<your-internal-host-ip-address>", "hostApiPort": <host-api-port>}'
 ```
+
+### Body format
+
+* `name` string name (Example: **server-1** or **my-server**)
+* `ipRange` Array of ip with a mask (Example: **192.168.1.1/24** or **10.10.10.1/32**)
+* `hostIpAddress` string ip or hostname (Example: **192.168.1.0** or **my-domain.con**)
+* `hostApiPort` number (Example: **80**)
 
 ### Example:
 
