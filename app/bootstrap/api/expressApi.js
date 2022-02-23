@@ -514,37 +514,7 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.patch(
-      '/v1/server/:id',
-      async (req, res, next) => {
-        try {
-          const middleware = serverHttpApi.appendIpRangeValidationMiddlewareFactory.create(
-            req,
-            res,
-          );
-
-          await middleware.act();
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-      async (req, res, next) => {
-        try {
-          const serverController = serverHttpApi.serverControllerFactory.create(req, res);
-          const response = await serverController.appendIpRange();
-
-          this._sendResponse(req, res, response);
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-    );
-
-    router.get('/v1/server/:id', async (req, res, next) => {
+    router.delete('/v1/server/:id', async (req, res, next) => {
       try {
         const serverController = serverHttpApi.serverControllerFactory.create(req, res);
         const response = await serverController.delete();

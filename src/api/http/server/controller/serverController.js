@@ -77,18 +77,6 @@ class ServerController {
     return [null];
   }
 
-  async appendIpRange() {
-    const { id } = this.#req.params;
-    const { ipRange } = this.#req.body;
-
-    const [error] = await this.#serverService.appendIpRangeByServiceId(id, ipRange);
-    if (error) {
-      return [error];
-    }
-
-    return [null];
-  }
-
   async delete() {
     const { id } = this.#req.params;
 

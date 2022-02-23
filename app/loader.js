@@ -60,7 +60,6 @@ const ChangePasswordUserValidationMiddlewareFactory = require('~src/api/http/use
 const UserControllerFactory = require('~src/api/http/user/controller/userControllerFactory');
 
 const AddServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/addServerValidationMiddlewareFactory');
-const AppendIpRangeValidationMiddlewareFactory = require('~src/api/http/server/middleware/appendIpRangeValidationMiddlewareFactory');
 const UpdateServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/updateServerValidationMiddlewareFactory');
 const ServerControllerFactory = require('~src/api/http/server/controller/serverControllerFactory');
 
@@ -233,7 +232,6 @@ class Loader {
 
     const serverMiddlewares = {
       addServerValidation: new AddServerValidationMiddlewareFactory(),
-      appendIpRangeValidation: new AppendIpRangeValidationMiddlewareFactory(),
       updateServerValidation: new UpdateServerValidationMiddlewareFactory(),
     };
     const serverControllerFactory = new ServerControllerFactory(serverService, dateTime);
@@ -276,7 +274,6 @@ class Loader {
 
     this._dependency.serverHttpApi = {
       addServerValidationMiddlewareFactory: serverMiddlewares.addServerValidation,
-      appendIpRangeValidationMiddlewareFactory: serverMiddlewares.appendIpRangeValidation,
       updateServerValidationMiddlewareFactory: serverMiddlewares.updateServerValidation,
       serverControllerFactory,
     };
