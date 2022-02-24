@@ -100,14 +100,24 @@ function fakeUserController(req, res) {
 
   const userService = sinon.createStubInstance(IUserService);
 
+  const findClusterUserService = sinon.createStubInstance(IUserService);
+
   const dateTime = new DateTime();
 
   const urlAccessService = sinon.createStubInstance(IUrlAccessService);
 
-  const userController = new UserController(req, res, userService, dateTime, urlAccessService);
+  const userController = new UserController(
+    req,
+    res,
+    userService,
+    findClusterUserService,
+    dateTime,
+    urlAccessService,
+  );
 
   return {
     userService,
+    findClusterUserService,
     urlAccessService,
     userController,
   };
