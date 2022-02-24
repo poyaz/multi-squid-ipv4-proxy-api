@@ -129,7 +129,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async addUser(model, serverModel) {
     try {
       await axios.post(
-        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/user`,
         {
           username: model.username,
           password: model.password,
@@ -151,7 +151,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async changeUserPassword(username, password, serverModel) {
     try {
       await axios.put(
-        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/password`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/user/${username}/password`,
         {
           password,
         },
@@ -174,7 +174,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
 
     try {
       await axios.put(
-        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/user/${username}/${status}`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/user/${username}/${status}`,
         {},
         {
           headers: {
