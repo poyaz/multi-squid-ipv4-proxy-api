@@ -4,20 +4,53 @@ services:
     restart: "no"
     tty: true
     environment:
-      - TZ=Asia/Tehran
       - NODE_ENV=default
-      - SERVER_PUBLIC_HOST=127.0.0.1
+      - SERVER_PUBLIC_HOST=
+      - SERVER_HTTP_PORT=8000
       - DB_PG_HOST=10.102.0.3
       - DB_PG_DATABASE=postgres
       - DB_PG_USERNAME=postgres
-      - DB_PG_PASSWORD=
+      - DB_PG_PASSWORD=123456
       - CLUSTER_COUNT=1
       - REAL_PROJECT_PATH_FOR_DOCKER=$PWD
-      - SQUID_PER_IP_INSTANCE=2
+      - SQUID_PER_IP_INSTANCE=1
+      - SQUID_PORT_LISTENER=3128
       - SQUID_SCRIPT_API_TOKEN=
       - DOCKER_HOST=10.102.0.4
-      - JWT_SECRET_KEY=
-    command: "sh -c 'npm i; npm run nodemon'"
+      - JWT_SECRET_KEY=123456
+    command: "sh -c 'npm i; ./node_modules/nodemon/bin/nodemon.js --inspect=0.0.0.0:9229 --ignore tests/ index.js'"
+
+  node2:
+    build:
+      context: ./docker/images/node
+      dockerfile: Dockerfile
+    restart: "no"
+    volumes:
+      - $PWD:/home/node
+      - /etc/localtime:/etc/localtime:ro
+    user: root
+    working_dir: /home/node
+    privileged: true
+    network_mode: host
+    tty: true
+    environment:
+      - NODE_ENV=default
+      - SERVER_PUBLIC_HOST=
+      - SERVER_HTTP_PORT=8001
+      - DB_PG_HOST=10.102.0.3
+      - DB_PG_DATABASE=postgres
+      - DB_PG_USERNAME=postgres
+      - DB_PG_PASSWORD=123456
+      - CLUSTER_COUNT=1
+      - REAL_PROJECT_PATH_FOR_DOCKER=$PWD
+      - SQUID_PER_IP_INSTANCE=1
+      - SQUID_PORT_LISTENER=3129
+      - SQUID_SCRIPT_API_TOKEN=
+      - DOCKER_HOST=10.102.0.4
+      - JWT_SECRET_KEY=123456
+    entrypoint: |
+      ./scripts/wait-for-it -wait tcp://${PG_HOST:-10.102.0.3}:${PG_PORT:-5432} -wait-retry-interval 5s -timeout 600s
+    command: "sh -c 'npm i; ./node_modules/nodemon/bin/nodemon.js --inspect=0.0.0.0:9231 --ignore tests/ index.js'"
 
   postgres:
     environment:
@@ -28,17 +61,16 @@ services:
   docker-proxy:
     restart: "no"
 
-  fake-ip-1:
-    image: node:14.15.1-alpine
+  app:
+    image: ealen/echo-server
     restart: "no"
-    command: "sh -c 'while true; do sleep 30; done;'"
     networks:
       main:
         ipv4_address: 10.102.0.6
       proxy:
         ipv4_address: 10.102.0.18
 
-  fake-ip-2:
+  fake-ip-1:
     image: node:14.15.1-alpine
     restart: "no"
     command: "sh -c 'while true; do sleep 30; done;'"
@@ -48,7 +80,7 @@ services:
       proxy:
         ipv4_address: 10.102.0.19
 
-  fake-ip-3:
+  fake-ip-2:
     image: node:14.15.1-alpine
     restart: "no"
     command: "sh -c 'while true; do sleep 30; done;'"
