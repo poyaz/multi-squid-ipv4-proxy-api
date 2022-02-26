@@ -58,6 +58,10 @@ class SquidServerRepository extends IProxyServerRepository {
    * @type {string}
    */
   #squidOtherConfDir = '/tmp/squid';
+  /**
+   * @type {number|null}
+   */
+  #overrideSquidPort = null;
 
   /**
    *
@@ -71,6 +75,7 @@ class SquidServerRepository extends IProxyServerRepository {
    * @param {number} ipCountPerInstance
    * @param {string} apiUrl
    * @param {string} apiToken
+   * @param {number|null} overrideSquidPort
    */
   constructor(
     docker,
@@ -83,6 +88,7 @@ class SquidServerRepository extends IProxyServerRepository {
     ipCountPerInstance,
     apiUrl,
     apiToken,
+    overrideSquidPort = null,
   ) {
     super();
 
@@ -96,6 +102,7 @@ class SquidServerRepository extends IProxyServerRepository {
     this.#ipCountPerInstance = ipCountPerInstance;
     this.#apiUrl = apiUrl;
     this.#apiToken = apiToken;
+    this.#overrideSquidPort = overrideSquidPort;
 
     const squidOtherConfDir = this.#squidOtherConfDir;
     this.#defaultConfig = [
@@ -198,7 +205,9 @@ class SquidServerRepository extends IProxyServerRepository {
         squidConfigDataList.push(``);
 
         ipModelList.splice(0, this.#ipCountPerInstance).map((model, index) => {
-          squidConfigDataList.push(`http_port ${model.ip}:${model.port || 3128} name=http${index}`);
+          const squidPort = this.#overrideSquidPort ? this.#overrideSquidPort : model.port || 3128;
+
+          squidConfigDataList.push(`http_port ${model.ip}:${squidPort} name=http${index}`);
           squidConfigDataList.push(`acl ip${index} myportname http${index}`);
           squidConfigDataList.push(`tcp_outgoing_address ${model.ip} ip${index}`);
           squidConfigDataList.push(``);

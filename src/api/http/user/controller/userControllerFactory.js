@@ -10,6 +10,10 @@ class UserControllerFactory {
    */
   #userService;
   /**
+   * @type {IUserService}
+   */
+  #findClusterUserService;
+  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -21,11 +25,13 @@ class UserControllerFactory {
   /**
    *
    * @param {IUserService} userService
+   * @param {IUserService} findClusterUserService
    * @param {IDateTime} dateTime
    * @param {IUrlAccessService} urlAccessService
    */
-  constructor(userService, dateTime, urlAccessService) {
+  constructor(userService, findClusterUserService, dateTime, urlAccessService) {
     this.#userService = userService;
+    this.#findClusterUserService = findClusterUserService;
     this.#dateTime = dateTime;
     this.#urlAccessService = urlAccessService;
   }
@@ -37,7 +43,14 @@ class UserControllerFactory {
    * @return {UserController}
    */
   create(req, res) {
-    return new UserController(req, res, this.#userService, this.#dateTime, this.#urlAccessService);
+    return new UserController(
+      req,
+      res,
+      this.#userService,
+      this.#findClusterUserService,
+      this.#dateTime,
+      this.#urlAccessService,
+    );
   }
 }
 

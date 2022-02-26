@@ -13,6 +13,7 @@ const PgDb = require('./bootstrap/db/pgDb');
 const FileUtil = require('./bootstrap/util/fileUtil');
 const JwtUtil = require('./bootstrap/util/jwtUtil');
 const DockerUtil = require('./bootstrap/util/dockerUtil');
+const ApiCluster = require('./bootstrap/util/apiCluster');
 
 const DateTime = require('~src/infrastructure/system/dateTime');
 const IdentifierGenerator = require('~src/infrastructure/system/identifierGenerator');
@@ -20,6 +21,7 @@ const IdentifierGenerator = require('~src/infrastructure/system/identifierGenera
 const JobRepository = require('~src/infrastructure/database/jobRepository');
 const PackagePgRepository = require('~src/infrastructure/database/packagePgRepository');
 const ProxyServerRepository = require('~src/infrastructure/database/proxyServerRepository');
+const ServerRepository = require('~src/infrastructure/database/serverRepository');
 const UrlAccessPgRepository = require('~src/infrastructure/database/urlAccessPgRepository');
 const UserPgRepository = require('~src/infrastructure/database/userPgRepository');
 
@@ -28,11 +30,17 @@ const PackageFileRepository = require('~src/infrastructure/system/packageFileRep
 const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
 const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
 
+const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
+
+const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
+const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
+const FindClusterUserService = require('~src/core/service/findClusterUserService');
 const JobService = require('~src/core/service/jobService');
 const PackageService = require('~src/core/service/packageService');
 const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
 const ProxyServerRegenerateJobService = require('~src/core/service/proxyServerRegenerateJobService');
 const ProxyServerService = require('~src/core/service/proxyServerService');
+const ServerService = require('~src/core/service/serverService');
 const UrlAccessService = require('~src/core/service/urlAccessService');
 const UserService = require('~src/core/service/userService');
 
@@ -50,6 +58,10 @@ const AddUserValidationMiddlewareFactory = require('~src/api/http/user/middlewar
 const BlockUrlForUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/blockUrlForUserValidationMiddlewareFactory');
 const ChangePasswordUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/changePasswordUserValidationMiddlewareFactory');
 const UserControllerFactory = require('~src/api/http/user/controller/userControllerFactory');
+
+const AddServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/addServerValidationMiddlewareFactory');
+const UpdateServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/updateServerValidationMiddlewareFactory');
+const ServerControllerFactory = require('~src/api/http/server/controller/serverControllerFactory');
 
 const PackageCronjob = require('~src/api/cronjob/packageCronjob');
 const ReloadCronjob = require('~src/api/cronjob/reloadCronjob');
@@ -71,6 +83,8 @@ class Loader {
       this._cluster();
     }
 
+    const currentInstanceIp = this._config.getStr('server.host');
+
     const {
       squidVolumeFolder,
       squidPasswordFile,
@@ -81,12 +95,14 @@ class Loader {
     const { pgDb } = await this._db();
     const { jwt } = await this._jwt();
     const { docker } = await this._docker();
+    const { apiToken } = await this._apiCluster(jwt);
 
     const identifierGenerator = new IdentifierGenerator();
     const dateTime = new DateTime(
       this._config.getStr('custom.timezone.locales'),
       this._config.getStr('custom.timezone.zone'),
     );
+    const overrideSquidPort = this._config.getNum('custom.squid.portListener');
 
     const httpPublicApiHostConfig = this._config.getStr('server.public.host');
     const httpPublicApiPortConfig = this._config.getNum('server.public.http.port');
@@ -115,14 +131,18 @@ class Loader {
       squidPerIpInstanceConfig,
       httpApiUrlConfig,
       squidScriptApiTokenConfig,
+      overrideSquidPort,
     );
     const userSquidRepository = new UserSquidRepository(squidPasswordFile);
 
     const jobRepository = new JobRepository(pgDb, dateTime, identifierGenerator);
     const packagePgRepository = new PackagePgRepository(pgDb, dateTime, identifierGenerator);
     const proxyServerRepository = new ProxyServerRepository(pgDb, dateTime, identifierGenerator);
+    const serverRepository = new ServerRepository(pgDb, dateTime, identifierGenerator);
     const urlAccessPgRepository = new UrlAccessPgRepository(pgDb, dateTime, identifierGenerator);
     const userPgRepository = new UserPgRepository(pgDb, dateTime, identifierGenerator);
+
+    const proxyServerApiRepository = new ProxyServerApiRepository(dateTime, apiToken);
 
     // Service
     // -------
@@ -158,6 +178,24 @@ class Loader {
       squidServerRepository,
       proxyServerRegenerateJobService,
     );
+    const serverService = new ServerService(serverRepository, currentInstanceIp);
+    const findClusterPackageService = new FindClusterPackageService(
+      packageService,
+      serverService,
+      proxyServerApiRepository,
+      currentInstanceIp,
+    );
+    const findClusterProxyServerService = new FindClusterProxyServerService(
+      proxyServerService,
+      serverService,
+      proxyServerApiRepository,
+    );
+    const findClusterUserService = new FindClusterUserService(
+      userService,
+      serverService,
+      proxyServerApiRepository,
+      currentInstanceIp,
+    );
 
     // Controller and middleware
     // -------------------------
@@ -168,13 +206,20 @@ class Loader {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
       renewPackageValidator: new RenewPackageValidatorMiddlewareFactory(),
     };
-    const packageControllerFactory = new PackageControllerFactory(packageService, dateTime);
+    const packageControllerFactory = new PackageControllerFactory(
+      packageService,
+      findClusterPackageService,
+      dateTime,
+    );
 
     const proxyMiddleware = {
       deleteProxyIpValidation: new DeleteProxyIpValidatorMiddlewareFactory(),
       generateProxyValidation: new GenerateProxyValidatorMiddlewareFactory(),
     };
-    const proxyControllerFactory = new ProxyControllerFactory(proxyServerService, dateTime);
+    const proxyControllerFactory = new ProxyControllerFactory(
+      findClusterProxyServerService,
+      dateTime,
+    );
 
     const userMiddlewares = {
       addUserValidation: new AddUserValidationMiddlewareFactory(),
@@ -183,9 +228,16 @@ class Loader {
     };
     const userControllerFactory = new UserControllerFactory(
       userService,
+      findClusterUserService,
       dateTime,
       urlAccessService,
     );
+
+    const serverMiddlewares = {
+      addServerValidation: new AddServerValidationMiddlewareFactory(),
+      updateServerValidation: new UpdateServerValidationMiddlewareFactory(),
+    };
+    const serverControllerFactory = new ServerControllerFactory(serverService, dateTime);
 
     // Other API
     // --------------------------
@@ -221,6 +273,12 @@ class Loader {
       blockUrlForUserValidationMiddlewareFactory: userMiddlewares.blockUrlForUserValidation,
       changePasswordUserValidationMiddlewareFactory: userMiddlewares.changePasswordUserValidation,
       userControllerFactory,
+    };
+
+    this._dependency.serverHttpApi = {
+      addServerValidationMiddlewareFactory: serverMiddlewares.addServerValidation,
+      updateServerValidationMiddlewareFactory: serverMiddlewares.updateServerValidation,
+      serverControllerFactory,
     };
 
     this._dependency.packageCronjob = packageCronjob;
@@ -316,6 +374,13 @@ class Loader {
     const docker = new DockerUtil(this._config, this._options, {});
 
     return { docker: await docker.start() };
+  }
+
+  async _apiCluster(jwt) {
+    const apiCluster = new ApiCluster(this._config, this._options, { jwt });
+    const data = await apiCluster.start();
+
+    return { apiToken: data.apiToken };
   }
 }
 
