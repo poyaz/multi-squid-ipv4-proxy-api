@@ -729,6 +729,7 @@ suite(`PackageService`, () => {
       const outputPackageModel = new PackageModel();
       outputPackageModel.id = testObj.identifierGenerator.generateId();
       outputPackageModel.username = 'user1';
+      outputPackageModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
       testObj.packageRepository.getById.resolves([null, outputPackageModel]);
       const outputUserModel = new UserModel();
       outputUserModel.isEnable = true;
@@ -740,6 +741,9 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getById.should.have.callCount(1);
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match.has('expireDate', null).and(sinon.match.has('deleteDate', null)),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
@@ -749,6 +753,7 @@ suite(`PackageService`, () => {
       const outputPackageModel = new PackageModel();
       outputPackageModel.id = testObj.identifierGenerator.generateId();
       outputPackageModel.username = 'user1';
+      outputPackageModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
       testObj.packageRepository.getById.resolves([null, outputPackageModel]);
       const outputUserModel = new UserModel();
       outputUserModel.isEnable = true;
@@ -761,6 +766,9 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getById.should.have.callCount(1);
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageFileRepository.update.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match.has('expireDate', null).and(sinon.match.has('deleteDate', null)),
+      );
       testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
