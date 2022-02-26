@@ -26,6 +26,7 @@ class PackageControllerFactory {
    */
   constructor(packageService, findClusterPackageService, dateTime) {
     this.#packageService = packageService;
+    this.#findClusterPackageService = findClusterPackageService;
     this.#dateTime = dateTime;
   }
 
