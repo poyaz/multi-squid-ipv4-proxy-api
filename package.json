@@ -1,6 +1,6 @@
 {
   "name": "multi-squid-ipv4-proxy-api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "nodemon": "./node_modules/nodemon/bin/nodemon.js --inspect=0.0.0.0 --ignore tests/ index.js",
     "prestart": "exit",
