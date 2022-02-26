@@ -1,6 +1,6 @@
 {
   "name": "multi-squid-ipv4-proxy-api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "nodemon": "./node_modules/nodemon/bin/nodemon.js --inspect=0.0.0.0 --ignore tests/ index.js",
     "prestart": "exit",
@@ -23,6 +23,7 @@
     "pg": "8.5.1",
     "uuid": "8.3.1",
     "yn": "^4.0.0",
+    "axios": "^0.26.0",
     "~config": "file:./lib/config",
     "~interface": "file:./lib/interface",
     "~src": "file:./src"

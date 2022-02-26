@@ -15,6 +15,10 @@ class PackageController {
    */
   #packageService;
   /**
+   * @type {IPackageService}
+   */
+  #findClusterPackageService;
+  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -24,16 +28,34 @@ class PackageController {
    * @param req
    * @param res
    * @param {IPackageService} packageService
+   * @param {IPackageService} findClusterPackageService
    * @param {IDateTime} dateTime
    */
-  constructor(req, res, packageService, dateTime) {
+  constructor(req, res, packageService, findClusterPackageService, dateTime) {
     this.#req = req;
     this.#res = res;
     this.#packageService = packageService;
+    this.#findClusterPackageService = findClusterPackageService;
     this.#dateTime = dateTime;
   }
 
   async getAllByUsername() {
+    const { username } = this.#req.params;
+
+    const [error, data] = await this.#findClusterPackageService.getAllByUsername(username);
+    if (error) {
+      return [error];
+    }
+
+    const getAllByUsernamePackageOutputModel = new GetAllByUsernamePackageOutputModel(
+      this.#dateTime,
+    );
+    const result = getAllByUsernamePackageOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async getAllByUsernameInSelfInstance() {
     const { username } = this.#req.params;
 
     const [error, data] = await this.#packageService.getAllByUsername(username);
@@ -55,7 +77,7 @@ class PackageController {
     const addPackageInputModel = new AddPackageInputModel(this.#dateTime);
     const model = addPackageInputModel.getModel(body);
 
-    const [error, data] = await this.#packageService.add(model);
+    const [error, data] = await this.#findClusterPackageService.add(model);
     if (error) {
       return [error];
     }
@@ -73,7 +95,7 @@ class PackageController {
     const renewPackageInputModel = new RenewPackageInputModel(this.#dateTime);
     const expireDate = renewPackageInputModel.getModel(body);
 
-    const [error] = await this.#packageService.renew(packageId, expireDate);
+    const [error] = await this.#findClusterPackageService.renew(packageId, expireDate);
     if (error) {
       return [error];
     }
@@ -84,7 +106,18 @@ class PackageController {
   async removePackage() {
     const { packageId } = this.#req.params;
 
-    const [error] = await this.#packageService.remove(packageId);
+    const [error] = await this.#findClusterPackageService.remove(packageId);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
+
+  async syncPackage() {
+    const { packageId } = this.#req.params;
+
+    const [error] = await this.#findClusterPackageService.syncPackageById(packageId);
     if (error) {
       return [error];
     }

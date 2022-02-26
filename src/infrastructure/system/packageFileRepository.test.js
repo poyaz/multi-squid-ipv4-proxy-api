@@ -13,6 +13,7 @@ const fsAsync = require('fs/promises');
 const childProcess = require('child_process');
 const { PassThrough } = require('stream');
 const PackageModel = require('~src/core/model/packageModel');
+const UnknownException = require('~src/core/exception/unknownException');
 const CommandExecuteException = require('~src/core/exception/commandExecuteException');
 const ModelUsernameNotExistException = require('~src/core/exception/modelUsernameNotExistException');
 
@@ -101,7 +102,7 @@ suite(`PackageFileRepository`, () => {
       expect(result).to.be.length(0);
     });
 
-    test(`Should error get all package by username when check exist file`, async () => {
+    test(`Should successful get all package by username when check exist file`, async () => {
       const inputUsername = 'user1';
       fsAsync.access.resolves();
       const outputFileRead =
@@ -173,6 +174,14 @@ suite(`PackageFileRepository`, () => {
   });
 
   suite(`Update package`, () => {
+    setup(() => {
+      testObj.addPackageFile = sinon.stub(testObj.packageFileRepository, 'add');
+    });
+
+    teardown(() => {
+      testObj.addPackageFile.restore();
+    });
+
     test(`Should error update package when username not exist`, async () => {
       const inputModel = new PackageModel();
 
@@ -181,6 +190,50 @@ suite(`PackageFileRepository`, () => {
       expect(error).to.be.an.instanceof(ModelUsernameNotExistException);
       expect(error).to.have.property('httpCode', 400);
       expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update package when read file for check ip exist (if package has not deleted or expired)`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      const fileError = new Error('Fail to read file');
+      fsAsync.readFile.throws(fileError);
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      fsAsync.readFile.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', fileError);
+    });
+
+    test(`Should error update package when detect we need append ip to list before update (if package has not deleted or expired)`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.username = 'user1';
+      inputModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      const outputFileRead =
+        '192.168.1.2 user1\n192.168.1.3 user2\nunknown row data\n192.168.1.4 user1';
+      fsAsync.readFile.resolves(outputFileRead);
+      testObj.addPackageFile.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageFileRepository.update(inputModel);
+
+      fsAsync.readFile.should.have.callCount(1);
+      testObj.addPackageFile.should.have.callCount(1);
+      testObj.addPackageFile.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.hasNested('ipList.length', 1))
+          .and(sinon.match.hasNested('ipList[0].ip', '192.168.1.1')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
     });
 
     test(`Should error update package when execute sed command`, async () => {
@@ -222,6 +275,10 @@ suite(`PackageFileRepository`, () => {
     test(`Should successfully update package (disable user)`, async () => {
       const inputModel = new PackageModel();
       inputModel.username = 'user1';
+      inputModel.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
       inputModel.deleteDate = new Date();
       childProcess.spawn.returns();
       childProcess.spawn.callsFake(() => {

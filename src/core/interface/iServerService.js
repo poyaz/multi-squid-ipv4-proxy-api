@@ -1,12 +1,36 @@
 /**
- * Created by pooya on 8/23/21.
+ * Created by pooya on 8/30/21.
  */
 
-class IPackageService {
+class IServerService {
+  static INTERNAL_SERVER_INSTANCE = 'internal';
+  static EXTERNAL_SERVER_INSTANCE = 'external';
+
   /**
    *
-   * @param {PackageModel} model
-   * @return {Promise<(Error|PackageModel|[])[]>}
+   * @return {Promise<(Error|Array<ServerModel>)[]>}
+   */
+  async getAll() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
+
+  /**
+   *
+   * @param {string} ipMask
+   * @return {Promise<(Error|string|ServerModel)[]>}
+   */
+  async findInstanceExecute(ipMask) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { ipMask };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {ServerModel} model
+   * @return {Promise<(Error|ServerModel)[]>}
    */
   async add(model) {
     const error = new Error('The method has to be overridden by subclasses.');
@@ -16,34 +40,24 @@ class IPackageService {
 
   /**
    *
-   * @param {string} username
-   * @return {Promise<(Error|Array<PackageModel>|[])[]>}
+   * @param {ServerModel} model
+   * @return {Promise<(Error)[]>}
    */
-  async getAllByUsername(username) {
+  async update(model) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { username };
+    error['args'] = { model };
     throw error;
   }
 
   /**
    *
-   * @param {uuid} id
-   * @param {Date} expireDate
+   * @param {string} id
+   * @param {Array<string>} range
    * @return {Promise<(Error)[]>}
    */
-  async renew(id, expireDate) {
+  async appendIpRangeByServiceId(id, range) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { id, expireDate };
-    throw error;
-  }
-
-  /**
-   *
-   * @return {Promise<(Error)[]>}
-   */
-  async disableExpirePackage() {
-    const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = {};
+    error['args'] = { id, range };
     throw error;
   }
 
@@ -52,22 +66,11 @@ class IPackageService {
    * @param {string} id
    * @return {Promise<(Error)[]>}
    */
-  async remove(id) {
-    const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { id };
-    throw error;
-  }
-
-  /**
-   *
-   * @param {string} id
-   * @return {Promise<(Error)[]>}
-   */
-  async syncPackageById(id) {
+  async delete(id) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { id };
     throw error;
   }
 }
 
-module.exports = IPackageService;
+module.exports = IServerService;
