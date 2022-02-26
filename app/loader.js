@@ -227,6 +227,7 @@ class Loader {
       changePasswordUserValidation: new ChangePasswordUserValidationMiddlewareFactory(),
     };
     const userControllerFactory = new UserControllerFactory(
+      userService,
       findClusterUserService,
       dateTime,
       urlAccessService,
