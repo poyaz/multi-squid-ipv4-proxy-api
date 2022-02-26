@@ -88,7 +88,7 @@ class SquidServerRepository extends IProxyServerRepository {
     ipCountPerInstance,
     apiUrl,
     apiToken,
-    overrideSquidPort = 0,
+    overrideSquidPort = null,
   ) {
     super();
 
