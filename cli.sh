@@ -351,7 +351,7 @@ if [[ $execute_mode == "init" ]]; then
       exit 1
     fi
 
-    JSON_DATA=$(ddocker run --rm -it -v "$MASTER_TOKEN_FILE":/tmp/master.key.txt postgres:11.10 bash -c 'cat /tmp/master.key.txt | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY')
+    JSON_DATA=$(docker run --rm -it -v "$MASTER_TOKEN_FILE":/tmp/master.key.txt postgres:11.10 bash -c 'cat /tmp/master.key.txt | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY')
 
     PG_PASSWORD=$(echo $JSON_DATA | jq -r '.pg_pass')
     JWT_TOKEN=$(echo $JSON_DATA | jq -r '.jwt_secret')
