@@ -452,13 +452,13 @@ if [[ $execute_mode == "init" ]]; then
           '{"pg_host": $pg_host, "pg_port": $pg_port, "pg_db": $pg_db, "pg_user": $pg_user, "pg_pass": $pg_pass, "jwt_secret": $jwt_secret}'
       )
 
-      echo $GENERATE_MASTER_JSON >$DIRNAME/storage/temp/cluster.json
-      $GENERATE_MASTER_TOKEN=$(docker run --rm -v "$DIRNAME/storage/temp/cluster.json":/tmp/cluster.json -it postgres:11.10 bash -c 'cat /tmp/cluster.json | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY')
-      rm -f $DIRNAME/storage/temp/cluster.json
+      echo $GENERATE_MASTER_JSON >"$DIRNAME/storage/temp/cluster.json"
+      GENERATE_MASTER_TOKEN=$(docker run --rm -v "$DIRNAME/storage/temp/cluster.json":/tmp/cluster.json -it postgres:11.10 bash -c 'cat /tmp/cluster.json | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY')
+      rm -f "$DIRNAME/storage/temp/cluster.json"
       echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
       echo $GENERATE_MASTER_TOKEN
 
-      echo "$GENERATE_MASTER_TOKEN" >$DIRNAME/storage/temp/master.key.txt
+      echo "$GENERATE_MASTER_TOKEN" >"$DIRNAME/storage/temp/master.key.txt"
       echo "[INFO] This key store in $DIRNAME/storage/temp/master.key.txt"
     fi
 
@@ -521,13 +521,13 @@ if [[ $execute_mode == "fetch" ]]; then
       '{"pg_host": $pg_host, "pg_port": $pg_port, "pg_db": $pg_db, "pg_user": $pg_user, "pg_pass": $pg_pass, "jwt_secret": $jwt_secret}'
   )
 
-  echo $GENERATE_FETCH_JSON >$DIRNAME/storage/temp/cluster.json
+  echo $GENERATE_FETCH_JSON >"$DIRNAME/storage/temp/cluster.json"
   GENERATE_FETCH_TOKEN=$(docker run --rm -v "$DIRNAME/storage/temp/cluster.json":/tmp/cluster.json -it postgres:11.10 bash -c 'cat /tmp/cluster.json | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY')
-  rm -f $DIRNAME/storage/temp/cluster.json
+  rm -f "$DIRNAME/storage/temp/cluster.json"
   echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
   echo $GENERATE_FETCH_TOKEN
 
-  echo "$GENERATE_FETCH_TOKEN" >$DIRNAME/storage/temp/master.key.txt
+  echo "$GENERATE_FETCH_TOKEN" >"$DIRNAME/storage/temp/master.key.txt"
   echo "[INFO] This key store in $DIRNAME/storage/temp/master.key.txt"
 
   exit
