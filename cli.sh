@@ -43,9 +43,9 @@ function _usage() {
   echo -e "      --init\t\t\tInit webserver and database"
   echo -e "      --restart\t\t\tRestart all service"
   echo -e "      --token\t\t\tGet token"
-  echo -e "      --init-cluster\t\t\tCreate server with cluster"
-  echo -e "      --join-cluster\t\t\tJoin new server to exist cluster"
-  echo -e "      --fetch-cluster\t\t\tFetch cluster token from exist node"
+  echo -e "      --init-cluster\t\tCreate server with cluster"
+  echo -e "      --join-cluster\t\tJoin new server to exist cluster"
+  echo -e "      --fetch-cluster\t\tFetch cluster token from exist node"
   echo ""
   echo -e "  -v, --version\t\t\tShow version information and exit"
   echo -e "  -h, --help\t\t\tShow help"
@@ -252,11 +252,13 @@ while [[ $# -gt 0 ]]; do
     ;;
 
   --init-cluster)
+    execute_mode="init"
     cluster_mode="master"
     shift
     ;;
 
   --join-cluster)
+    execute_mode="init"
     cluster_mode="child"
     shift
     ;;
