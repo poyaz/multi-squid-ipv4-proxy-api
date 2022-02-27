@@ -59,14 +59,14 @@ function _find_distro() {
   local regex="ID=([a-zA-Z\"]+)\s"
   local distro
 
-  #  while [[ $os =~ $regex ]]; do
-  #    distro="${BASH_REMATCH[1]//[\"]/}"
-  #    if [[ ${distro} != "" ]]; then
-  #      break
-  #    fi
-  #
-  #    regex=${regex#*"${BASH_REMATCH[1]}"}
-  #  done
+  while [[ $os =~ $regex ]]; do
+    distro="${BASH_REMATCH[1]//[\"]/}"
+    if [[ ${distro} != "" ]]; then
+      break
+    fi
+
+    regex=${regex#*"${BASH_REMATCH[1]}"}
+  done
 
   echo $distro
 }
@@ -158,7 +158,7 @@ function _install() {
 
     sudo systemctl enable docker
   else
-    sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service > /etc/systemd/system/docker.service
+    sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service >/etc/systemd/system/docker.service
 
     systemctl daemon-reload
 
