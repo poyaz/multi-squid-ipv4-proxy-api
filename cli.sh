@@ -364,6 +364,8 @@ if [[ $execute_mode == "init" ]]; then
       echo $(timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g') >>/etc/timezone
     fi
 
+    SED_DIRNAME_REPLACE=$(echo $DIRNAME | sed 's/\//\\\//g')
+
     TIMEZONE_DATA=$(cat /etc/timezone | sed 's/\//\\\//g')
 
     PG_HOST=$(echo $JSON_DATA | jq -r '.pg_host')
