@@ -1,12 +1,12 @@
 /**
- * Created by pooya on 8/25/21.
+ * Created by pooya on 2/13/22.
  */
 
-class IPackageRepository {
+class IServerRepository {
   /**
    *
    * @param {string} id
-   * @return {Promise<(Error|PackageModel|null)[]>}
+   * @return {Promise<(Error|ServerModel)[]>}
    */
   async getById(id) {
     const error = new Error('The method has to be overridden by subclasses.');
@@ -16,20 +16,20 @@ class IPackageRepository {
 
   /**
    *
-   * @param {string} username
-   * @return {Promise<(Error|Array<PackageModel>|[])[]>}
+   * @param {string} ip
+   * @return {Promise<(Error|ServerModel)[]>}
    */
-  async getAllByUsername(username) {
+  async getByIpAddress(ip) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { username };
+    error['args'] = { ip };
     throw error;
   }
 
   /**
    *
-   * @return {Promise<(Error|Array<PackageModel>|[])[]>}
+   * @return {Promise<(Error|Array<ServerModel>)[]>}
    */
-  async getAllExpirePackage() {
+  async getAll() {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = {};
     throw error;
@@ -37,8 +37,8 @@ class IPackageRepository {
 
   /**
    *
-   * @param {PackageModel} model
-   * @return {Promise<(Error|PackageModel|[])[]>}
+   * @param {ServerModel} model
+   * @return {Promise<(Error|ServerModel)[]>}
    */
   async add(model) {
     const error = new Error('The method has to be overridden by subclasses.');
@@ -48,14 +48,25 @@ class IPackageRepository {
 
   /**
    *
-   * @param {PackageModel} model
-   * @return {Promise<(Error|number)[]>}
+   * @param {ServerModel} model
+   * @return {Promise<(Error)[]>}
    */
   async update(model) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { model };
     throw error;
   }
+
+  /**
+   *
+   * @param {string} id
+   * @return {Promise<(Error)[]>}
+   */
+  async delete(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
 }
 
-module.exports = IPackageRepository;
+module.exports = IServerRepository;

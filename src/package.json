@@ -12,6 +12,7 @@
     "@joi/date": "^2.1.0",
     "ip-addresses": "^1.0.0",
     "dockerode": "^3.2.1",
+    "axios": "^0.26.0",
     "~src": "file:."
   },
   "devDependencies": {

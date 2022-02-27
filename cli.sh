@@ -43,6 +43,9 @@ function _usage() {
   echo -e "      --init\t\t\tInit webserver and database"
   echo -e "      --restart\t\t\tRestart all service"
   echo -e "      --token\t\t\tGet token"
+  echo -e "      --init-cluster\t\t\tCreate server with cluster"
+  echo -e "      --join-cluster\t\t\tJoin new server to exist cluster"
+  echo -e "      --fetch-cluster\t\t\tFetch cluster token from exist node"
   echo ""
   echo -e "  -v, --version\t\t\tShow version information and exit"
   echo -e "  -h, --help\t\t\tShow help"
@@ -74,16 +77,16 @@ function _install() {
   local DISTRO=$(_find_distro)
   readonly DISTRO
 
-  local EXEC_WIT_SUDO=0
+  local EXEC_WITH_SUDO=0
   sudo >/dev/null 2>&1
   if [[ $? -eq 0 ]]; then
-    EXEC_WIT_SUDO=1
+    EXEC_WITH_SUDO=1
   fi
-  readonly EXEC_WIT_SUDO
+  readonly EXEC_WITH_SUDO
 
   case ${DISTRO} in
   debian | ubuntu)
-    if [[ ${EXEC_WIT_SUDO} -eq 1 ]]; then
+    if [[ ${EXEC_WITH_SUDO} -eq 1 ]]; then
       sudo apt update
 
       sudo apt install -y \
@@ -91,7 +94,8 @@ function _install() {
         ca-certificates \
         curl \
         gnupg-agent \
-        software-properties-common
+        software-properties-common \
+        jq
 
       curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 
@@ -113,7 +117,8 @@ function _install() {
         ca-certificates \
         curl \
         gnupg-agent \
-        software-properties-common
+        software-properties-common \
+        jq
 
       curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 
@@ -131,7 +136,7 @@ function _install() {
     ;;
 
   centos)
-    yum install -y yum-utils
+    yum install -y yum-utils epel-release jq
 
     yum-config-manager \
       --add-repo \
@@ -144,16 +149,18 @@ function _install() {
   curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
   chmod +x /usr/local/bin/docker-compose
 
-  sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service > /etc/systemd/system/docker.service
+  if [[ ${EXEC_WITH_SUDO} -eq 1 ]]; then
+    sudo sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service | sudo tee /etc/systemd/system/docker.service
 
-  if [[ ${EXEC_WIT_SUDO} -eq 1 ]]; then
     sudo systemctl daemon-reload
 
     sudo systemctl start docker
 
     sudo systemctl enable docker
   else
-    sudo systemctl daemon-reload
+    sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service > /etc/systemd/system/docker.service
+
+    systemctl daemon-reload
 
     systemctl start docker
 
@@ -179,12 +186,23 @@ function _check_dependency() {
 
       exit 1
     fi
+
+    dpkg -l jq >/dev/null 2>&1
+
+    if ! [[ $? -eq 0 ]]; then
+      echo -e "[ERR] Need install dependency\n"
+      echo -e "Please use below command:"
+      echo -e "  bash $0 --install"
+      echo ""
+
+      exit 1
+    fi
     ;;
 
   centos)
-    centos_check=$(rpm -qa docker | wc -l)
+    centos_check=$(rpm -qa docker-ce jq | wc -l)
 
-    if ! [[ ${centos_check} -eq 1 ]]; then
+    if ! [[ ${centos_check} -eq 2 ]]; then
       echo -e "[ERR] Need install dependency\n"
       echo -e "Please use below command:"
       echo -e "  bash $0 --install"
@@ -201,6 +219,7 @@ function _check_dependency() {
 #############
 
 execute_mode=
+cluster_mode="single"
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
@@ -224,6 +243,21 @@ while [[ $# -gt 0 ]]; do
 
   --token)
     execute_mode="token"
+    shift
+    ;;
+
+  --fetch-cluster)
+    execute_mode="fetch"
+    shift
+    ;;
+
+  --init-cluster)
+    cluster_mode="master"
+    shift
+    ;;
+
+  --join-cluster)
+    cluster_mode="child"
     shift
     ;;
 
@@ -274,55 +308,159 @@ if [[ $execute_mode == "init" ]]; then
     exit 1
   fi
 
+  if [[ ${cluster_mode} == "master" ]]; then
+    read -s -p "Enter custom share key: " SHARE_KEY
+    if [[ -z ${SHARE_KEY} ]]; then
+      echo "[ERR] Please enter share key"
+      echo ""
+
+      exit 1
+    fi
+
+    echo ""
+  fi
+
+  if [[ ${cluster_mode} == "child" ]]; then
+    read -s -p "Enter master share key: " SHARE_KEY
+    if [[ -z ${SHARE_KEY} ]]; then
+      echo "[ERR] Please enter share key"
+      echo ""
+
+      exit 1
+    fi
+
+    echo ""
+
+    read -p "Enter master cluster token: " MASTER_TOKEN
+    if [[ -z ${MASTER_TOKEN} ]]; then
+      echo "[ERR] Please enter cluster token"
+      echo ""
+
+      exit 1
+    fi
+  fi
+
   cp "$DEFAULT_NODE_ENV_FILE.example" $DEFAULT_NODE_ENV_FILE
   cp "$DEFAULT_PG_ENV_FILE.example" $DEFAULT_PG_ENV_FILE
 
-  GENERATE_PG_PASSWORD=$(
-    tr -dc A-Za-z0-9 </dev/urandom | head -c 13
-    echo ''
-  )
-  GENERATE_JWT_TOKEN=$(
-    tr -dc A-Za-z0-9 </dev/urandom | head -c 13
-    echo ''
-  )
+  if [[ ${cluster_mode} == 'child' ]]; then
+    echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2 >/dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+      echo "[ERR] Your share key is invalid!"
+      exit 1
+    fi
 
-  SED_DIRNAME_REPLACE=$(echo $DIRNAME | sed 's/\//\\\//g')
+    JSON_DATA=$(echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2)
 
-  echo "[INFO] Please wait for init service ..."
+    PG_PASSWORD=$(echo $JSON_DATA | jq -r '.pg_pass')
+    JWT_TOKEN=$(echo $JSON_DATA | jq -r '.jwt_secret')
 
-  API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$GENERATE_JWT_TOKEN" node sh -c 'npm install --production &> /dev/null; node scripts/cli.js generate-token' 2>/dev/null)
+    echo "[INFO] Please wait for init cluster service ..."
 
-  if ! [[ -f /etc/timezone ]]; then
-    echo $(timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g') >> /etc/timezone
+    API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$JWT_TOKEN" node sh -c 'npm install --production &> /dev/null; node scripts/cli.js generate-token' 2>/dev/null)
+
+    if ! [[ -f /etc/timezone ]]; then
+      echo $(timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g') >>/etc/timezone
+    fi
+
+    TIMEZONE_DATA=$(cat /etc/timezone | sed 's/\//\\\//g')
+
+    PG_HOST=$(echo $JSON_DATA | jq -r '.pg_host')
+    PG_PORT=$(echo $JSON_DATA | jq -r '.pg_port')
+    PG_DB=$(echo $JSON_DATA | jq -r '.pg_db')
+    PG_USER=$(echo $JSON_DATA | jq -r '.pg_user')
+    PG_PASS=$(echo $JSON_DATA | jq -r '.pg_pass')
+
+    sed -i \
+      -e "s/TZ=/TZ=$TIMEZONE_DATA/g" \
+      -e "s/NODE_ENV=/NODE_ENV=product/g" \
+      -e "s/SERVER_HOST=/SERVER_HOST=$WEBSERVER_IP/g" \
+      -e "s/SERVER_HTTP_PORT=/SERVER_HTTP_PORT=$WEBSERVER_PORT/g" \
+      -e "s/SERVER_PUBLIC_HOST=/SERVER_PUBLIC_HOST=$WEBSERVER_IP/g" \
+      -e "s/SERVER_PUBLIC_HTTP_PORT=/SERVER_PUBLIC_HTTP_PORT=$WEBSERVER_PORT/g" \
+      -e "s/DB_PG_HOST=/DB_PG_HOST=$PG_HOST/g" \
+      -e "s/DB_PG_PORT=/DB_PG_PORT=$PG_PORT/g" \
+      -e "s/DB_PG_DATABASE=/DB_PG_DATABASE=$PG_DB/g" \
+      -e "s/DB_PG_USERNAME=/DB_PG_USERNAME=$PG_USER/g" \
+      -e "s/DB_PG_PASSWORD=/DB_PG_PASSWORD=$PG_PASS/g" \
+      -e "s/REAL_PROJECT_PATH_FOR_DOCKER=/REAL_PROJECT_PATH_FOR_DOCKER=$SED_DIRNAME_REPLACE/g" \
+      -e "s/SQUID_PER_IP_INSTANCE=/SQUID_PER_IP_INSTANCE=$DEFAULT_SQUID_PER_IP_COUNT/g" \
+      -e "s/SQUID_SCRIPT_API_TOKEN=/SQUID_SCRIPT_API_TOKEN=Bearer $API_TOKEN/g" \
+      -e "s/TIMEZONE_ZONE=/TIMEZONE_ZONE=$TIMEZONE_DATA/g" \
+      -e "s/DOCKER_HOST=/DOCKER_HOST=$DEFAULT_DOCKER_PROXY_IP/g" \
+      -e "s/JWT_SECRET_KEY=/JWT_SECRET_KEY=$JWT_TOKEN/g" \
+      "$DEFAULT_NODE_ENV_FILE"
+
+    docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node docker-proxy build-squid-image
+  else
+    GENERATE_PG_PASSWORD=$(
+      tr -dc A-Za-z0-9 </dev/urandom | head -c 13
+      echo ''
+    )
+    GENERATE_JWT_TOKEN=$(
+      tr -dc A-Za-z0-9 </dev/urandom | head -c 13
+      echo ''
+    )
+
+    SED_DIRNAME_REPLACE=$(echo $DIRNAME | sed 's/\//\\\//g')
+
+    echo "[INFO] Please wait for init service ..."
+
+    API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$GENERATE_JWT_TOKEN" node sh -c 'npm install --production &> /dev/null; node scripts/cli.js generate-token' 2>/dev/null)
+
+    if ! [[ -f /etc/timezone ]]; then
+      echo $(timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g') >>/etc/timezone
+    fi
+
+    TIMEZONE_DATA=$(cat /etc/timezone | sed 's/\//\\\//g')
+
+    sed -i \
+      -e "s/TZ=/TZ=$TIMEZONE_DATA/g" \
+      -e "s/NODE_ENV=/NODE_ENV=product/g" \
+      -e "s/SERVER_HOST=/SERVER_HOST=$WEBSERVER_IP/g" \
+      -e "s/SERVER_HTTP_PORT=/SERVER_HTTP_PORT=$WEBSERVER_PORT/g" \
+      -e "s/SERVER_PUBLIC_HOST=/SERVER_PUBLIC_HOST=$WEBSERVER_IP/g" \
+      -e "s/SERVER_PUBLIC_HTTP_PORT=/SERVER_PUBLIC_HTTP_PORT=$WEBSERVER_PORT/g" \
+      -e "s/DB_PG_HOST=/DB_PG_HOST=$DEFAULT_PG_IP/g" \
+      -e "s/DB_PG_DATABASE=/DB_PG_DATABASE=$DEFAULT_PG_DATABASE/g" \
+      -e "s/DB_PG_USERNAME=/DB_PG_USERNAME=$DEFAULT_PG_USERNAME/g" \
+      -e "s/DB_PG_PASSWORD=/DB_PG_PASSWORD=$GENERATE_PG_PASSWORD/g" \
+      -e "s/REAL_PROJECT_PATH_FOR_DOCKER=/REAL_PROJECT_PATH_FOR_DOCKER=$SED_DIRNAME_REPLACE/g" \
+      -e "s/SQUID_PER_IP_INSTANCE=/SQUID_PER_IP_INSTANCE=$DEFAULT_SQUID_PER_IP_COUNT/g" \
+      -e "s/SQUID_SCRIPT_API_TOKEN=/SQUID_SCRIPT_API_TOKEN=Bearer $API_TOKEN/g" \
+      -e "s/TIMEZONE_ZONE=/TIMEZONE_ZONE=$TIMEZONE_DATA/g" \
+      -e "s/DOCKER_HOST=/DOCKER_HOST=$DEFAULT_DOCKER_PROXY_IP/g" \
+      -e "s/JWT_SECRET_KEY=/JWT_SECRET_KEY=$GENERATE_JWT_TOKEN/g" \
+      "$DEFAULT_NODE_ENV_FILE"
+
+    sed -i \
+      -e "s/TZ=/TZ=$TIMEZONE_DATA/g" \
+      -e "s/POSTGRES_PASSWORD=/POSTGRES_PASSWORD=$GENERATE_PG_PASSWORD/g" \
+      "$DEFAULT_PG_ENV_FILE"
+
+    if [[ ${cluster_mode} == "master" ]]; then
+      GENERATE_MASTER_JSON=$(
+        jq --null-input \
+          --arg pg_host "$WEBSERVER_IP" \
+          --arg pg_port "5432" \
+          --arg pg_db "$DEFAULT_PG_DATABASE" \
+          --arg pg_user "$DEFAULT_PG_USERNAME" \
+          --arg pg_pass "$GENERATE_PG_PASSWORD" \
+          --arg jwt_secret "$GENERATE_JWT_TOKEN" \
+          '{"pg_host": $pg_host, "pg_port": $pg_port, "pg_db": $pg_db, "pg_user": $pg_user, "pg_pass": $pg_pass, "jwt_secret": $jwt_secret}'
+      )
+
+      GENERATE_MASTER_TOKEN=$(echo "$GENERATE_MASTER_JSON" | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2)
+      echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
+      echo $GENERATE_MASTER_TOKEN
+
+      echo "$GENERATE_MASTER_TOKEN" >$DIRNAME/storage/temp/master.key.txt
+      echo "[INFO] This key store in $DIRNAME/storage/temp/master.key.txt"
+    fi
+
+    docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d
   fi
 
-  TIMEZONE_DATA=$(cat /etc/timezone | sed 's/\//\\\//g')
-
-  sed -i \
-    -e "s/TZ=/TZ=$TIMEZONE_DATA/g" \
-    -e "s/NODE_ENV=/NODE_ENV=product/g" \
-    -e "s/SERVER_HOST=/SERVER_HOST=$WEBSERVER_IP/g" \
-    -e "s/SERVER_HTTP_PORT=/SERVER_HTTP_PORT=$WEBSERVER_PORT/g" \
-    -e "s/SERVER_PUBLIC_HOST=/SERVER_PUBLIC_HOST=$WEBSERVER_IP/g" \
-    -e "s/SERVER_PUBLIC_HTTP_PORT=/SERVER_PUBLIC_HTTP_PORT=$WEBSERVER_PORT/g" \
-    -e "s/DB_PG_HOST=/DB_PG_HOST=$DEFAULT_PG_IP/g" \
-    -e "s/DB_PG_DATABASE=/DB_PG_DATABASE=$DEFAULT_PG_DATABASE/g" \
-    -e "s/DB_PG_USERNAME=/DB_PG_USERNAME=$DEFAULT_PG_USERNAME/g" \
-    -e "s/DB_PG_PASSWORD=/DB_PG_PASSWORD=$GENERATE_PG_PASSWORD/g" \
-    -e "s/REAL_PROJECT_PATH_FOR_DOCKER=/REAL_PROJECT_PATH_FOR_DOCKER=$SED_DIRNAME_REPLACE/g" \
-    -e "s/SQUID_PER_IP_INSTANCE=/SQUID_PER_IP_INSTANCE=$DEFAULT_SQUID_PER_IP_COUNT/g" \
-    -e "s/SQUID_SCRIPT_API_TOKEN=/SQUID_SCRIPT_API_TOKEN=Bearer $API_TOKEN/g" \
-    -e "s/TIMEZONE_ZONE=/TIMEZONE_ZONE=$TIMEZONE_DATA/g" \
-    -e "s/DOCKER_HOST=/DOCKER_HOST=$DEFAULT_DOCKER_PROXY_IP/g" \
-    -e "s/JWT_SECRET_KEY=/JWT_SECRET_KEY=$GENERATE_JWT_TOKEN/g" \
-    "$DEFAULT_NODE_ENV_FILE"
-
-  sed -i \
-    -e "s/TZ=/TZ=$TIMEZONE_DATA/g" \
-    -e "s/POSTGRES_PASSWORD=/POSTGRES_PASSWORD=$GENERATE_PG_PASSWORD/g" \
-    "$DEFAULT_PG_ENV_FILE"
-
-  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d
   exit
 fi
 
@@ -344,6 +482,48 @@ if [[ $execute_mode == "token" ]]; then
 
   token=$(docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml exec node sh -c 'node scripts/cli.js generate-token' 2>/dev/null)
   echo $token
+  exit
+fi
+
+if [[ $execute_mode == "fetch" ]]; then
+  read -s -p "Enter custom share key: " SHARE_KEY
+  if [[ -z ${SHARE_KEY} ]]; then
+    echo "[ERR] Please enter share key"
+    echo ""
+
+    exit 1
+  fi
+
+  echo ""
+
+  PG_HOST=$(sed -n "s/^DB_PG_HOST=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
+  PG_PORT=$(sed -n "s/^DB_PG_PORT=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
+  if [[ -z ${PG_PORT} ]]; then
+    PG_PORT=5432
+  fi
+  PG_DB=$(sed -n "s/^DB_PG_DATABASE=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
+  PG_USER=$(sed -n "s/^DB_PG_USERNAME=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
+  PG_PASS=$(sed -n "s/^DB_PG_PASSWORD=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
+  JWT_SECRET=$(sed -n "s/^JWT_SECRET_KEY=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
+
+  GENERATE_FETCH_JSON=$(
+    jq --null-input \
+      --arg pg_host "$PG_HOST" \
+      --arg pg_port "$PG_PORT" \
+      --arg pg_db "$PG_DB" \
+      --arg pg_user "$PG_USER" \
+      --arg pg_pass "$PG_PASS" \
+      --arg jwt_secret "$JWT_SECRET" \
+      '{"pg_host": $pg_host, "pg_port": $pg_port, "pg_db": $pg_db, "pg_user": $pg_user, "pg_pass": $pg_pass, "jwt_secret": $jwt_secret}'
+  )
+
+  GENERATE_FETCH_TOKEN=$(echo "$GENERATE_FETCH_JSON" | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2)
+  echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
+  echo $GENERATE_FETCH_TOKEN
+
+  echo "$GENERATE_FETCH_TOKEN" >$DIRNAME/storage/temp/master.key.txt
+  echo "[INFO] This key store in $DIRNAME/storage/temp/master.key.txt"
+
   exit
 fi
 
