@@ -392,7 +392,7 @@ if [[ $execute_mode == "init" ]]; then
       -e "s/JWT_SECRET_KEY=/JWT_SECRET_KEY=$JWT_TOKEN/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
-      if [[ $? -eq 0 ]]; then
+      if [[ $? -eq 1 ]]; then
         rm -f $DEFAULT_NODE_ENV_FILE $DEFAULT_PG_ENV_FILE
 
         echo "[ERR] Fail to execute sed command"
