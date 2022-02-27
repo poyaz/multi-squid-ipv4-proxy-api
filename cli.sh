@@ -136,13 +136,13 @@ function _install() {
     ;;
 
   centos)
-    yum install -y yum-utils epel-release jq
+    yum install -y yum-utils epel-release
 
     yum-config-manager \
       --add-repo \
       https://download.docker.com/linux/centos/docker-ce.repo
 
-    yum install -y docker-ce docker-ce-cli containerd.io
+    yum install -y docker-ce docker-ce-cli containerd.io jq
     ;;
   esac
 
