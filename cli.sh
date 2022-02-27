@@ -333,12 +333,9 @@ if [[ $execute_mode == "init" ]]; then
 
     echo ""
 
-    read -p "Enter master cluster token: " MASTER_TOKEN
-    if [[ -z ${MASTER_TOKEN} ]]; then
-      echo "[ERR] Please enter cluster token"
-      echo ""
-
-      exit 1
+    read -p "Enter master file token (default address: $DIRNAME/storage/temp/master.key.txt): " MASTER_TOKEN_FILE
+    if [[ -z ${MASTER_TOKEN_FILE} ]]; then
+      MASTER_TOKEN_FILE="$DIRNAME/storage/temp/master.key.txt"
     fi
   fi
 
@@ -346,13 +343,15 @@ if [[ $execute_mode == "init" ]]; then
   cp "$DEFAULT_PG_ENV_FILE.example" $DEFAULT_PG_ENV_FILE
 
   if [[ ${cluster_mode} == 'child' ]]; then
-    docker run --rm -it postgres:11.10 bash -c 'echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY >/dev/null 2>&1'
+    docker run --rm -it -v "$MASTER_TOKEN_FILE":/tmp/master.key.txt postgres:11.10 bash -c 'cat /tmp/master.key.txt | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY >/dev/null 2>&1'
     if ! [[ $? -eq 0 ]]; then
+      rm -f $DEFAULT_NODE_ENV_FILE $DEFAULT_PG_ENV_FILE
+
       echo "[ERR] Your share key is invalid!"
       exit 1
     fi
 
-    JSON_DATA=$(docker run --rm -it postgres:11.10 bash -c 'echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY')
+    JSON_DATA=$(ddocker run --rm -it -v "$MASTER_TOKEN_FILE":/tmp/master.key.txt postgres:11.10 bash -c 'cat /tmp/master.key.txt | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY')
 
     PG_PASSWORD=$(echo $JSON_DATA | jq -r '.pg_pass')
     JWT_TOKEN=$(echo $JSON_DATA | jq -r '.jwt_secret')
