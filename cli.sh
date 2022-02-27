@@ -77,16 +77,16 @@ function _install() {
   local DISTRO=$(_find_distro)
   readonly DISTRO
 
-  local EXEC_WIT_SUDO=0
+  local EXEC_WITH_SUDO=0
   sudo >/dev/null 2>&1
   if [[ $? -eq 0 ]]; then
-    EXEC_WIT_SUDO=1
+    EXEC_WITH_SUDO=1
   fi
-  readonly EXEC_WIT_SUDO
+  readonly EXEC_WITH_SUDO
 
   case ${DISTRO} in
   debian | ubuntu)
-    if [[ ${EXEC_WIT_SUDO} -eq 1 ]]; then
+    if [[ ${EXEC_WITH_SUDO} -eq 1 ]]; then
       sudo apt update
 
       sudo apt install -y \
@@ -149,16 +149,18 @@ function _install() {
   curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
   chmod +x /usr/local/bin/docker-compose
 
-  sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service >/etc/systemd/system/docker.service
+  if [[ ${EXEC_WITH_SUDO} -eq 1 ]]; then
+    sudo sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service | sudo tee /etc/systemd/system/docker.service
 
-  if [[ ${EXEC_WIT_SUDO} -eq 1 ]]; then
     sudo systemctl daemon-reload
 
     sudo systemctl start docker
 
     sudo systemctl enable docker
   else
-    sudo systemctl daemon-reload
+    sed -e "s/--containerd=.\+\/containerd.sock//g" /lib/systemd/system/docker.service > /etc/systemd/system/docker.service
+
+    systemctl daemon-reload
 
     systemctl start docker
 
