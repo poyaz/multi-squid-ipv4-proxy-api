@@ -10,10 +10,6 @@ class PackageControllerFactory {
    */
   #packageService;
   /**
-   * @type {IPackageService}
-   */
-  #findClusterPackageService;
-  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -21,12 +17,10 @@ class PackageControllerFactory {
   /**
    *
    * @param {IPackageService} packageService
-   * @param {IPackageService} findClusterPackageService
    * @param {IDateTime} dateTime
    */
-  constructor(packageService, findClusterPackageService, dateTime) {
+  constructor(packageService, dateTime) {
     this.#packageService = packageService;
-    this.#findClusterPackageService = findClusterPackageService;
     this.#dateTime = dateTime;
   }
 
@@ -37,13 +31,7 @@ class PackageControllerFactory {
    * @return {PackageController}
    */
   create(req, res) {
-    return new PackageController(
-      req,
-      res,
-      this.#packageService,
-      this.#findClusterPackageService,
-      this.#dateTime,
-    );
+    return new PackageController(req, res, this.#packageService, this.#dateTime);
   }
 }
 

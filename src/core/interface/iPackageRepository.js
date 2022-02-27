@@ -5,7 +5,7 @@
 class IPackageRepository {
   /**
    *
-   * @param {string} id
+   * @param {uuid} id
    * @return {Promise<(Error|PackageModel|null)[]>}
    */
   async getById(id) {

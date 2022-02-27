@@ -49,7 +49,7 @@ suite(`ProxyServerService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successful get all proxy ip`, async () => {
+    test(`Should error get all proxy ip`, async () => {
       const outputModel1 = new IpAddressModel();
       const outputModel2 = new IpAddressModel();
       testObj.proxyServerRepository.getAll.resolves([null, [outputModel1, outputModel2]]);

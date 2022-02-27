@@ -79,8 +79,6 @@ class ExpressApi extends IRunner {
     this._userRoute();
     this._packageRoute();
     this._proxyRoute();
-    this._instanceRoute();
-    this._serverRoute();
   }
 
   _jobRoute() {
@@ -316,19 +314,6 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.post('/v1/package/:packageId/sync', async (req, res, next) => {
-      try {
-        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
-        const response = await packageController.syncPackage();
-
-        this._sendResponse(req, res, response);
-
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
-
     router.delete('/v1/package/:packageId', async (req, res, next) => {
       try {
         const packageController = packageHttpApi.packageControllerFactory.create(req, res);
@@ -427,191 +412,6 @@ class ExpressApi extends IRunner {
     );
   }
 
-  _instanceRoute() {
-    const packageHttpApi = this._dependency.packageHttpApi;
-    const userHttpApi = this._dependency.userHttpApi;
-
-    router.post(
-      '/v1/instance/self/user',
-      async (req, res, next) => {
-        try {
-          const middleware = userHttpApi.addUserValidationMiddlewareFactory.create(req, res);
-
-          await middleware.act();
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-      async (req, res, next) => {
-        try {
-          const userController = userHttpApi.userControllerFactory.create(req, res);
-          const response = await userController.addUserInSelfInstance();
-
-          this._sendResponse(req, res, response);
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-    );
-
-    router.put(
-      '/v1/instance/self/user/:username/password',
-      async (req, res, next) => {
-        try {
-          const middleware = userHttpApi.changePasswordUserValidationMiddlewareFactory.create(
-            req,
-            res,
-          );
-
-          await middleware.act();
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-      async (req, res, next) => {
-        try {
-          const userController = userHttpApi.userControllerFactory.create(req, res);
-          const response = await userController.changePasswordInSelfInstance();
-
-          this._sendResponse(req, res, response);
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-    );
-
-    router.put('/v1/instance/self/user/:username/disable', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.disableByUsernameInSelfInstance();
-
-        this._sendResponse(req, res, response);
-
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
-
-    router.put('/v1/instance/self/user/:username/enable', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.enableByUsernameInSelfInstance();
-
-        this._sendResponse(req, res, response);
-
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
-
-    router.get('/v1/instance/self/package/user/:username', async (req, res, next) => {
-      try {
-        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
-        const response = await packageController.getAllByUsernameInSelfInstance();
-
-        this._sendResponse(req, res, response);
-
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
-  }
-
-  _serverRoute() {
-    const serverHttpApi = this._dependency.serverHttpApi;
-
-    router.get('/v1/server', async (req, res, next) => {
-      try {
-        const serverController = serverHttpApi.serverControllerFactory.create(req, res);
-        const response = await serverController.getAll();
-
-        this._sendResponse(req, res, response);
-
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
-
-    router.post(
-      '/v1/server',
-      async (req, res, next) => {
-        try {
-          const middleware = serverHttpApi.addServerValidationMiddlewareFactory.create(req, res);
-
-          await middleware.act();
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-      async (req, res, next) => {
-        try {
-          const serverController = serverHttpApi.serverControllerFactory.create(req, res);
-          const response = await serverController.add();
-
-          this._sendResponse(req, res, response);
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-    );
-
-    router.put(
-      '/v1/server/:id',
-      async (req, res, next) => {
-        try {
-          const middleware = serverHttpApi.updateServerValidationMiddlewareFactory.create(req, res);
-
-          await middleware.act();
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-      async (req, res, next) => {
-        try {
-          const serverController = serverHttpApi.serverControllerFactory.create(req, res);
-          const response = await serverController.update();
-
-          this._sendResponse(req, res, response);
-
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-    );
-
-    router.delete('/v1/server/:id', async (req, res, next) => {
-      try {
-        const serverController = serverHttpApi.serverControllerFactory.create(req, res);
-        const response = await serverController.delete();
-
-        this._sendResponse(req, res, response);
-
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
-  }
-
   _sendResponse(req, res, response) {
     const [error, result] = response;
 
@@ -654,7 +454,6 @@ class ExpressApi extends IRunner {
 
     const obj = {
       status: 'error',
-      name: error.name,
       error: error.message.toString(),
       ...(error.additionalInfo && { additionalInfo: error.additionalInfo }),
     };

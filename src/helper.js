@@ -100,24 +100,14 @@ function fakeUserController(req, res) {
 
   const userService = sinon.createStubInstance(IUserService);
 
-  const findClusterUserService = sinon.createStubInstance(IUserService);
-
   const dateTime = new DateTime();
 
   const urlAccessService = sinon.createStubInstance(IUrlAccessService);
 
-  const userController = new UserController(
-    req,
-    res,
-    userService,
-    findClusterUserService,
-    dateTime,
-    urlAccessService,
-  );
+  const userController = new UserController(req, res, userService, dateTime, urlAccessService);
 
   return {
     userService,
-    findClusterUserService,
     urlAccessService,
     userController,
   };
@@ -200,21 +190,13 @@ function fakePackageController(req, res) {
   const PackageController = require('~src/api/http/package/controller/packageController');
 
   const packageService = sinon.createStubInstance(IPackageService);
-  const findClusterPackageService = sinon.createStubInstance(IPackageService);
 
   const dateTime = new DateTime();
 
-  const packageController = new PackageController(
-    req,
-    res,
-    packageService,
-    findClusterPackageService,
-    dateTime,
-  );
+  const packageController = new PackageController(req, res, packageService, dateTime);
 
   return {
     packageService,
-    findClusterPackageService,
     packageController,
   };
 }
@@ -547,172 +529,6 @@ function fakeJobService() {
   };
 }
 
-function fakeServerController(req, res) {
-  const IServerService = require('~src/core/interface/iServerService');
-  const DateTime = require('~src/infrastructure/system/dateTime');
-  const ServerController = require('~src/api/http/server/controller/serverController');
-
-  const serverService = sinon.createStubInstance(IServerService);
-
-  const dateTime = new DateTime();
-
-  const serverController = new ServerController(req, res, serverService, dateTime);
-
-  return {
-    serverService,
-    serverController,
-  };
-}
-
-function fakeAddServerValidationMiddleware(req, res) {
-  const AddServerValidationMiddleware = require('~src/api/http/server/middleware/addServerValidationMiddleware');
-
-  const addServerValidationMiddleware = new AddServerValidationMiddleware(req, res);
-
-  return { addServerValidationMiddleware };
-}
-
-function fakeAppendIpRangeValidationMiddleware(req, res) {
-  const AppendIpRangeValidationMiddleware = require('~src/api/http/server/middleware/appendIpRangeValidationMiddleware');
-
-  const appendIpRangeValidationMiddleware = new AppendIpRangeValidationMiddleware(req, res);
-
-  return { appendIpRangeValidationMiddleware };
-}
-
-function fakeUpdateServerValidationMiddleware(req, res) {
-  const UpdateServerValidationMiddleware = require('~src/api/http/server/middleware/updateServerValidationMiddleware');
-
-  const updateServerValidationMiddleware = new UpdateServerValidationMiddleware(req, res);
-
-  return { updateServerValidationMiddleware };
-}
-
-function fakeServerService(currentInstanceIp, otherInstanceIp) {
-  const IServerRepository = require('~src/core/interface/iServerRepository');
-  const ServerService = require('~src/core/service/serverService');
-
-  const serverRepository = sinon.createStubInstance(IServerRepository);
-
-  const serverService = new ServerService(serverRepository, currentInstanceIp);
-
-  const otherServerService = new ServerService(serverRepository, otherInstanceIp);
-
-  return {
-    serverRepository,
-    serverService,
-    otherServerService,
-  };
-}
-
-function fakeServerPgRepository() {
-  const DateTime = require('~src/infrastructure/system/dateTime');
-  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
-  const ServerRepository = require('~src/infrastructure/database/serverRepository');
-
-  const postgresDb = {};
-  postgresDb.query = sinon.stub();
-
-  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
-
-  const dateTime = new DateTime();
-
-  const serverRepository = new ServerRepository(postgresDb, dateTime, identifierGenerator);
-
-  return { postgresDb, identifierGenerator, serverRepository };
-}
-
-function fakeFindClusterProxyServerService() {
-  const IProxyServerService = require('~src/core/interface/iProxyServerService');
-  const IServerService = require('~src/core/interface/iServerService');
-  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
-  const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
-
-  const proxyServerService = sinon.createStubInstance(IProxyServerService);
-
-  const serverService = sinon.createStubInstance(IServerService);
-
-  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
-
-  const findClusterProxyServerService = new FindClusterProxyServerService(
-    proxyServerService,
-    serverService,
-    serverApiRepository,
-  );
-
-  return {
-    proxyServerService,
-    serverService,
-    serverApiRepository,
-    findClusterProxyServerService,
-  };
-}
-
-function fakeFindClusterPackageService(currentInstanceIp) {
-  const IPackageService = require('~src/core/interface/iPackageService');
-  const IServerService = require('~src/core/interface/iServerService');
-  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
-  const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
-
-  const packageService = sinon.createStubInstance(IPackageService);
-
-  const serverService = sinon.createStubInstance(IServerService);
-
-  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
-
-  const findClusterPackageService = new FindClusterPackageService(
-    packageService,
-    serverService,
-    serverApiRepository,
-    currentInstanceIp,
-  );
-
-  return {
-    packageService,
-    serverService,
-    serverApiRepository,
-    findClusterPackageService,
-  };
-}
-
-function fakeProxyServerApiRepository() {
-  const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
-  const IDateTime = require('~src/core/interface/iDateTime');
-
-  const dateTime = sinon.createStubInstance(IDateTime);
-
-  const proxyServerApiRepository = new ProxyServerApiRepository(dateTime, 'Bearer token');
-
-  return { dateTime, proxyServerApiRepository };
-}
-
-function fakeFindClusterUserService(currentInstanceIp) {
-  const IUserService = require('~src/core/interface/iUserService');
-  const IServerService = require('~src/core/interface/iServerService');
-  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
-  const FindClusterUserService = require('~src/core/service/findClusterUserService');
-
-  const userService = sinon.createStubInstance(IUserService);
-
-  const serverService = sinon.createStubInstance(IServerService);
-
-  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
-
-  const findClusterUserService = new FindClusterUserService(
-    userService,
-    serverService,
-    serverApiRepository,
-    currentInstanceIp,
-  );
-
-  return {
-    userService,
-    serverService,
-    serverApiRepository,
-    findClusterUserService,
-  };
-}
-
 module.exports = {
   sleep,
   formatDate,
@@ -744,14 +560,4 @@ module.exports = {
   fakeJobPgRepository,
   fakeJobController,
   fakeJobService,
-  fakeServerController,
-  fakeAddServerValidationMiddleware,
-  fakeAppendIpRangeValidationMiddleware,
-  fakeUpdateServerValidationMiddleware,
-  fakeServerService,
-  fakeServerPgRepository,
-  fakeFindClusterProxyServerService,
-  fakeFindClusterPackageService,
-  fakeProxyServerApiRepository,
-  fakeFindClusterUserService,
 };

@@ -45,7 +45,6 @@
     "realProjectPathForDocker": "",
     "squid": {
       "perIpInstance": 100,
-      "portListener": null,
       "scriptApiToken": ""
     },
     "timezone": {
