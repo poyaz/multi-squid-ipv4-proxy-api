@@ -393,6 +393,8 @@ if [[ $execute_mode == "init" ]]; then
       "$DEFAULT_NODE_ENV_FILE"
 
       if [[ $? -eq 0 ]]; then
+        rm -f $DEFAULT_NODE_ENV_FILE $DEFAULT_PG_ENV_FILE
+
         echo "[ERR] Fail to execute sed command"
         exit 1
       fi
