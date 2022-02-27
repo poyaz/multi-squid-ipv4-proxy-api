@@ -392,7 +392,12 @@ if [[ $execute_mode == "init" ]]; then
       -e "s/JWT_SECRET_KEY=/JWT_SECRET_KEY=$JWT_TOKEN/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
-    docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node docker-proxy build-squid-image
+      if [[ $? -eq 0 ]]; then
+        echo "[ERR] Fail to execute sed command"
+        exit 1
+      fi
+
+    PG_HOST=$PG_HOST PG_PORT=$PG_PORT docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node docker-proxy build-squid-image
   else
     GENERATE_PG_PASSWORD=$(
       tr -dc A-Za-z0-9 </dev/urandom | head -c 13
