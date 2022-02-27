@@ -346,13 +346,13 @@ if [[ $execute_mode == "init" ]]; then
   cp "$DEFAULT_PG_ENV_FILE.example" $DEFAULT_PG_ENV_FILE
 
   if [[ ${cluster_mode} == 'child' ]]; then
-    echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2 >/dev/null 2>&1
+    docker run --rm -it postgres:11.10 bash -c 'echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY >/dev/null 2>&1'
     if ! [[ $? -eq 0 ]]; then
       echo "[ERR] Your share key is invalid!"
       exit 1
     fi
 
-    JSON_DATA=$(echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2)
+    JSON_DATA=$(docker run --rm -it postgres:11.10 bash -c 'echo "$MASTER_TOKEN" | openssl enc -d -des3 -base64 -pass pass:$SHARE_KEY')
 
     PG_PASSWORD=$(echo $JSON_DATA | jq -r '.pg_pass')
     JWT_TOKEN=$(echo $JSON_DATA | jq -r '.jwt_secret')
@@ -452,7 +452,7 @@ if [[ $execute_mode == "init" ]]; then
           '{"pg_host": $pg_host, "pg_port": $pg_port, "pg_db": $pg_db, "pg_user": $pg_user, "pg_pass": $pg_pass, "jwt_secret": $jwt_secret}'
       )
 
-      GENERATE_MASTER_TOKEN=$(echo "$GENERATE_MASTER_JSON" | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2)
+      GENERATE_MASTER_TOKEN=$(docker run --rm -it postgres:11.10 bash -c 'echo "$GENERATE_MASTER_JSON" | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY')
       echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
       echo $GENERATE_MASTER_TOKEN
 
@@ -519,7 +519,7 @@ if [[ $execute_mode == "fetch" ]]; then
       '{"pg_host": $pg_host, "pg_port": $pg_port, "pg_db": $pg_db, "pg_user": $pg_user, "pg_pass": $pg_pass, "jwt_secret": $jwt_secret}'
   )
 
-  GENERATE_FETCH_TOKEN=$(echo "$GENERATE_FETCH_JSON" | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY -pbkdf2)
+  GENERATE_FETCH_TOKEN=$(docker run --rm -it postgres:11.10 bash -c 'echo "$GENERATE_FETCH_JSON" | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY')
   echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
   echo $GENERATE_FETCH_TOKEN
 
