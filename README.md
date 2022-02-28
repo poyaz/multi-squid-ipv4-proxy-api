@@ -17,6 +17,9 @@ Options:
       --init                    Init webserver and database
       --restart                 Restart all service
       --token                   Get token
+      --init-cluster            Create server with cluster
+      --join-cluster            Join new server to exist cluster
+      --fetch-cluster           Fetch cluster token from exist node
 
   -v, --version                 Show version information and exit
   -h, --help                    Show help
@@ -36,6 +39,94 @@ Enter webserver port: 8080
 ### Get api token
 > bash cli.sh --token
 ```
+
+How to deploy
+=============
+
+This proxy service design to deploy with two structure
+
+* Single instance
+* Cluster instance
+
+## Single instance
+
+For deploy this proxy with single instance you should use `--init` option
+
+```bash
+> bash cli.sh --install
+
+> bash cli.sh --init
+Enter webserver ip: -- (Step 1)
+Enter webserver port: -- (Step 2)
+```
+
+After execute command you should fill bellow step:
+
+* Step 1: You should enter your public ip address
+* Step 2: Enter webserver port. Server listens this port for execute API
+
+## Cluster instance
+
+For deploy this proxy with single instance you should use two options. At first need start one node with `--init-cluster` and for other nodes need execute with `--join-cluster`
+
+After you deployed cluster service you should add all server with API (You can use `Create new server` API for add a new server). You can use all API in cluster mode after added servers 
+
+### Create first node
+
+For create first cluster node use below command:
+
+```bash
+> bash cli.sh --install
+
+> bash cli.sh --init-cluster
+Enter webserver ip: -- (Step 1)
+Enter webserver port: -- (Step 2)
+Enter custom share key: -- (Step 3)
+```
+
+After execute command you should fill bellow step:
+
+* Step 1: You should enter your public ip address
+* Step 2: Enter webserver port. Server listens this port for execute API
+* Step 3: Enter a password for generate token for others node instance
+
+When server runs successfully a token generated and store in `storage/temp/master.key.txt` folder. You should copy this token and use for another node to join in cluster
+
+### Join node to cluster
+
+Now you have a token, and you can join a new instance to cluster. We need to logging in a new server.
+
+Now start a join a new node to cluster you should store your token in a file (Default address is `storage/temp/master.key.txt` but you can store in each file you want)
+
+```bash
+> bash cli.sh --install
+
+> bash cli.sh --join-cluster
+Enter webserver ip: -- (Step 1)
+Enter webserver port: -- (Step 2)
+Enter custom share key: -- (Step 3)
+Enter master file token: -- (Step 4)
+```
+
+After execute command you should fill bellow step:
+
+* Step 1: You should enter your public ip address
+* Step 2: Enter webserver port. Server listens this port for execute API
+* Step 3: Enter a password you used when execute `bash cli.sh --init-cluster`
+* Step 4: Enter a file address you stored token in this file (Default address is `storage/temp/master.key.txt`)
+
+**P.S**
+
+Default token store in `storage/temp/master.key.txt` on a master server but if you forgot cluster token you can use below command in master service and get cluster token:
+
+```bash
+> bash cli.sh --fetch-cluster
+Enter custom share key: -- (Step 1)
+```
+
+After execute command you should fill bellow step:
+
+* Step 1: Enter a password for generate new token for others node instance
 
 API
 ===
