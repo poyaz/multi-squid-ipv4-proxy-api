@@ -534,7 +534,7 @@ if [[ $execute_mode == "fetch" ]]; then
   GENERATE_FETCH_TOKEN=$(docker run --rm -v "$DIRNAME/storage/temp/cluster.json":/tmp/cluster.json -it postgres:11.10 bash -c 'cat /tmp/cluster.json | openssl enc -e -des3 -base64 -pass pass:$SHARE_KEY')
   rm -f "$DIRNAME/storage/temp/cluster.json"
   echo "[INFO] Please copy you master token and use when want join nodes to cluster:"
-  echo "$GENERATE_FETCH_TOKEN""
+  echo "$GENERATE_FETCH_TOKEN"
 
   echo ""
   echo "$GENERATE_FETCH_TOKEN" >"$DIRNAME/storage/temp/master.key.txt"
