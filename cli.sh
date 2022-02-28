@@ -499,6 +499,11 @@ if [[ $execute_mode == "token" ]]; then
 fi
 
 if [[ $execute_mode == "fetch" ]]; then
+  if ! [[ -f $DEFAULT_NODE_ENV_FILE ]]; then
+    echo "[ERR] The service is not already initialized!"
+    exit
+  fi
+
   read -s -p "Enter custom share key: " SHARE_KEY
   if [[ -z ${SHARE_KEY} ]]; then
     echo "[ERR] Please enter share key"
