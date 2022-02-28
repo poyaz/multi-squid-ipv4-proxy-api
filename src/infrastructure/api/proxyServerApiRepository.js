@@ -230,6 +230,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
     const model = new PackageModel();
     model.id = body['id'];
     model.username = body['username'];
+    model.ipList = body['ipList'];
     model.countIp = body['countIp'];
     model.expireDate = body['expireDate']
       ? this.#dateTime.gregorianDateWithTimezone(body['expireDate'], 'YYYY-MM-DD')
