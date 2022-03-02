@@ -17,6 +17,18 @@ class IUserRepository {
   /**
    *
    * @param {string} username
+   * @param {string} password
+   * @return {Promise<(Error|boolean)[]>}
+   */
+  async checkUsernameAndPassword(username, password) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username, password };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {string} username
    * @return {Promise<(Error|boolean)[]>}
    */
   async isUserExist(username) {

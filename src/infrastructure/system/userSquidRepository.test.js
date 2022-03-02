@@ -168,6 +168,173 @@ suite(`UserSquidRepository`, () => {
     });
   });
 
+  suite(`Check username and password`, () => {
+    test(`Should error check user and password when check file exist in path`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      const commandError = new Error('Command error');
+      fsAsync.access.throws(commandError);
+
+      const [error] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should error check user and password when execute command check user command`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      fsAsync.access.resolves();
+      const commandError = new Error('Command error');
+      child_process.spawn.throws(commandError);
+
+      const [error] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', commandError);
+    });
+
+    test(`Should error check user and password when stderr on execute check user command and have error`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      child_process.spawn.returns();
+      child_process.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.write('Command error');
+        stderr.end();
+
+        return { stderr, stdin };
+      });
+
+      const [error] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(CommandExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error.errorInfo).to.be.an.instanceof(Error);
+    });
+
+    test(`Should successfully check user and password and return false (file not exist)`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      const fileNotFoundError = new Error('File not found');
+      fileNotFoundError.code = 'ENOENT';
+      fsAsync.access.throws(fileNotFoundError);
+
+      const [error, result] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean').and.equal(false);
+    });
+
+    test(`Should successfully check user and password and return false when execute check user command and user not exist`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      fsAsync.access.resolves();
+      child_process.spawn.returns();
+      child_process.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        setTimeout(() => {
+          stderr.write(`User ${inputUsername} not found`);
+          stderr.end();
+        });
+
+        return { stderr, stdin };
+      });
+
+      const [error, result] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean').and.equal(false);
+    });
+
+    test(`Should successfully check user and password and return false when password not match`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      fsAsync.access.resolves();
+      child_process.spawn.returns();
+      child_process.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.write(`password verification failed`);
+        stderr.end();
+
+        return { stderr, stdin };
+      });
+
+      const [error, result] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean').and.equal(false);
+    });
+
+    test(`Should successfully check user and password and return true when password is match`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      fsAsync.access.resolves();
+      child_process.spawn.returns();
+      child_process.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.end();
+
+        const stdout = new PassThrough();
+        stdout.write(`Password for user ${inputUsername} correct.`);
+        stdout.end();
+
+        return { stderr, stdout, stdin };
+      });
+
+      const [error, result] = await testObj.userSquidRepository.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      fsAsync.access.should.have.callCount(1);
+      child_process.spawn.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean').and.equal(true);
+    });
+  });
+
   suite(`Add new user`, () => {
     test(`Should error add user when check file exist in path`, async () => {
       const inputModel = new UserModel();

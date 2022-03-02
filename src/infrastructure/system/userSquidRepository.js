@@ -56,6 +56,42 @@ class UserSquidRepository extends IUserRepository {
     }
   }
 
+  async checkUsernameAndPassword(username, password) {
+    const [checkFileExistError, isFileExist] = await this._checkFileExist(this.#passwdPathFile);
+    if (checkFileExistError) {
+      return [checkFileExistError];
+    }
+
+    if (!isFileExist) {
+      return [null, false];
+    }
+
+    try {
+      const exec = spawn('htpasswd', ['-v', '-i', this.#passwdPathFile, username]);
+      exec.stdin.write(password);
+      exec.stdin.end();
+
+      let checkUserError = '';
+      for await (const chunk of exec.stderr) {
+        checkUserError += chunk;
+      }
+      if (checkUserError) {
+        if (/not found/.test(checkUserError)) {
+          return [null, false];
+        }
+        if (/verification failed/.test(checkUserError)) {
+          return [null, false];
+        }
+
+        return [new CommandExecuteException(new Error(checkUserError))];
+      }
+
+      return [null, true];
+    } catch (error) {
+      return [new CommandExecuteException(error)];
+    }
+  }
+
   /**
    *
    * @param {UserModel} model
