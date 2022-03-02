@@ -82,6 +82,9 @@ class UserSquidRepository extends IUserRepository {
         if (/verification failed/.test(checkUserError)) {
           return [null, false];
         }
+        if (/correct.$/.test(checkUserError.replace(/\n/g, ''))) {
+          return [null, true];
+        }
 
         return [new CommandExecuteException(new Error(checkUserError))];
       }

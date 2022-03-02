@@ -314,13 +314,10 @@ suite(`UserSquidRepository`, () => {
         const stdin = new PassThrough();
 
         const stderr = new PassThrough();
+        stderr.write(`Password for user ${inputUsername} correct.`);
         stderr.end();
 
-        const stdout = new PassThrough();
-        stdout.write(`Password for user ${inputUsername} correct.`);
-        stdout.end();
-
-        return { stderr, stdout, stdin };
+        return { stderr, stdin };
       });
 
       const [error, result] = await testObj.userSquidRepository.checkUsernameAndPassword(
