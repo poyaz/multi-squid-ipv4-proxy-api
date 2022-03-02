@@ -140,6 +140,33 @@ class ExpressApi extends IRunner {
       },
     );
 
+    router.post(
+      '/v1/user/login',
+      async (req, res, next) => {
+        try {
+          const middleware = userHttpApi.addUserValidationMiddlewareFactory.create(req, res);
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const userController = userHttpApi.userControllerFactory.create(req, res);
+          const response = await userController.loginUser();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
     router.put(
       '/v1/user/:username/password',
       this._middlewareUserAccess.bind(this),

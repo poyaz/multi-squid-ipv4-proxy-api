@@ -20,7 +20,10 @@ class AccessMiddleware extends IHttpMiddleware {
   }
 
   async act() {
-    if (this.#req.method === 'POST' && this.#req.url.match(/^\/v[0-9]+\/user$/)) {
+    if (
+      this.#req.method === 'POST' &&
+      (this.#req.url.match(/^\/v[0-9]+\/user$/) || this.#req.url.match(/^\/v[0-9]+\/user\/login$/))
+    ) {
       return;
     }
 
@@ -37,6 +40,8 @@ class AccessMiddleware extends IHttpMiddleware {
 
     try {
       this.#req.user = this.#jwt.verify(token);
+
+      delete this.#req.user.verifyAccess;
     } catch (error) {
       throw new UnauthorizedException();
     }

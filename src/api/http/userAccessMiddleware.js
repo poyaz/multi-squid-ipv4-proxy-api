@@ -19,19 +19,21 @@ class UserAccessMiddleware extends IHttpMiddleware {
 
   async act() {
     if (!Object.hasOwnProperty.call(this.#req, 'user')) {
-      throw UnauthorizedException();
+      throw new UnauthorizedException();
     }
     if (!Object.hasOwnProperty.call(this.#req.user, 'role')) {
-      throw UnauthorizedException();
+      throw new UnauthorizedException();
     }
 
-    if (this.#req.user.role === 'admin') {
+    if (this.#req.user.verifyAccess) {
       return;
     }
 
     if (this.#req.user.role !== 'user') {
-      throw ForbiddenException();
+      throw new ForbiddenException();
     }
+
+    this.#req.user.verifyAccess = true;
   }
 }
 

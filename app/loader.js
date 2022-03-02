@@ -239,6 +239,7 @@ class Loader {
       findClusterUserService,
       dateTime,
       urlAccessService,
+      jwt,
     );
 
     const serverMiddlewares = {
