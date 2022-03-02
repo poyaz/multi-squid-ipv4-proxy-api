@@ -1,4 +1,4 @@
-class UnauthorizedException extends Error {
+class unauthorizedException extends Error {
   constructor(error) {
     super('Unauthorized access.');
 
@@ -9,4 +9,4 @@ class UnauthorizedException extends Error {
   }
 }
 
-module.exports = UnauthorizedException;
+module.exports = unauthorizedException;

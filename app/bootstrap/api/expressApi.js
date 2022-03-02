@@ -44,7 +44,7 @@ class ExpressApi extends IRunner {
 
     app.use((error, req, res, next) => {
       if (error) {
-        this._sendFail(res, error);
+        this._sendFail(res, error, error['httpCode']);
       }
 
       next();
@@ -56,22 +56,14 @@ class ExpressApi extends IRunner {
   }
 
   _route() {
-    const jwt = this._dependency.jwt;
-
-    router.use((req, res, next) => {
-      const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
-
-      if (!token) {
-        return res.sendStatus(401);
-      }
-
+    router.use(async (req, res, next) => {
       try {
-        jwt.verify(token);
+        const accessMiddleware = this._dependency.accessMiddlewareFactory.create(req, res);
+        await accessMiddleware.act();
 
         return next(null);
       } catch (error) {
-        res.sendStatus(403);
+        return next(error);
       }
     });
 
@@ -86,7 +78,7 @@ class ExpressApi extends IRunner {
   _jobRoute() {
     const jobHttpApi = this._dependency.jobHttpApi;
 
-    router.get('/v1/job/:jobId', async (req, res, next) => {
+    router.get('/v1/job/:jobId', this._middlewareAdminAccess.bind(this), async (req, res, next) => {
       try {
         const jobController = jobHttpApi.jobControllerFactory.create(req, res);
         const response = await jobController.getJobById();
@@ -103,18 +95,23 @@ class ExpressApi extends IRunner {
   _userRoute() {
     const userHttpApi = this._dependency.userHttpApi;
 
-    router.get('/v1/user', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.getAllUsers();
+    router.get(
+      '/v1/user',
+      this._middlewareUserAccess.bind(this),
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const userController = userHttpApi.userControllerFactory.create(req, res);
+          const response = await userController.getAllUsers();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
     router.post(
       '/v1/user',
@@ -145,6 +142,8 @@ class ExpressApi extends IRunner {
 
     router.put(
       '/v1/user/:username/password',
+      this._middlewareUserAccess.bind(this),
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = userHttpApi.changePasswordUserValidationMiddlewareFactory.create(
@@ -173,34 +172,43 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.put('/v1/user/:username/disable', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.disableByUsername();
+    router.put(
+      '/v1/user/:username/disable',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const userController = userHttpApi.userControllerFactory.create(req, res);
+          const response = await userController.disableByUsername();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
-    router.put('/v1/user/:username/enable', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.enableByUsername();
+    router.put(
+      '/v1/user/:username/enable',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const userController = userHttpApi.userControllerFactory.create(req, res);
+          const response = await userController.enableByUsername();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
     router.post(
       '/v1/user/:username/website/block',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = userHttpApi.blockUrlForUserValidationMiddlewareFactory.create(
@@ -246,21 +254,28 @@ class ExpressApi extends IRunner {
   _packageRoute() {
     const packageHttpApi = this._dependency.packageHttpApi;
 
-    router.get('/v1/package/user/:username', async (req, res, next) => {
-      try {
-        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
-        const response = await packageController.getAllByUsername();
+    router.get(
+      '/v1/package/user/:username',
+      this._middlewareUserAccess.bind(this),
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+          const response = await packageController.getAllByUsername();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
     router.post(
       '/v1/package',
+      this._middlewareUserAccess.bind(this),
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = packageHttpApi.createPackageValidationMiddlewareFactory.create(
@@ -291,6 +306,8 @@ class ExpressApi extends IRunner {
 
     router.put(
       '/v1/package/:packageId/renew',
+      this._middlewareUserAccess.bind(this),
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = packageHttpApi.renewPackageValidatorMiddlewareFactory.create(req, res);
@@ -316,37 +333,45 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.post('/v1/package/:packageId/sync', async (req, res, next) => {
-      try {
-        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
-        const response = await packageController.syncPackage();
+    router.post(
+      '/v1/package/:packageId/sync',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+          const response = await packageController.syncPackage();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
-    router.delete('/v1/package/:packageId', async (req, res, next) => {
-      try {
-        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
-        const response = await packageController.removePackage();
+    router.delete(
+      '/v1/package/:packageId',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+          const response = await packageController.removePackage();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
   }
 
   _proxyRoute() {
     const proxyHttpApi = this._dependency.proxyHttpApi;
 
-    router.get('/v1/proxy/ip', async (req, res, next) => {
+    router.get('/v1/proxy/ip', this._middlewareAdminAccess.bind(this), async (req, res, next) => {
       try {
         const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
         const response = await proxyController.getAll();
@@ -361,6 +386,7 @@ class ExpressApi extends IRunner {
 
     router.post(
       '/v1/proxy/generate',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = proxyHttpApi.generateProxyValidatorMiddlewareFactory.create(req, res);
@@ -386,21 +412,26 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.post('/v1/proxy/reload', async (req, res, next) => {
-      try {
-        const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
-        const response = await proxyController.reload();
+    router.post(
+      '/v1/proxy/reload',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const proxyController = proxyHttpApi.proxyControllerFactory.create(req, res);
+          const response = await proxyController.reload();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
     router.delete(
       '/v1/proxy/ip',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = proxyHttpApi.deleteProxyIpValidatorMiddlewareFactory.create(req, res);
@@ -433,6 +464,7 @@ class ExpressApi extends IRunner {
 
     router.post(
       '/v1/instance/self/user',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = userHttpApi.addUserValidationMiddlewareFactory.create(req, res);
@@ -460,6 +492,7 @@ class ExpressApi extends IRunner {
 
     router.put(
       '/v1/instance/self/user/:username/password',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = userHttpApi.changePasswordUserValidationMiddlewareFactory.create(
@@ -488,50 +521,62 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.put('/v1/instance/self/user/:username/disable', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.disableByUsernameInSelfInstance();
+    router.put(
+      '/v1/instance/self/user/:username/disable',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const userController = userHttpApi.userControllerFactory.create(req, res);
+          const response = await userController.disableByUsernameInSelfInstance();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
-    router.put('/v1/instance/self/user/:username/enable', async (req, res, next) => {
-      try {
-        const userController = userHttpApi.userControllerFactory.create(req, res);
-        const response = await userController.enableByUsernameInSelfInstance();
+    router.put(
+      '/v1/instance/self/user/:username/enable',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const userController = userHttpApi.userControllerFactory.create(req, res);
+          const response = await userController.enableByUsernameInSelfInstance();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
-    router.get('/v1/instance/self/package/user/:username', async (req, res, next) => {
-      try {
-        const packageController = packageHttpApi.packageControllerFactory.create(req, res);
-        const response = await packageController.getAllByUsernameInSelfInstance();
+    router.get(
+      '/v1/instance/self/package/user/:username',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+          const response = await packageController.getAllByUsernameInSelfInstance();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
   }
 
   _serverRoute() {
     const serverHttpApi = this._dependency.serverHttpApi;
 
-    router.get('/v1/server', async (req, res, next) => {
+    router.get('/v1/server', this._middlewareAdminAccess.bind(this), async (req, res, next) => {
       try {
         const serverController = serverHttpApi.serverControllerFactory.create(req, res);
         const response = await serverController.getAll();
@@ -546,6 +591,7 @@ class ExpressApi extends IRunner {
 
     router.post(
       '/v1/server',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = serverHttpApi.addServerValidationMiddlewareFactory.create(req, res);
@@ -573,6 +619,7 @@ class ExpressApi extends IRunner {
 
     router.put(
       '/v1/server/:id',
+      this._middlewareAdminAccess.bind(this),
       async (req, res, next) => {
         try {
           const middleware = serverHttpApi.updateServerValidationMiddlewareFactory.create(req, res);
@@ -598,18 +645,44 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.delete('/v1/server/:id', async (req, res, next) => {
-      try {
-        const serverController = serverHttpApi.serverControllerFactory.create(req, res);
-        const response = await serverController.delete();
+    router.delete(
+      '/v1/server/:id',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const serverController = serverHttpApi.serverControllerFactory.create(req, res);
+          const response = await serverController.delete();
 
-        this._sendResponse(req, res, response);
+          this._sendResponse(req, res, response);
 
-        return next(null);
-      } catch (error) {
-        return next(error);
-      }
-    });
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+  }
+
+  async _middlewareAdminAccess(req, res, next) {
+    try {
+      const adminAccessMiddleware = this._dependency.adminAccessMiddlewareFactory.create(req, res);
+      await adminAccessMiddleware.act();
+
+      return next(null);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async _middlewareUserAccess(req, res, next) {
+    try {
+      const userAccessMiddleware = this._dependency.userAccessMiddlewareFactory.create(req, res);
+      await userAccessMiddleware.act();
+
+      return next(null);
+    } catch (error) {
+      return next(error);
+    }
   }
 
   _sendResponse(req, res, response) {

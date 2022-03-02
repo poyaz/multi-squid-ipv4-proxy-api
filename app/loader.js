@@ -44,6 +44,10 @@ const ServerService = require('~src/core/service/serverService');
 const UrlAccessService = require('~src/core/service/urlAccessService');
 const UserService = require('~src/core/service/userService');
 
+const AccessMiddlewareFactory = require('~src/api/http/accessMiddlewareFactory');
+const AdminAccessMiddlewareFactory = require('~src/api/http/adminAccessMiddlewareFactory');
+const UserAccessMiddlewareFactory = require('~src/api/http/userAccessMiddlewareFactory');
+
 const JobControllerFactory = require('~src/api/http/job/controller/jobControllerFactory');
 
 const CreatePackageValidationMiddlewareFactory = require('~src/api/http/package/middleware/createPackageValidationMiddlewareFactory');
@@ -200,6 +204,10 @@ class Loader {
     // Controller and middleware
     // -------------------------
 
+    const accessMiddlewareFactory = new AccessMiddlewareFactory(jwt);
+    const adminAccessMiddlewareFactory = new AdminAccessMiddlewareFactory();
+    const userAccessMiddlewareFactory = new UserAccessMiddlewareFactory();
+
     const jobControllerFactory = new JobControllerFactory(jobService, dateTime);
 
     const packageMiddlewares = {
@@ -251,6 +259,10 @@ class Loader {
     this._dependency.jwt = jwt;
     this._dependency.identifierGenerator = identifierGenerator;
     this._dependency.dateTime = dateTime;
+
+    this._dependency.accessMiddlewareFactory = accessMiddlewareFactory;
+    this._dependency.adminAccessMiddlewareFactory = adminAccessMiddlewareFactory;
+    this._dependency.userAccessMiddlewareFactory = userAccessMiddlewareFactory;
 
     this._dependency.jobHttpApi = {
       jobControllerFactory,
