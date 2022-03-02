@@ -375,7 +375,6 @@ This API use for create new user
 curl \
   -X POST \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/user' \
   -d '{"username": "<your-username>", "password": "<your-password>"}'
 ```
@@ -386,7 +385,6 @@ curl \
 curl \
     -X POST \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/user'
     -d '{"username": "my_username", "password": "this-is-my-password"}'
 ```
@@ -399,6 +397,58 @@ curl \
   "data": {
     "id": "ec7c5690-c008-4c13-bf52-ba0bbff06fb0",
     "username": "my_username"
+  }
+}
+```
+
+## Login users
+
+This API use for a login user
+
+Output of this API (token) use in below API:
+
+* `GET /v1/user`
+* `PUT /v1/user/:username/password`
+* `POST /v1/package`
+* `PUT /v1/package/:packageId/renew`
+* `GET /v1/package/user/:username`
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/user/login`
+* Body: `{"username": "<your-username>", "password": "<your-password>"}`
+
+### Body format
+
+* `username` string with [a-zA-Z0-9_.] between 3 and 20 (Example: **test1** or **test_1** or **test**.1)
+* `password` string at least 6 character
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  '<your-hostname-or-ip>/api/v1/user/login' \
+  -d '{"username": "<your-username>", "password": "<your-password>"}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    '<your-hostname-or-ip>/api/v1/user/login'
+    -d '{"username": "my_username", "password": "this-is-my-password"}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "token": "token.of.user",
   }
 }
 ```
