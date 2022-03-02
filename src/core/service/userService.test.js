@@ -14,6 +14,8 @@ const PackageModel = require('~src/core/model/packageModel');
 const UserExistException = require('~src/core/exception/userExistException');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
+const AuthenticateFailException = require('~src/core/exception/authenticateFailException');
+const UserDisableException = require('~src/core/exception/userDisableException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -85,6 +87,150 @@ suite(`UserService`, () => {
       expect(result).to.have.length(2);
       expect(result[0]).to.have.instanceOf(UserModel);
       expect(result[1]).to.have.instanceOf(UserModel);
+    });
+  });
+
+  suite(`Check username and password`, () => {
+    test(`Should error check username and password`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userSquidRepository.checkUsernameAndPassword.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check username and password when username not found or password is incorrect`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userSquidRepository.checkUsernameAndPassword.resolves([null, false]);
+
+      const [error] = await testObj.userService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      expect(error).to.be.an.instanceof(AuthenticateFailException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check username and password when get user info by username`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userSquidRepository.checkUsernameAndPassword.resolves([null, true]);
+      testObj.userRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', inputUsername)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check username and password when can't found user`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userSquidRepository.checkUsernameAndPassword.resolves([null, true]);
+      testObj.userRepository.getAll.resolves([null, []]);
+
+      const [error] = await testObj.userService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', inputUsername)),
+      );
+      expect(error).to.be.an.instanceof(AuthenticateFailException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check username and password when user is disable`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userSquidRepository.checkUsernameAndPassword.resolves([null, true]);
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.username = 'username';
+      outputUserModel.isEnable = false;
+      testObj.userRepository.getAll.resolves([null, [outputUserModel]]);
+
+      const [error] = await testObj.userService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', inputUsername)),
+      );
+      expect(error).to.be.an.instanceof(UserDisableException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully check username and password and return enabled user info`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userSquidRepository.checkUsernameAndPassword.resolves([null, true]);
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.username = 'username';
+      outputUserModel.isEnable = true;
+      testObj.userRepository.getAll.resolves([null, [outputUserModel]]);
+
+      const [error, result] = await testObj.userService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userSquidRepository.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', inputUsername)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(UserModel);
     });
   });
 

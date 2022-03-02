@@ -29,6 +29,18 @@ class IUserService {
    *
    * @param {string} username
    * @param {string} password
+   * @return {Promise<(Error|UserModel)[]>}
+   */
+  async checkUsernameAndPassword(username, password) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { username, password };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {string} username
+   * @param {string} password
    * @return {Promise<(Error)[]>}
    */
   async changePassword(username, password) {

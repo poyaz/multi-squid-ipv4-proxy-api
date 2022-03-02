@@ -7,6 +7,8 @@ const PackageModel = require('~src/core/model/packageModel');
 const IUserService = require('~src/core/interface/iUserService');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const UserExistException = require('~src/core/exception/userExistException');
+const UserDisableException = require('~src/core/exception/userDisableException');
+const AuthenticateFailException = require('~src/core/exception/authenticateFailException');
 
 class UserService extends IUserService {
   /**
@@ -44,6 +46,34 @@ class UserService extends IUserService {
 
   async getAll(filterInput) {
     return this.#userRepository.getAll(filterInput);
+  }
+
+  async checkUsernameAndPassword(username, password) {
+    const [errorCheck, dataCheck] = await this.#userSquidRepository.checkUsernameAndPassword(
+      username,
+      password,
+    );
+    if (errorCheck) {
+      return [errorCheck];
+    }
+    if (!dataCheck) {
+      return [new AuthenticateFailException()];
+    }
+
+    const filterModel = new UserModel();
+    filterModel.username = username;
+    const [errorFetch, dataFetch] = await this.#userRepository.getAll(filterModel);
+    if (errorFetch) {
+      return [errorFetch];
+    }
+    if (dataFetch.length === 0) {
+      return [new AuthenticateFailException()];
+    }
+    if (!dataFetch[0].isEnable) {
+      return [new UserDisableException()];
+    }
+
+    return [null, dataFetch[0]];
   }
 
   async add(model) {
