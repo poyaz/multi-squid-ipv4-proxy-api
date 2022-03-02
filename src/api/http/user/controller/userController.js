@@ -4,6 +4,7 @@
 
 const AddUserInputModel = require('./model/addUserInputModel');
 const AddUserOutputModel = require('./model/addUserOutputModel');
+const LoginUserOutputModel = require('./model/loginUserOutputModel');
 const GetAllUserInputModel = require('./model/getAllUserInputModel');
 const GetAllUserOutputModel = require('./model/getAllUserOutputModel');
 const BlockUrlForUserInputModel = require('./model/blockUrlForUserInputModel');
@@ -27,6 +28,7 @@ class UserController {
    * @type {IUrlAccessService}
    */
   #urlAccessService;
+  #jwt;
 
   /**
    *
@@ -37,13 +39,14 @@ class UserController {
    * @param {IDateTime} dateTime
    * @param {IUrlAccessService} urlAccessService
    */
-  constructor(req, res, userService, findClusterUserService, dateTime, urlAccessService) {
+  constructor(req, res, userService, findClusterUserService, dateTime, urlAccessService, jwt) {
     this.#req = req;
     this.#res = res;
     this.#userService = userService;
     this.#findClusterUserService = findClusterUserService;
     this.#dateTime = dateTime;
     this.#urlAccessService = urlAccessService;
+    this.#jwt = jwt;
   }
 
   async getAllUsers() {
@@ -76,6 +79,26 @@ class UserController {
 
     const addUserOutputModel = new AddUserOutputModel(this.#dateTime);
     const result = addUserOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async loginUser() {
+    const { body } = this.#req;
+
+    const addUserInputModel = new AddUserInputModel();
+    const model = addUserInputModel.getModel(body);
+
+    const [error, data] = await this.#findClusterUserService.checkUsernameAndPassword(
+      model.username,
+      model.password,
+    );
+    if (error) {
+      return [error];
+    }
+
+    const loginUserOutputModel = new LoginUserOutputModel(this.#jwt);
+    const result = loginUserOutputModel.getOutput(data);
 
     return [null, result];
   }

@@ -21,6 +21,7 @@ class UserControllerFactory {
    * @type {IUrlAccessService}
    */
   #urlAccessService;
+  #jwt;
 
   /**
    *
@@ -29,11 +30,12 @@ class UserControllerFactory {
    * @param {IDateTime} dateTime
    * @param {IUrlAccessService} urlAccessService
    */
-  constructor(userService, findClusterUserService, dateTime, urlAccessService) {
+  constructor(userService, findClusterUserService, dateTime, urlAccessService, jwt) {
     this.#userService = userService;
     this.#findClusterUserService = findClusterUserService;
     this.#dateTime = dateTime;
     this.#urlAccessService = urlAccessService;
+    this.#jwt = jwt;
   }
 
   /**
@@ -50,6 +52,7 @@ class UserControllerFactory {
       this.#findClusterUserService,
       this.#dateTime,
       this.#urlAccessService,
+      this.#jwt,
     );
   }
 }

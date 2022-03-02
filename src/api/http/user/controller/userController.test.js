@@ -32,6 +32,7 @@ suite(`UserController`, () => {
       userService,
       findClusterUserService,
       urlAccessService,
+      jwt,
       userController,
     } = helper.fakeUserController(testObj.req, testObj.res);
 
@@ -39,9 +40,11 @@ suite(`UserController`, () => {
     testObj.findClusterUserService = findClusterUserService;
     testObj.urlAccessService = urlAccessService;
     testObj.userController = userController;
+    testObj.jwt = jwt;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
     testObj.dateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/;
+    testObj.token = /.+/;
   });
 
   suite(`Get all user`, () => {
@@ -194,6 +197,43 @@ suite(`UserController`, () => {
         username: testObj.req.body.username,
       });
       expect(result.insertDate).to.have.match(testObj.dateRegex);
+    });
+  });
+
+  suite(`Login user`, () => {
+    test(`Should error login user`, async () => {
+      testObj.req.body = { username: 'username', password: 'password' };
+      testObj.findClusterUserService.checkUsernameAndPassword.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.loginUser();
+
+      testObj.findClusterUserService.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.findClusterUserService.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match('username'),
+        sinon.match('password'),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully login user`, async () => {
+      testObj.req.body = { username: 'username', password: 'password' };
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = testObj.req.body.username;
+      outputModel.insertDate = new Date();
+      testObj.findClusterUserService.checkUsernameAndPassword.resolves([null, outputModel]);
+      testObj.jwt.sign.returns('token');
+
+      const [error, result] = await testObj.userController.loginUser();
+
+      testObj.findClusterUserService.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.findClusterUserService.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match('username'),
+        sinon.match('password'),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result.token).to.have.match(testObj.token);
     });
   });
 

@@ -106,6 +106,10 @@ function fakeUserController(req, res) {
 
   const urlAccessService = sinon.createStubInstance(IUrlAccessService);
 
+  const jwt = {
+    sign: sinon.stub(),
+  };
+
   const userController = new UserController(
     req,
     res,
@@ -113,12 +117,14 @@ function fakeUserController(req, res) {
     findClusterUserService,
     dateTime,
     urlAccessService,
+    jwt,
   );
 
   return {
     userService,
     findClusterUserService,
     urlAccessService,
+    jwt,
     userController,
   };
 }
