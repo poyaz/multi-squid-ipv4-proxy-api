@@ -42,6 +42,10 @@ class FindClusterUserService extends IUserService {
     return this.#userService.getAll(filterModel);
   }
 
+  async checkUsernameAndPassword(username, password) {
+    return this.#userService.checkUsernameAndPassword(username, password);
+  }
+
   async add(model) {
     const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
     if (errorAllServer) {

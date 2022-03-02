@@ -80,6 +80,51 @@ suite(`FindClusterUserService`, () => {
     });
   });
 
+  suite(`Check username and password`, () => {
+    test(`Should error check username and password`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      testObj.userService.checkUsernameAndPassword.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userService.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userService.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully check username and password`, async () => {
+      const inputUsername = 'username';
+      const inputPassword = 'password';
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      outputModel.isEnable = true;
+      outputModel.insertDate = new Date();
+      testObj.userService.checkUsernameAndPassword.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.findClusterUserService.checkUsernameAndPassword(
+        inputUsername,
+        inputPassword,
+      );
+
+      testObj.userService.checkUsernameAndPassword.should.have.callCount(1);
+      testObj.userService.checkUsernameAndPassword.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match(inputPassword),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(UserModel);
+    });
+  });
+
   suite(`Add new user`, () => {
     test(`Should error add new user when get all instance has fail`, async () => {
       const inputModel = new UserModel();
