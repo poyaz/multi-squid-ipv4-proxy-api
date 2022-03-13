@@ -41,9 +41,9 @@ suite(`DiscordExternalAuthService`, () => {
 
   suite(`Get discord auth options`, () => {
     test(`Should successfully get discord auth options`, async () => {
-      const platform = 'discord';
+      const inputPlatform = 'discord';
 
-      const [error, result] = await testObj.discordExternalAuthService.getOptions(platform);
+      const [error, result] = await testObj.discordExternalAuthService.getOptions(inputPlatform);
 
       expect(error).to.be.a('null');
       expect(result).to.be.a('object').and.have.include({
@@ -56,11 +56,11 @@ suite(`DiscordExternalAuthService`, () => {
 
   suite(`Discord auth`, () => {
     test(`Should error auth in discord platform`, async () => {
-      const platform = 'discord';
+      const inputPlatform = 'discord';
       const authError = new Error('Auth error');
       testObj.externalAuth.generateAuthUrl.throws(authError);
 
-      const [error] = await testObj.discordExternalAuthService.auth(platform);
+      const [error] = await testObj.discordExternalAuthService.auth(inputPlatform);
 
       testObj.externalAuth.generateAuthUrl.should.have.callCount(1);
       testObj.externalAuth.generateAuthUrl.should.have.calledWith(
@@ -73,10 +73,10 @@ suite(`DiscordExternalAuthService`, () => {
     });
 
     test(`Should successfully auth in discord platform`, async () => {
-      const platform = 'discord';
+      const inputPlatform = 'discord';
       testObj.externalAuth.generateAuthUrl.returns('authRedirectUrl');
 
-      const [error, result] = await testObj.discordExternalAuthService.auth(platform);
+      const [error, result] = await testObj.discordExternalAuthService.auth(inputPlatform);
 
       testObj.externalAuth.generateAuthUrl.should.have.callCount(1);
       testObj.externalAuth.generateAuthUrl.should.have.calledWith(
@@ -86,6 +86,216 @@ suite(`DiscordExternalAuthService`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.equal('authRedirectUrl');
+    });
+  });
+
+  suite(`Verify auth user`, () => {
+    test(`Should error verify auth user when get token access`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const tokenError = new Error('Auth error');
+      testObj.externalAuth.tokenRequest.throws(tokenError);
+
+      const [error] = await testObj.discordExternalAuthService.verify(inputPlatform, inputCode);
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      expect(error).to.be.an.instanceof(ExternalAuthException);
+      expect(error).to.have.property('errorInfo', tokenError);
+    });
+
+    test(`Should error verify auth user when get user info`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const outputTokenObj = {
+        access_token: 'accessToken',
+      };
+      testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
+      const userError = new Error('Auth error');
+      testObj.externalAuth.getUser.throws(userError);
+
+      const [error] = await testObj.discordExternalAuthService.verify(inputPlatform, inputCode);
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      testObj.externalAuth.getUser.should.have.callCount(1);
+      testObj.externalAuth.getUser.should.have.calledWith(sinon.match(outputTokenObj.access_token));
+      expect(error).to.be.an.instanceof(ExternalAuthException);
+      expect(error).to.have.property('errorInfo', userError);
+    });
+
+    test(`Should error verify auth user when add user in system`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const outputTokenObj = {
+        access_token: 'accessToken',
+      };
+      testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
+      const outputUserObj = {
+        username: 'username',
+      };
+      testObj.externalAuth.getUser.resolves(outputUserObj);
+      testObj.userService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.discordExternalAuthService.verify(inputPlatform, inputCode);
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      testObj.externalAuth.getUser.should.have.callCount(1);
+      testObj.externalAuth.getUser.should.have.calledWith(sinon.match(outputTokenObj.access_token));
+      testObj.userService.add.should.have.callCount(1);
+      testObj.userService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', outputUserObj.username))
+          .and(sinon.match.has('password', sinon.match.string)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully verify auth user when user not found in system`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const outputTokenObj = {
+        access_token: 'accessToken',
+      };
+      testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
+      const outputUserObj = {
+        username: 'username',
+      };
+      testObj.externalAuth.getUser.resolves(outputUserObj);
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.username = 'username';
+      testObj.userService.add.resolves([null, outputUserModel]);
+
+      const [error, result] = await testObj.discordExternalAuthService.verify(
+        inputPlatform,
+        inputCode,
+      );
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      testObj.externalAuth.getUser.should.have.callCount(1);
+      testObj.externalAuth.getUser.should.have.calledWith(sinon.match(outputTokenObj.access_token));
+      testObj.userService.add.should.have.callCount(1);
+      testObj.userService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', outputUserObj.username))
+          .and(sinon.match.has('password', sinon.match.string)),
+      );
+      expect(error).to.be.a('null');
+      expect(result)
+        .to.have.instanceOf(UserModel)
+        .and.have.property('id', testObj.identifierGenerator.generateId());
+    });
+
+    test(`Should error verify auth user when user found in system and error in fetch user info`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const outputTokenObj = {
+        access_token: 'accessToken',
+      };
+      testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
+      const outputUserObj = {
+        username: 'username',
+      };
+      testObj.externalAuth.getUser.resolves(outputUserObj);
+      testObj.userService.add.resolves([new UserExistException()]);
+      testObj.userService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.discordExternalAuthService.verify(inputPlatform, inputCode);
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      testObj.externalAuth.getUser.should.have.callCount(1);
+      testObj.externalAuth.getUser.should.have.calledWith(sinon.match(outputTokenObj.access_token));
+      testObj.userService.add.should.have.callCount(1);
+      testObj.userService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', outputUserObj.username))
+          .and(sinon.match.has('password', sinon.match.string)),
+      );
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.userService.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', outputUserObj.username)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully verify auth user when user found in system`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const outputTokenObj = {
+        access_token: 'accessToken',
+      };
+      testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
+      const outputUserObj = {
+        username: 'username',
+      };
+      testObj.externalAuth.getUser.resolves(outputUserObj);
+      testObj.userService.add.resolves([new UserExistException()]);
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.username = 'username';
+      testObj.userService.getAll.resolves([null, outputUserModel]);
+
+      const [error, result] = await testObj.discordExternalAuthService.verify(
+        inputPlatform,
+        inputCode,
+      );
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      testObj.externalAuth.getUser.should.have.callCount(1);
+      testObj.externalAuth.getUser.should.have.calledWith(sinon.match(outputTokenObj.access_token));
+      testObj.userService.add.should.have.callCount(1);
+      testObj.userService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', outputUserObj.username))
+          .and(sinon.match.has('password', sinon.match.string)),
+      );
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.userService.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', outputUserObj.username)),
+      );
+      expect(error).to.be.a('null');
+      expect(result)
+        .to.have.instanceOf(UserModel)
+        .and.have.property('id', testObj.identifierGenerator.generateId());
     });
   });
 });

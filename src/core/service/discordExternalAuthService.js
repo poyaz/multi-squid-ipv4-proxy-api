@@ -2,8 +2,10 @@
  * Created by pooya on 3/13/22.
  */
 
+const UserModel = require('~src/core/model/userModel');
 const OauthModel = require('~src/core/model/oauthModel');
 const IExternalAuthService = require('~src/core/interface/iExternalAuthService');
+const UserExistException = require('~src/core/exception/userExistException');
 const ExternalAuthException = require('~src/core/exception/externalAuthException');
 
 class DiscordExternalAuthService extends IExternalAuthService {
@@ -46,6 +48,41 @@ class DiscordExternalAuthService extends IExternalAuthService {
       });
 
       return [null, url];
+    } catch (error) {
+      return [new ExternalAuthException(error)];
+    }
+  }
+
+  async verify(platform, code) {
+    try {
+      const tokenInfo = await this.#externalAuth.auth.tokenRequest({
+        code,
+        grantType: 'authorization_code',
+        scope: ['identify'],
+      });
+      const userInfo = await this.#externalAuth.auth.getUser(tokenInfo['access_token']);
+
+      const model = new UserModel();
+      model.username = userInfo['username'];
+      model.password = `${new Date().getTime()}${Math.floor(Math.random() * 100000) + 10}`;
+
+      const [addUserError, addUserData] = await this.#userService.add(model);
+      if (addUserError && !(addUserError instanceof UserExistException)) {
+        return [addUserError];
+      }
+      if (addUserError instanceof UserExistException) {
+        const filterModel = new UserModel();
+        filterModel.username = model.username;
+
+        const [fetchUserError, fetchUserData] = await this.#userService.getAll(filterModel);
+        if (fetchUserError) {
+          return [fetchUserError];
+        }
+
+        return [null, fetchUserData];
+      }
+
+      return [null, addUserData];
     } catch (error) {
       return [new ExternalAuthException(error)];
     }
