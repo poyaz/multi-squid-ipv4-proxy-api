@@ -24,6 +24,7 @@
     "uuid": "8.3.1",
     "yn": "^4.0.0",
     "axios": "^0.26.0",
+    "discord-oauth2": "^2.9.0",
     "~config": "file:./lib/config",
     "~interface": "file:./lib/interface",
     "~src": "file:./src"
