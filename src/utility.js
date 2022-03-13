@@ -60,6 +60,29 @@ class Utility {
 
     return JSON.stringify(errorObj);
   }
+
+  /**
+   *
+   * @param {string} host
+   * @param {number} httpPort
+   * @param {number} httpsPort
+   * @param {boolean} force
+   * @return {string}
+   */
+  static hostBuilder(host, httpPort, httpsPort, force) {
+    let protocol;
+    let port;
+
+    if (force && httpsPort) {
+      protocol = 'https://';
+      port = httpsPort !== 443 ? `:${httpsPort}` : '';
+    } else {
+      protocol = 'http://';
+      port = httpPort !== 80 ? `:${httpPort}` : '';
+    }
+
+    return `${protocol}${host}${port}`;
+  }
 }
 
 module.exports = Utility;
