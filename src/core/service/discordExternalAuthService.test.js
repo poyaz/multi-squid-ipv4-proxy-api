@@ -13,6 +13,7 @@ const UserModel = require('~src/core/model/userModel');
 const OauthModel = require('~src/core/model/oauthModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const UserExistException = require('~src/core/exception/userExistException');
+const ExternalAuthException = require('~src/core/exception/externalAuthException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -50,6 +51,41 @@ suite(`DiscordExternalAuthService`, () => {
         platform: 'discord',
         redirectUrl: testObj.redirectUrl,
       });
+    });
+  });
+
+  suite(`Discord auth`, () => {
+    test(`Should error auth in discord platform`, async () => {
+      const platform = 'discord';
+      const authError = new Error('Auth error');
+      testObj.externalAuth.generateAuthUrl.throws(authError);
+
+      const [error] = await testObj.discordExternalAuthService.auth(platform);
+
+      testObj.externalAuth.generateAuthUrl.should.have.callCount(1);
+      testObj.externalAuth.generateAuthUrl.should.have.calledWith(
+        sinon.match
+          .has('grantType', 'authorization_code')
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      expect(error).to.be.an.instanceof(ExternalAuthException);
+      expect(error).to.have.property('errorInfo', authError);
+    });
+
+    test(`Should successfully auth in discord platform`, async () => {
+      const platform = 'discord';
+      testObj.externalAuth.generateAuthUrl.returns('authRedirectUrl');
+
+      const [error, result] = await testObj.discordExternalAuthService.auth(platform);
+
+      testObj.externalAuth.generateAuthUrl.should.have.callCount(1);
+      testObj.externalAuth.generateAuthUrl.should.have.calledWith(
+        sinon.match
+          .has('grantType', 'authorization_code')
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal('authRedirectUrl');
     });
   });
 });

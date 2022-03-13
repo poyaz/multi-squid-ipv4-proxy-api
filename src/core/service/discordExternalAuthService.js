@@ -4,6 +4,7 @@
 
 const OauthModel = require('~src/core/model/oauthModel');
 const IExternalAuthService = require('~src/core/interface/iExternalAuthService');
+const ExternalAuthException = require('~src/core/exception/externalAuthException');
 
 class DiscordExternalAuthService extends IExternalAuthService {
   /**
@@ -35,6 +36,19 @@ class DiscordExternalAuthService extends IExternalAuthService {
     model.redirectUrl = this.#externalAuth.config.redirectUrl;
 
     return [null, model];
+  }
+
+  async auth(_platform) {
+    try {
+      const url = this.#externalAuth.auth.generateAuthUrl({
+        grantType: 'authorization_code',
+        scope: ['identify'],
+      });
+
+      return [null, url];
+    } catch (error) {
+      return [new ExternalAuthException(error)];
+    }
   }
 }
 
