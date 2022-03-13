@@ -713,16 +713,18 @@ function fakeFindClusterUserService(currentInstanceIp) {
 
 function fakeOauthController(req, res) {
   const IExternalAuthService = require('~src/core/interface/iExternalAuthService');
-  const DateTime = require('~src/infrastructure/system/dateTime');
   const OauthController = require('~src/api/http/oauth/controller/oauthController');
 
   const externalAuthService = sinon.createStubInstance(IExternalAuthService);
 
-  const dateTime = new DateTime();
+  const jwt = {
+    sign: sinon.stub(),
+  };
 
-  const oauthController = new OauthController(req, res, externalAuthService, dateTime);
+  const oauthController = new OauthController(req, res, externalAuthService, jwt);
 
   return {
+    jwt,
     externalAuthService,
     oauthController,
   };
