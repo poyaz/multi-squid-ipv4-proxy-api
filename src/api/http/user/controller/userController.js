@@ -38,6 +38,7 @@ class UserController {
    * @param {IUserService} findClusterUserService
    * @param {IDateTime} dateTime
    * @param {IUrlAccessService} urlAccessService
+   * @param jwt
    */
   constructor(req, res, userService, findClusterUserService, dateTime, urlAccessService, jwt) {
     this.#req = req;
