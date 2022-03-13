@@ -3,6 +3,7 @@
  */
 
 const GetOptionsOutputModel = require('./model/getOptionsOutputModel');
+const LoginExternalUserOutputModel = require('./model/loginExternalUserOutputModel');
 
 class OauthController {
   #req;
@@ -11,23 +12,20 @@ class OauthController {
    * @type {IExternalAuthService}
    */
   #externalAuthService;
-  /**
-   * @type {IDateTime}
-   */
-  #dateTime;
+  #jwt;
 
   /**
    *
    * @param req
    * @param res
    * @param {IExternalAuthService} externalAuthService
-   * @param {IDateTime} dateTime
+   * @param jwt
    */
-  constructor(req, res, externalAuthService, dateTime) {
+  constructor(req, res, externalAuthService, jwt) {
     this.#req = req;
     this.#res = res;
     this.#externalAuthService = externalAuthService;
-    this.#dateTime = dateTime;
+    this.#jwt = jwt;
   }
 
   async getOptions() {
@@ -53,6 +51,21 @@ class OauthController {
     }
 
     return [null, data];
+  }
+
+  async verify() {
+    const { platform } = this.#req.params;
+    const { code } = this.#req.query;
+
+    const [error, data] = await this.#externalAuthService.verify(platform, code);
+    if (error) {
+      return [error];
+    }
+
+    const loginExternalUserOutputModel = new LoginExternalUserOutputModel(this.#jwt);
+    const result = loginExternalUserOutputModel.getOutput(data);
+
+    return [null, result];
   }
 }
 

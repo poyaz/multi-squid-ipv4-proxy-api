@@ -2,26 +2,23 @@
  * Created by pooya on 3/13/22.
  */
 
-const OauthController = require('~src/api/http/oauth/oauthController');
+const OauthController = require('./oauthController');
 
 class OauthControllerFactory {
   /**
    * @type {IExternalAuthService}
    */
   #externalAuthService;
-  /**
-   * @type {IDateTime}
-   */
-  #dateTime;
+  #jwt;
 
   /**
    *
    * @param {IExternalAuthService} externalAuthService
-   * @param {IDateTime} dateTime
+   * @param jwt
    */
-  constructor(externalAuthService, dateTime) {
+  constructor(externalAuthService, jwt) {
     this.#externalAuthService = externalAuthService;
-    this.#dateTime = dateTime;
+    this.#jwt = jwt;
   }
 
   /**
@@ -31,7 +28,7 @@ class OauthControllerFactory {
    * @return {OauthController}
    */
   create(req, res) {
-    return new OauthController(req, res, this.#externalAuthService, this.#dateTime);
+    return new OauthController(req, res, this.#externalAuthService, this.#jwt);
   }
 }
 

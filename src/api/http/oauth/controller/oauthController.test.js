@@ -11,6 +11,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 
 const helper = require('~src/helper');
 
+const UserModel = require('~src/core/model/userModel');
 const OauthModel = require('~src/core/model/oauthModel');
 const UnknownException = require('~src/core/exception/unknownException');
 
@@ -27,17 +28,17 @@ suite(`OauthController`, () => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const { externalAuthService, oauthController } = helper.fakeOauthController(
+    const { jwt, externalAuthService, oauthController } = helper.fakeOauthController(
       testObj.req,
       testObj.res,
     );
 
+    testObj.jwt = jwt;
     testObj.externalAuthService = externalAuthService;
     testObj.oauthController = oauthController;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
-    testObj.dateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/;
-    testObj.expireRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}/;
+    testObj.token = /.+/;
   });
 
   suite(`Get oauth options`, () => {
@@ -95,6 +96,45 @@ suite(`OauthController`, () => {
       testObj.externalAuthService.auth.should.have.calledWith(sinon.match('discord'));
       expect(error).to.be.a('null');
       expect(result).to.be.equal('redirectUrl');
+    });
+  });
+
+  suite(`Verify auth user`, () => {
+    test(`Should error verify auth user`, async () => {
+      testObj.req.params = { platform: 'discord' };
+      testObj.req.query = { code: 'code' };
+      testObj.externalAuthService.verify.resolves([new UnknownException()]);
+
+      const [error] = await testObj.oauthController.verify();
+
+      testObj.externalAuthService.verify.should.have.callCount(1);
+      testObj.externalAuthService.verify.should.have.calledWith(
+        sinon.match('discord'),
+        sinon.match('code'),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully verify auth user and get token`, async () => {
+      testObj.req.params = { platform: 'discord' };
+      testObj.req.query = { code: 'code' };
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'username';
+      testObj.externalAuthService.verify.resolves([null, outputModel]);
+      testObj.jwt.sign.returns('token');
+
+      const [error, result] = await testObj.oauthController.verify();
+
+      testObj.externalAuthService.verify.should.have.callCount(1);
+      testObj.externalAuthService.verify.should.have.calledWith(
+        sinon.match('discord'),
+        sinon.match('code'),
+      );
+      testObj.jwt.sign.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result.token).to.have.match(testObj.token);
     });
   });
 });
