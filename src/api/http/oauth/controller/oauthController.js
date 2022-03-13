@@ -43,6 +43,17 @@ class OauthController {
 
     return [null, result];
   }
+
+  async auth() {
+    const { platform } = this.#req.params;
+
+    const [error, data] = await this.#externalAuthService.auth(platform);
+    if (error) {
+      return [error];
+    }
+
+    return [null, data];
+  }
 }
 
 module.exports = OauthController;

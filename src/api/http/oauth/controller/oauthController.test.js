@@ -72,4 +72,29 @@ suite(`OauthController`, () => {
       });
     });
   });
+
+  suite(`Authenticate with oauth`, () => {
+    test(`Should error authenticate with oauth`, async () => {
+      testObj.req.params = { platform: 'discord' };
+      testObj.externalAuthService.auth.resolves([new UnknownException()]);
+
+      const [error] = await testObj.oauthController.auth();
+
+      testObj.externalAuthService.auth.should.have.callCount(1);
+      testObj.externalAuthService.auth.should.have.calledWith(sinon.match('discord'));
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully authenticate with oauth and get redirect url`, async () => {
+      testObj.req.params = { platform: 'discord' };
+      testObj.externalAuthService.auth.resolves([null, 'redirectUrl']);
+
+      const [error, result] = await testObj.oauthController.auth();
+
+      testObj.externalAuthService.auth.should.have.callCount(1);
+      testObj.externalAuthService.auth.should.have.calledWith(sinon.match('discord'));
+      expect(error).to.be.a('null');
+      expect(result).to.be.equal('redirectUrl');
+    });
+  });
 });
