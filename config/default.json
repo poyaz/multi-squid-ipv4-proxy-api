@@ -11,10 +11,10 @@
     "public": {
       "host": "",
       "http": {
-        "port": 80
+        "port": null
       },
       "https": {
-        "port": 443
+        "port": null
       }
     }
   },
@@ -60,6 +60,12 @@
     "jwt": {
       "type": "default",
       "secret": null
+    },
+    "oauth": {
+      "discord": {
+        "id": "",
+        "secret": ""
+      }
     }
   }
 }

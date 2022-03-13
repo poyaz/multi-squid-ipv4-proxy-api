@@ -59,6 +59,12 @@
     "jwt": {
       "type": "JWT_TYPE",
       "secret": "JWT_SECRET_KEY"
+    },
+    "oauth": {
+      "discord": {
+        "id": "OAUTH_DISCORD_CLIENT_ID",
+        "secret": "OAUTH_DISCORD_CLIENT_SECRET"
+      }
     }
   }
 }
