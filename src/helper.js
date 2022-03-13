@@ -730,6 +730,33 @@ function fakeOauthController(req, res) {
   };
 }
 
+function fakeDiscordExternalAuthService(clientId, redirectUrl) {
+  const IUserService = require('~src/core/interface/iUserService');
+  const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
+
+  const externalAuth = {
+    platform: 'discord',
+    config: {
+      id: clientId,
+      redirectUrl,
+    },
+    auth: {
+      generateAuthUrl: sinon.stub(),
+      tokenRequest: sinon.stub(),
+      getUser: sinon.stub(),
+    },
+  };
+  const userService = sinon.createStubInstance(IUserService);
+
+  const discordExternalAuthService = new DiscordExternalAuthService(externalAuth, userService);
+
+  return {
+    userService,
+    externalAuth: externalAuth.auth,
+    discordExternalAuthService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -771,4 +798,5 @@ module.exports = {
   fakeProxyServerApiRepository,
   fakeFindClusterUserService,
   fakeOauthController,
+  fakeDiscordExternalAuthService,
 };
