@@ -20,6 +20,9 @@ class AccessMiddleware extends IHttpMiddleware {
   }
 
   async act() {
+    if (this.#req.url.match(/^\/v[0-9]+\/oauth\/.*/)) {
+      return;
+    }
     if (
       this.#req.method === 'POST' &&
       (this.#req.url.match(/^\/v[0-9]+\/user$/) || this.#req.url.match(/^\/v[0-9]+\/user\/login$/))
