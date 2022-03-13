@@ -578,14 +578,6 @@ function fakeAddServerValidationMiddleware(req, res) {
   return { addServerValidationMiddleware };
 }
 
-function fakeAppendIpRangeValidationMiddleware(req, res) {
-  const AppendIpRangeValidationMiddleware = require('~src/api/http/server/middleware/appendIpRangeValidationMiddleware');
-
-  const appendIpRangeValidationMiddleware = new AppendIpRangeValidationMiddleware(req, res);
-
-  return { appendIpRangeValidationMiddleware };
-}
-
 function fakeUpdateServerValidationMiddleware(req, res) {
   const UpdateServerValidationMiddleware = require('~src/api/http/server/middleware/updateServerValidationMiddleware');
 
@@ -719,6 +711,23 @@ function fakeFindClusterUserService(currentInstanceIp) {
   };
 }
 
+function fakeOauthController(req, res) {
+  const IExternalAuthService = require('~src/core/interface/iExternalAuthService');
+  const DateTime = require('~src/infrastructure/system/dateTime');
+  const OauthController = require('~src/api/http/oauth/controller/oauthController');
+
+  const externalAuthService = sinon.createStubInstance(IExternalAuthService);
+
+  const dateTime = new DateTime();
+
+  const oauthController = new OauthController(req, res, externalAuthService, dateTime);
+
+  return {
+    externalAuthService,
+    oauthController,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -752,7 +761,6 @@ module.exports = {
   fakeJobService,
   fakeServerController,
   fakeAddServerValidationMiddleware,
-  fakeAppendIpRangeValidationMiddleware,
   fakeUpdateServerValidationMiddleware,
   fakeServerService,
   fakeServerPgRepository,
@@ -760,4 +768,5 @@ module.exports = {
   fakeFindClusterPackageService,
   fakeProxyServerApiRepository,
   fakeFindClusterUserService,
+  fakeOauthController,
 };
