@@ -14,6 +14,7 @@ const FileUtil = require('./bootstrap/util/fileUtil');
 const JwtUtil = require('./bootstrap/util/jwtUtil');
 const DockerUtil = require('./bootstrap/util/dockerUtil');
 const ApiCluster = require('./bootstrap/util/apiCluster');
+const DiscordOauth = require('./bootstrap/oauth/discordOauth');
 
 const DateTime = require('~src/infrastructure/system/dateTime');
 const IdentifierGenerator = require('~src/infrastructure/system/identifierGenerator');
@@ -32,6 +33,7 @@ const UserSquidRepository = require('~src/infrastructure/system/userSquidReposit
 
 const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
 
+const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
 const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
 const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
 const FindClusterUserService = require('~src/core/service/findClusterUserService');
@@ -49,6 +51,8 @@ const AdminAccessMiddlewareFactory = require('~src/api/http/adminAccessMiddlewar
 const UserAccessMiddlewareFactory = require('~src/api/http/userAccessMiddlewareFactory');
 
 const JobControllerFactory = require('~src/api/http/job/controller/jobControllerFactory');
+
+const OauthControllerFactory = require('~src/api/http/oauth/controller/oauthControllerFactory');
 
 const CreatePackageValidationMiddlewareFactory = require('~src/api/http/package/middleware/createPackageValidationMiddlewareFactory');
 const RenewPackageValidatorMiddlewareFactory = require('~src/api/http/package/middleware/renewPackageValidatorMiddlewareFactory');
@@ -99,6 +103,7 @@ class Loader {
     const { pgDb } = await this._db();
     const { jwt } = await this._jwt();
     const { docker } = await this._docker();
+    const { discord } = await this._discord();
     const { apiToken } = await this._apiCluster(jwt);
 
     const identifierGenerator = new IdentifierGenerator();
@@ -200,6 +205,10 @@ class Loader {
       proxyServerApiRepository,
       currentInstanceIp,
     );
+    const discordExternalAuthService = new DiscordExternalAuthService(
+      discord,
+      findClusterUserService,
+    );
 
     // Controller and middleware
     // -------------------------
@@ -209,6 +218,8 @@ class Loader {
     const userAccessMiddlewareFactory = new UserAccessMiddlewareFactory();
 
     const jobControllerFactory = new JobControllerFactory(jobService, dateTime);
+
+    const oauthControllerFactory = new OauthControllerFactory(discordExternalAuthService, jwt);
 
     const packageMiddlewares = {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
@@ -267,6 +278,10 @@ class Loader {
 
     this._dependency.jobHttpApi = {
       jobControllerFactory,
+    };
+
+    this._dependency.oauthHttpApi = {
+      oauthControllerFactory,
     };
 
     this._dependency.packageHttpApi = {
@@ -387,6 +402,12 @@ class Loader {
     const docker = new DockerUtil(this._config, this._options, {});
 
     return { docker: await docker.start() };
+  }
+
+  async _discord() {
+    const discord = new DiscordOauth(this._config, this._options, {});
+
+    return { discord: await discord.start() };
   }
 
   async _apiCluster(jwt) {

@@ -73,6 +73,7 @@ class ExpressApi extends IRunner {
     this._proxyRoute();
     this._instanceRoute();
     this._serverRoute();
+    this._oauthRoute();
   }
 
   _jobRoute() {
@@ -688,6 +689,49 @@ class ExpressApi extends IRunner {
         }
       },
     );
+  }
+
+  _oauthRoute() {
+    const oauthHttpApi = this._dependency.oauthHttpApi;
+
+    router.get('/v1/oauth', this._middlewareAdminAccess.bind(this), async (req, res, next) => {
+      try {
+        const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
+        const response = await oauthController.getOptions();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
+
+    router.post('/v1/oauth/:platform', async (req, res, next) => {
+      try {
+        const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
+        const response = await oauthController.auth();
+
+        res.redirect(response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
+
+    router.get('/v1/oauth/:platform/callback', async (req, res, next) => {
+      try {
+        const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
+        const response = await oauthController.verify();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
   }
 
   async _middlewareAdminAccess(req, res, next) {
