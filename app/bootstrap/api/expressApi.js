@@ -96,23 +96,18 @@ class ExpressApi extends IRunner {
   _userRoute() {
     const userHttpApi = this._dependency.userHttpApi;
 
-    router.get(
-      '/v1/user',
-      this._middlewareUserAccess.bind(this),
-      this._middlewareAdminAccess.bind(this),
-      async (req, res, next) => {
-        try {
-          const userController = userHttpApi.userControllerFactory.create(req, res);
-          const response = await userController.getAllUsers();
+    router.get('/v1/user', this._middlewareAdminAccess.bind(this), async (req, res, next) => {
+      try {
+        const userController = userHttpApi.userControllerFactory.create(req, res);
+        const response = await userController.getAllUsers();
 
-          this._sendResponse(req, res, response);
+        this._sendResponse(req, res, response);
 
-          return next(null);
-        } catch (error) {
-          return next(error);
-        }
-      },
-    );
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
 
     router.post(
       '/v1/user',
