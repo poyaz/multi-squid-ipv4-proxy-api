@@ -20,7 +20,7 @@ class AccessMiddleware extends IHttpMiddleware {
   }
 
   async act() {
-    if (this.#req.url.match(/^\/v[0-9]+\/oauth\/.*/)) {
+    if (this.#req.url.match(/^\/v[0-9]+\/oauth\/.+(\/callback)?/)) {
       return;
     }
     if (
