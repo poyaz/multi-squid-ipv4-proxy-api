@@ -79,7 +79,7 @@ class DiscordExternalAuthService extends IExternalAuthService {
           return [fetchUserError];
         }
 
-        return [null, fetchUserData];
+        return [null, fetchUserData[0]];
       }
 
       return [null, addUserData];
