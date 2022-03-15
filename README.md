@@ -20,6 +20,7 @@ Options:
       --init-cluster            Create server with cluster
       --join-cluster            Join new server to exist cluster
       --fetch-cluster           Fetch cluster token from exist node
+      --discord                 Config Discord oauth for external authenticate
 
   -v, --version                 Show version information and exit
   -h, --help                    Show help
@@ -128,6 +129,39 @@ After execute command you should fill bellow step:
 
 * Step 1: Enter a password for generate new token for others node instance
 
+External authenticate
+=====================
+
+This application uses external authenticate for create and login user (After login need username change your password for connect to proxy)
+
+Supported oauth application:
+
+## Discord
+
+For use **Discord** need add oauth configuration then we can use this (Need add oauth data in all cluster. you can use `bash cli.sh --discord` for add and update discord config)
+
+Before we start how to config Discord, you need get redirect url. Default redirect url look like `<protocol>://<host-or-domain-address>/api/v1/oauth/discord/callback` or you can use **Get all external oauth options** API
+
+How get Discord oauth config:
+
+1. Go to https://discord.com/developers/applications/ and create application
+2. Copy **redirect url** in `Redirects` box
+2. Copy `CLIENT ID` and `CLIENT SECRET`
+3. Use `bash cli.sh --discord` to config service (If you're using cluster mode you have to use this command in all servers)
+
+```bash
+bash cli.sh --discord
+Enter Discord client ID: -- (Step 1)
+Enter Discord client secret: -- (Step 2)
+```
+
+After execute command you should fill bellow step:
+
+* Step 1: You should enter your Discord client id
+* Step 2: You should enter your Discord client secret
+
+Finally, after use above command server has been restart automatically
+
 API
 ===
 
@@ -140,6 +174,7 @@ For generate new IP address you should use this API. If your ip range exist, thi
 * Method: `POST`
 * URL: `api/v1/proxy/generate`
 * Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>"}`
+* Authorized type: `admin`
 
 ### Body format
 
@@ -188,6 +223,7 @@ For the remove exist IP address you should use this API
 * Method: `DELETE`
 * URL: `api/v1/proxy/ip`
 * Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "interface": "<interface-name>"}`
+* Authorized type: `admin`
 
 ### Body format
 
@@ -234,6 +270,7 @@ Reload all proxy
 
 * Method: `POST`
 * URL: `api/v1/proxy/reload`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -269,6 +306,7 @@ For check create ip range job finished you should use this API. this api return 
 
 * Method: `GET`
 * URL: `api/v1/job/:jobId`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -321,6 +359,7 @@ This API use for a get all user
 
 * Method: `GET`
 * URL: `api/v1/user`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -365,6 +404,7 @@ This API use for create new user
 * Method: `POST`
 * URL: `api/v1/user`
 * Body: `{"username": "<your-username>", "password": "<your-password>"}`
+* Authorized type: `anonymest`
 
 ### Body format
 
@@ -405,7 +445,7 @@ curl \
 
 This API use for a login user
 
-Output of this API (token) use in below API:
+The output of this API is a token, and you can this token in below API list:
 
 * `GET /v1/user`
 * `PUT /v1/user/:username/password`
@@ -418,6 +458,7 @@ Output of this API (token) use in below API:
 * Method: `POST`
 * URL: `api/v1/user/login`
 * Body: `{"username": "<your-username>", "password": "<your-password>"}`
+* Authorized type: `anonymest`
 
 ### Body format
 
@@ -462,6 +503,7 @@ Change password for exist user in system
 * Method: `PUT`
 * URL: `api/v1/user/:username/password`
 * Body: `{"password": "<your-new-password>"}`
+* Authorized type: `admin` and `normal user`
 
 ### Body format
 
@@ -503,6 +545,7 @@ Disable all user's proxy
 
 * Method: `PUT`
 * URL: `api/v1/user/:username/disable`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -532,12 +575,13 @@ curl \
 
 ## Enable user proxy
 
-Disable all user's proxy
+Enable all user's proxy
 
 ### Information:
 
 * Method: `PUT`
 * URL: `api/v1/user/:username/enable`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -574,6 +618,7 @@ You can add the blacklist url for users
 * Method: `POST`
 * URL: `api/v1/user/:username/website/block`
 * Body: `{"urls": ["<your-url1>", "<your-url2>"], "startDate": "<start-date>", "endDate": "<end-date>"}`
+* Authorized type: `admin`
 
 ### Body format
 
@@ -619,6 +664,7 @@ Squid ACL check request domain block for user or not
 
 * Method: `GET`
 * URL: `api/v1/user/:username/domain/:domain/status`
+* Authorized type: `anonymest`
 
 ```bash
 curl \
@@ -658,6 +704,7 @@ Create new package for users
 * Method: `POST`
 * URL: `api/v1/package`
 * Body: `{"username": "<your-username>", "count": <total-ip-need-use>, "expire": "<expire-date>"}`
+* Authorized type: `admin` and `normal user`
 
 ### Body format
 
@@ -713,6 +760,7 @@ Get list of user's package
 
 * Method: `GET`
 * URL: `api/v1/package/user/:username`
+* Authorized type: `admin` and `normal user`
 
 ```bash
 curl \
@@ -763,6 +811,7 @@ If package expire date not end, You can renew expire date
 * Method: `PUT`
 * URL: `api/v1/package/:packageId/renew`
 * Body: `{"expire": "<expire-date>"}`
+* Authorized type: `admin` and `normal user`
 
 ### Body format
 
@@ -804,6 +853,7 @@ For a remove exist package
 
 * Method: `DELETE`
 * URL: `api/v1/package/:packageId`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -839,6 +889,7 @@ Get list of servers cluster
 
 * Method: `GET`
 * URL: `api/v1/server`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -892,6 +943,7 @@ Create new server
 
 * Method: `POST`
 * URL: `api/v1/server`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -952,6 +1004,7 @@ Update information of server with server id
 
 * Method: `PUT`
 * URL: `api/v1/server/:id`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -996,6 +1049,7 @@ Remove server with server id
 
 * Method: `DELETE`
 * URL: `api/v1/server/:id`
+* Authorized type: `admin`
 
 ```bash
 curl \
@@ -1022,3 +1076,83 @@ curl \
   "status": "success"
 }
 ```
+
+## Get all external oauth options
+
+Get list of external oauth configuration
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/oauth`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/oauth'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/oauth'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "totalItem": 1,
+  "data": [
+    {
+      "id": "952433606616289340",
+      "platform": "discord",
+      "redirectUrl": "http://0.0.0.0:8000/api/v1/oauth/discord/callback"
+    }
+  ]
+}
+```
+
+## Login with oauth external platform
+
+This API use for a client and after execute force client to redirect in oauth service
+
+**P.S:**
+
+If authenticate successfully execute after that username has been created and need to restart password to use proxy
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/oauth/:platfrom`
+* Authorized type: `anonymest`
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/oauth/:platform'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/oauth/discord'
+```
+
+### Output:
+
+Redirect client to oauth service for a login
