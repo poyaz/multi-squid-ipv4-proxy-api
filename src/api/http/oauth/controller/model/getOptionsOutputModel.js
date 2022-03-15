@@ -5,17 +5,19 @@
 class GetOptionsOutputModel {
   /**
    *
-   * @param {OauthModel} model
+   * @param {Array<OauthModel>} models
    * @return {Object}
    */
-  getOutput(model) {
-    const obj = {};
+  getOutput(models) {
+    return models.map((v) => {
+      const obj = {};
 
-    obj.id = model.id;
-    obj.platform = model.platform;
-    obj.redirectUrl = model.redirectUrl;
+      obj.id = v.id;
+      obj.platform = v.platform;
+      obj.redirectUrl = v.redirectUrl;
 
-    return obj;
+      return obj;
+    });
   }
 }
 

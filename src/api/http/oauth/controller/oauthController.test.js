@@ -59,14 +59,15 @@ suite(`OauthController`, () => {
       outputModel.id = 'platformId';
       outputModel.platform = 'discord';
       outputModel.redirectUrl = 'callbackUrl';
-      testObj.externalAuthService.getOptions.resolves([null, outputModel]);
+      testObj.externalAuthService.getOptions.resolves([null, [outputModel]]);
 
       const [error, result] = await testObj.oauthController.getOptions();
 
       testObj.externalAuthService.getOptions.should.have.callCount(1);
       testObj.externalAuthService.getOptions.should.have.calledWith(sinon.match('discord'));
       expect(error).to.be.a('null');
-      expect(result).to.be.a('object').and.have.include({
+      expect(result.length).to.be.equal(1);
+      expect(result[0]).to.be.a('object').and.have.include({
         id: 'platformId',
         platform: 'discord',
         redirectUrl: 'callbackUrl',
