@@ -46,6 +46,7 @@ function _usage() {
   echo -e "      --init-cluster\t\tCreate server with cluster"
   echo -e "      --join-cluster\t\tJoin new server to exist cluster"
   echo -e "      --fetch-cluster\t\tFetch cluster token from exist node"
+  echo -e "      --discord\t\t\tConfig Discord oauth for external authenticate"
   echo ""
   echo -e "  -v, --version\t\t\tShow version information and exit"
   echo -e "  -h, --help\t\t\tShow help"
@@ -260,6 +261,11 @@ while [[ $# -gt 0 ]]; do
   --join-cluster)
     execute_mode="init"
     cluster_mode="child"
+    shift
+    ;;
+
+  --discord)
+    execute_mode="discord"
     shift
     ;;
 
@@ -545,6 +551,37 @@ if [[ $execute_mode == "fetch" ]]; then
   echo "$GENERATE_FETCH_TOKEN" >"$DIRNAME/storage/temp/master.key.txt"
   echo "[INFO] This key store in $DIRNAME/storage/temp/master.key.txt"
 
+  exit
+fi
+
+if [[ $execute_mode == "discord" ]]; then
+  if ! [[ -f $DEFAULT_NODE_ENV_FILE ]]; then
+    echo "[ERR] Please init service! Usage: bash $0 --init"
+    exit
+  fi
+
+  read -p "Enter Discord client ID: " DISCORD_CLIENT_ID
+  if [[ -z ${DISCORD_CLIENT_ID} ]]; then
+    echo "[ERR] Please enter Discord client ID"
+    echo ""
+
+    exit 1
+  fi
+
+  read -p "Enter Discord client secret: " DISCORD_CLIENT_SECRET
+  if [[ -z ${DISCORD_CLIENT_SECRET} ]]; then
+    echo "[ERR] Please enter Discord client secret"
+    echo ""
+
+    exit 1
+  fi
+
+  sed -i \
+      -e "s/\(OAUTH_DISCORD_CLIENT_ID=\).*/\1$DISCORD_CLIENT_ID/g" \
+      -e "s/\(OAUTH_DISCORD_CLIENT_SECRET=\).*/\1$DISCORD_CLIENT_SECRET/g" \
+      "$DEFAULT_NODE_ENV_FILE"
+
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
   exit
 fi
 
