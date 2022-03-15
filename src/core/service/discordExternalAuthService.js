@@ -37,7 +37,7 @@ class DiscordExternalAuthService extends IExternalAuthService {
     model.platform = this.#platform;
     model.redirectUrl = this.#externalAuth.config.redirectUrl;
 
-    return [null, model];
+    return [null, [model]];
   }
 
   async auth(_platform) {

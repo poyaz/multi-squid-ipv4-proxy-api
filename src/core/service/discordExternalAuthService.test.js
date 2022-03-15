@@ -46,7 +46,8 @@ suite(`DiscordExternalAuthService`, () => {
       const [error, result] = await testObj.discordExternalAuthService.getOptions(inputPlatform);
 
       expect(error).to.be.a('null');
-      expect(result).to.be.a('object').and.have.include({
+      expect(result.length).to.be.equal(1);
+      expect(result[0]).to.be.a('object').and.have.include({
         id: testObj.clientId,
         platform: 'discord',
         redirectUrl: testObj.redirectUrl,
@@ -265,7 +266,7 @@ suite(`DiscordExternalAuthService`, () => {
       const outputUserModel = new UserModel();
       outputUserModel.id = testObj.identifierGenerator.generateId();
       outputUserModel.username = 'username';
-      testObj.userService.getAll.resolves([null, outputUserModel]);
+      testObj.userService.getAll.resolves([null, [outputUserModel]]);
 
       const [error, result] = await testObj.discordExternalAuthService.verify(
         inputPlatform,

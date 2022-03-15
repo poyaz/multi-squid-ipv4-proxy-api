@@ -6,7 +6,7 @@ class IExternalAuthService {
   /**
    *
    * @param {string} platform
-   * @return {Promise<(Error|OauthModel)[]>}
+   * @return {Promise<(Error|Array<OauthModel>)[]>}
    */
   async getOptions(platform) {
     const error = new Error('The method has to be overridden by subclasses.');
