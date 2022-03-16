@@ -425,7 +425,7 @@ suite(`SquidServerRepository`, () => {
       expect(error).to.have.property('errorInfo', commandError);
     });
 
-    test(`Should error add new proxy when start container`, async () => {
+    test(`Should successfully add new proxy when start container`, async () => {
       const inputModelList = [testObj.inputIpModel1];
       const containerOutputList = [{ Id: testObj.identifierGenerator.generateId() }];
       testObj.docker.listContainers.resolves(containerOutputList);
@@ -462,6 +462,132 @@ suite(`SquidServerRepository`, () => {
       fsAsync.writeFile.should.have.callCount(1);
       testObj.docker.createContainer.should.have.callCount(1);
       testObj.container.start.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(IpAddressModel);
+    });
+  });
+
+  suite(`Check url is block instead of config param`, () => {
+    setup(() => {
+      const {
+        docker: dockerEnableCheckUrl,
+        container: containerEnableCheckUrl,
+        squidServerRepository: squidServerRepositoryEnableCheckUrl,
+      } = helper.fakeProxyFileServerPgRepository(2, true);
+
+      testObj.dockerEnableCheckUrl = dockerEnableCheckUrl;
+      testObj.containerEnableCheckUrl = containerEnableCheckUrl;
+      testObj.squidServerRepositoryEnableCheckUrl = squidServerRepositoryEnableCheckUrl;
+
+      const {
+        docker: dockerDisableCheckUrl,
+        container: containerDisableCheckUrl,
+        squidServerRepository: squidServerRepositoryDisableCheckUrl,
+      } = helper.fakeProxyFileServerPgRepository(2, false);
+
+      testObj.dockerDisableCheckUrl = dockerDisableCheckUrl;
+      testObj.containerDisableCheckUrl = containerDisableCheckUrl;
+      testObj.squidServerRepositoryDisableCheckUrl = squidServerRepositoryDisableCheckUrl;
+
+      testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+      const inputIpModel1 = new IpAddressModel();
+      inputIpModel1.ip = '192.168.1.1';
+      inputIpModel1.mask = 32;
+      inputIpModel1.gateway = '192.168.1.6';
+      inputIpModel1.interface = 'ens192';
+
+      testObj.inputIpModel1 = inputIpModel1;
+    });
+
+    test(`Should enable check url is block or not`, async () => {
+      const inputModelList = [testObj.inputIpModel1];
+      const containerOutputList = [{ Id: testObj.identifierGenerator.generateId() }];
+      testObj.dockerEnableCheckUrl.listContainers.resolves(containerOutputList);
+      testObj.dockerEnableCheckUrl.getContainer.returns(testObj.containerEnableCheckUrl);
+      testObj.containerEnableCheckUrl.remove.resolves();
+      const fileNotFoundError = new Error('File not found');
+      fileNotFoundError.code = 'ENOENT';
+      fsAsync.access.throws(fileNotFoundError);
+      fsAsync.mkdir.resolves();
+      childProcess.spawn.returns();
+      childProcess.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.end();
+
+        return { stderr, stdin };
+      });
+      fsAsync.writeFile.resolves();
+      testObj.dockerEnableCheckUrl.createContainer.resolves(testObj.containerEnableCheckUrl);
+      testObj.containerEnableCheckUrl.start.resolves();
+
+      const [error, result] = await testObj.squidServerRepositoryEnableCheckUrl.add(inputModelList);
+
+      testObj.dockerEnableCheckUrl.listContainers.should.have.callCount(1);
+      testObj.dockerEnableCheckUrl.getContainer.should.have.callCount(1);
+      testObj.dockerEnableCheckUrl.getContainer.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.containerEnableCheckUrl.remove.should.have.callCount(1);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
+      childProcess.spawn.should.have.callCount(1);
+      fsAsync.writeFile.should.have.callCount(1);
+      fsAsync.writeFile.should.have.calledWith(
+        sinon.match.string,
+        sinon.match(/^external_acl_type user_block_url.+/gm),
+      );
+      testObj.dockerEnableCheckUrl.createContainer.should.have.callCount(1);
+      testObj.containerEnableCheckUrl.start.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(IpAddressModel);
+    });
+
+    test(`Should disable check url is block or not`, async () => {
+      const inputModelList = [testObj.inputIpModel1];
+      const containerOutputList = [{ Id: testObj.identifierGenerator.generateId() }];
+      testObj.dockerDisableCheckUrl.listContainers.resolves(containerOutputList);
+      testObj.dockerDisableCheckUrl.getContainer.returns(testObj.containerDisableCheckUrl);
+      testObj.containerDisableCheckUrl.remove.resolves();
+      const fileNotFoundError = new Error('File not found');
+      fileNotFoundError.code = 'ENOENT';
+      fsAsync.access.throws(fileNotFoundError);
+      fsAsync.mkdir.resolves();
+      childProcess.spawn.returns();
+      childProcess.spawn.callsFake(() => {
+        const stdin = new PassThrough();
+
+        const stderr = new PassThrough();
+        stderr.end();
+
+        return { stderr, stdin };
+      });
+      fsAsync.writeFile.resolves();
+      testObj.dockerDisableCheckUrl.createContainer.resolves(testObj.containerDisableCheckUrl);
+      testObj.containerDisableCheckUrl.start.resolves();
+
+      const [error, result] = await testObj.squidServerRepositoryDisableCheckUrl.add(inputModelList);
+
+      testObj.dockerDisableCheckUrl.listContainers.should.have.callCount(1);
+      testObj.dockerDisableCheckUrl.getContainer.should.have.callCount(1);
+      testObj.dockerDisableCheckUrl.getContainer.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.containerDisableCheckUrl.remove.should.have.callCount(1);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
+      childProcess.spawn.should.have.callCount(1);
+      fsAsync.writeFile.should.have.callCount(1);
+      fsAsync.writeFile.should.have.calledWith(
+        sinon.match.string,
+        sinon.match(/^#external_acl_type user_block_url.+/gm),
+      );
+      testObj.dockerDisableCheckUrl.createContainer.should.have.callCount(1);
+      testObj.containerDisableCheckUrl.start.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.length(1);
       expect(result[0]).to.be.an.instanceof(IpAddressModel);

@@ -75,6 +75,7 @@ class SquidServerRepository extends IProxyServerRepository {
    * @param {number} ipCountPerInstance
    * @param {string} apiUrl
    * @param {string} apiToken
+   * @param {boolean} hasCheckBlockUrl
    * @param {number|null} overrideSquidPort
    */
   constructor(
@@ -88,6 +89,7 @@ class SquidServerRepository extends IProxyServerRepository {
     ipCountPerInstance,
     apiUrl,
     apiToken,
+    hasCheckBlockUrl,
     overrideSquidPort = null,
   ) {
     super();
@@ -105,6 +107,13 @@ class SquidServerRepository extends IProxyServerRepository {
     this.#overrideSquidPort = overrideSquidPort;
 
     const squidOtherConfDir = this.#squidOtherConfDir;
+    let checkUrlRow;
+    if (hasCheckBlockUrl) {
+      checkUrlRow = `external_acl_type user_block_url ttl=0 negative_ttl=0 %LOGIN %DST /tmp/squid-block-url.sh`;
+    } else {
+      checkUrlRow = `#external_acl_type user_block_url ttl=0 negative_ttl=0 %LOGIN %DST /tmp/squid-block-url.sh`;
+    }
+
     this.#defaultConfig = [
       `visible_hostname localhost`,
       ``,
@@ -120,7 +129,7 @@ class SquidServerRepository extends IProxyServerRepository {
       `auth_param basic credentialsttl 10 seconds`,
       ``,
       `external_acl_type user_ip_access %MYADDR %LOGIN /usr/lib/squid/ext_file_userip_acl -f ${squidOtherConfDir}/squid-user-ip.conf`,
-      `external_acl_type user_block_url ttl=0 negative_ttl=0 %LOGIN %DST /tmp/squid-block-url.sh`,
+      `${checkUrlRow}`,
       ``,
       `acl ncsa_users proxy_auth REQUIRED`,
       `acl user_ip_access external user_ip_access`,
