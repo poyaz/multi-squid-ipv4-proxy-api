@@ -425,7 +425,7 @@ suite(`SquidServerRepository`, () => {
       expect(error).to.have.property('errorInfo', commandError);
     });
 
-    test(`Should error add new proxy when start container`, async () => {
+    test(`Should successfully add new proxy when start container`, async () => {
       const inputModelList = [testObj.inputIpModel1];
       const containerOutputList = [{ Id: testObj.identifierGenerator.generateId() }];
       testObj.docker.listContainers.resolves(containerOutputList);
