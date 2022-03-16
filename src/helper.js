@@ -462,7 +462,7 @@ function fakeProxyServerPgRepository() {
   return { postgresDb, identifierGenerator, proxyServerRepository };
 }
 
-function fakeProxyFileServerPgRepository(ipCountPerInstance, hasCheckBlockUrl) {
+function fakeProxyFileServerPgRepository(ipCountPerInstance) {
   const Docker = require('dockerode');
   const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
 
@@ -492,7 +492,6 @@ function fakeProxyFileServerPgRepository(ipCountPerInstance, hasCheckBlockUrl) {
     ipCountPerInstance,
     apiUrl,
     apiToken,
-    hasCheckBlockUrl,
   );
 
   return { docker, container, squidServerRepository };
