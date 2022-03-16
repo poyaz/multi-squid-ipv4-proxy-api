@@ -141,7 +141,6 @@ class Loader {
       squidPerIpInstanceConfig,
       httpApiUrlConfig,
       squidScriptApiTokenConfig,
-      squidCheckBlockUrl,
       overrideSquidPort,
     );
     const userSquidRepository = new UserSquidRepository(squidPasswordFile);
@@ -171,7 +170,11 @@ class Loader {
       packageFileRepository,
       squidServerRepository,
     );
-    const urlAccessService = new UrlAccessService(userService, urlAccessPgRepository);
+    const urlAccessService = new UrlAccessService(
+      userService,
+      urlAccessPgRepository,
+      squidCheckBlockUrl,
+    );
     const proxyServerJobService = new ProxyServerJobService(
       jobRepository,
       proxyServerRepository,

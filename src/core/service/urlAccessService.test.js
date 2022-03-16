@@ -23,11 +23,19 @@ const testObj = {};
 
 suite(`UrlAccessService`, () => {
   setup(() => {
-    const { userService, urlAccessRepository, urlAccessService } = helper.fakeUrlAccessService();
+    const {
+      userService,
+      urlAccessRepository,
+      urlAccessService,
+      urlAccessServiceEnableCheckUrl,
+      urlAccessServiceDisableCheckUrl,
+    } = helper.fakeUrlAccessService();
 
     testObj.userService = userService;
     testObj.urlAccessRepository = urlAccessRepository;
     testObj.urlAccessService = urlAccessService;
+    testObj.urlAccessServiceEnableCheckUrl = urlAccessServiceEnableCheckUrl;
+    testObj.urlAccessServiceDisableCheckUrl = urlAccessServiceDisableCheckUrl;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
 
@@ -180,6 +188,51 @@ suite(`UrlAccessService`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.a('boolean');
+    });
+  });
+
+  suite(`Check url enable/disable`, () => {
+    test(`Should successfully check domain block for username (If check url config is false)`, async () => {
+      const inputUsername = 'user1';
+      const inputDomain = 'google.com';
+      testObj.userService.getAll.resolves([null, [testObj.outputUserModel]]);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.resolves([null, true]);
+
+      const [
+        error,
+        result,
+      ] = await testObj.urlAccessServiceDisableCheckUrl.checkBlockDomainForUsername(
+        inputUsername,
+        inputDomain,
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean');
+      expect(result).to.be.equal(false);
+    });
+
+    test(`Should successfully check domain block for username (If check url config is true)`, async () => {
+      const inputUsername = 'user1';
+      const inputDomain = 'google.com';
+      testObj.userService.getAll.resolves([null, [testObj.outputUserModel]]);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.resolves([null, true]);
+
+      const [
+        error,
+        result,
+      ] = await testObj.urlAccessServiceEnableCheckUrl.checkBlockDomainForUsername(
+        inputUsername,
+        inputDomain,
+      );
+
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.should.have.callCount(1);
+      testObj.urlAccessRepository.checkBlockDomainByUserId.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match(inputDomain),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('boolean');
+      expect(result).to.be.equal(true);
     });
   });
 });

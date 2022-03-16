@@ -295,12 +295,25 @@ function fakeUrlAccessService() {
 
   const urlAccessRepository = sinon.createStubInstance(IUrlAccessRepository);
 
-  const urlAccessService = new UrlAccessService(userService, urlAccessRepository);
+  const urlAccessService = new UrlAccessService(userService, urlAccessRepository, true);
+
+  const urlAccessServiceEnableCheckUrl = new UrlAccessService(
+    userService,
+    urlAccessRepository,
+    true,
+  );
+  const urlAccessServiceDisableCheckUrl = new UrlAccessService(
+    userService,
+    urlAccessRepository,
+    false,
+  );
 
   return {
     userService,
     urlAccessRepository,
     urlAccessService,
+    urlAccessServiceEnableCheckUrl,
+    urlAccessServiceDisableCheckUrl,
   };
 }
 

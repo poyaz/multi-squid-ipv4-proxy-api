@@ -15,17 +15,23 @@ class UrlAccessService extends IUrlAccessService {
    * @type {IUrlAccessRepository}
    */
   #urlAccessRepository;
+  /**
+   * @type {boolean}
+   */
+  #hasEnableBlockUrl;
 
   /**
    *
    * @param {IUserService} userService
    * @param {IUrlAccessRepository} urlAccessRepository
+   * @param {boolean} hasEnableBlockUrl
    */
-  constructor(userService, urlAccessRepository) {
+  constructor(userService, urlAccessRepository, hasEnableBlockUrl) {
     super();
 
     this.#userService = userService;
     this.#urlAccessRepository = urlAccessRepository;
+    this.#hasEnableBlockUrl = hasEnableBlockUrl;
   }
 
   async add(model) {
@@ -44,6 +50,10 @@ class UrlAccessService extends IUrlAccessService {
   }
 
   async checkBlockDomainForUsername(username, domain) {
+    if (!this.#hasEnableBlockUrl) {
+      return [null, false];
+    }
+
     const [fetchError, fetchData] = await this._getUserModelByUsername(username);
     if (fetchError) {
       return [fetchError];
