@@ -136,12 +136,19 @@ suite(`ProxyServerJobService`, () => {
       outputIpModel5.gateway = '192.168.1.6';
       outputIpModel5.interface = 'ens192';
 
+      const outputIpModel6 = new IpAddressModel();
+      outputIpModel6.ip = '192.168.11.5';
+      outputIpModel6.mask = 32;
+      outputIpModel6.gateway = '192.168.11.6';
+      outputIpModel6.interface = 'ens192';
+
       testObj.inputModel = inputModel;
       testObj.outputIpModel1 = outputIpModel1;
       testObj.outputIpModel2 = outputIpModel2;
       testObj.outputIpModel3 = outputIpModel3;
       testObj.outputIpModel4 = outputIpModel4;
       testObj.outputIpModel5 = outputIpModel5;
+      testObj.outputIpModel6 = outputIpModel6;
 
       testObj.consoleError = sinon.stub(console, 'error');
     });
@@ -359,6 +366,7 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel3,
         testObj.outputIpModel4,
         testObj.outputIpModel5,
+        testObj.outputIpModel6,
       ];
       testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
       testObj.ipAddrRepository.add.resolves([null, []]);
@@ -375,6 +383,7 @@ suite(`ProxyServerJobService`, () => {
       testObj.proxyServerRepository.activeIpMask.should.have.callCount(1);
       testObj.proxyServerRepository.getAll.should.have.callCount(1);
       testObj.proxyServerFileRepository.add.should.have.callCount(1);
+      testObj.proxyServerFileRepository.add.should.have.calledWith(sinon.match.has('length', 5));
       testObj.jobRepository.update.should.have.callCount(1);
       testObj.jobRepository.update.should.have.calledWith(
         sinon.match
