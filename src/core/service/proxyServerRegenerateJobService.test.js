@@ -7,6 +7,9 @@ const sinon = require('sinon');
 const dirtyChai = require('dirty-chai');
 const sinonChai = require('sinon-chai');
 
+const os = require('os');
+const networkInterfaces = sinon.stub(os, 'networkInterfaces');
+
 const helper = require('~src/helper');
 
 const IpAddressModel = require('~src/core/model/ipAddressModel');
@@ -34,6 +37,12 @@ suite(`ProxyServerRegenerateJobService`, () => {
     testObj.proxyServerFileRepository = proxyServerFileRepository;
     testObj.proxyServerRegenerateJobService = proxyServerRegenerateJobService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+    testObj.networkInterfaces = networkInterfaces;
+  });
+
+  teardown(() => {
+    testObj.networkInterfaces.restore();
   });
 
   suite(`Create new job`, () => {
@@ -149,6 +158,16 @@ suite(`ProxyServerRegenerateJobService`, () => {
       testObj.outputIpModel6 = outputIpModel6;
 
       testObj.consoleError = sinon.stub(console, 'error');
+
+      testObj.networkInterfaces.returns({
+        ens192: [
+          { address: '192.168.1.1' },
+          { address: '192.168.1.2' },
+          { address: '192.168.1.3' },
+          { address: '192.168.1.4' },
+          { address: '192.168.1.5' },
+        ],
+      });
     });
 
     teardown(() => {

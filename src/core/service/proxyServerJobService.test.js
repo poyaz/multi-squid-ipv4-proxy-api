@@ -7,6 +7,9 @@ const sinon = require('sinon');
 const dirtyChai = require('dirty-chai');
 const sinonChai = require('sinon-chai');
 
+const os = require('os');
+const networkInterfaces = sinon.stub(os, 'networkInterfaces');
+
 const helper = require('~src/helper');
 
 const IpAddressModel = require('~src/core/model/ipAddressModel');
@@ -36,6 +39,12 @@ suite(`ProxyServerJobService`, () => {
     testObj.ipAddrRepository = ipAddrRepository;
     testObj.proxyServerJobService = proxyServerJobService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+    testObj.networkInterfaces = networkInterfaces;
+  });
+
+  teardown(() => {
+    testObj.networkInterfaces.restore();
   });
 
   suite(`Create new job`, () => {
@@ -151,6 +160,16 @@ suite(`ProxyServerJobService`, () => {
       testObj.outputIpModel6 = outputIpModel6;
 
       testObj.consoleError = sinon.stub(console, 'error');
+
+      testObj.networkInterfaces.returns({
+        ens192: [
+          { address: '192.168.1.1' },
+          { address: '192.168.1.2' },
+          { address: '192.168.1.3' },
+          { address: '192.168.1.4' },
+          { address: '192.168.1.5' },
+        ],
+      });
     });
 
     teardown(() => {
@@ -360,6 +379,16 @@ suite(`ProxyServerJobService`, () => {
 
     test(`Should successfully execute job and successfully update job status`, async () => {
       const inputModel = testObj.inputModel;
+      const outputGetByIpMask = [
+        testObj.outputIpModel1,
+        testObj.outputIpModel2,
+        testObj.outputIpModel3,
+        testObj.outputIpModel4,
+        testObj.outputIpModel5,
+      ];
+      testObj.proxyServerRepository.getByIpMask.resolves([null, outputGetByIpMask]);
+      testObj.ipAddrRepository.add.resolves([null, []]);
+      testObj.proxyServerRepository.activeIpMask.resolves([null]);
       const outputIpModelList = [
         testObj.outputIpModel1,
         testObj.outputIpModel2,
@@ -368,9 +397,6 @@ suite(`ProxyServerJobService`, () => {
         testObj.outputIpModel5,
         testObj.outputIpModel6,
       ];
-      testObj.proxyServerRepository.getByIpMask.resolves([null, outputIpModelList]);
-      testObj.ipAddrRepository.add.resolves([null, []]);
-      testObj.proxyServerRepository.activeIpMask.resolves([null]);
       testObj.proxyServerRepository.getAll.resolves([null, outputIpModelList]);
       testObj.proxyServerFileRepository.add.resolves([null]);
       testObj.jobRepository.update.resolves([null]);

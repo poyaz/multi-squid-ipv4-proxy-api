@@ -2,7 +2,7 @@
  * Created by pooya on 8/30/21.
  */
 
-const ipAddresses = require('ip-addresses');
+const { networkInterfaces } = require('os');
 const JobModel = require('~src/core/model/jobModel');
 const IJobService = require('~src/core/interface/iJobService');
 
@@ -56,8 +56,6 @@ class ProxyServerJobService extends IJobService {
   }
 
   async execute(model) {
-    const range = ipAddresses.v4.subnet(model.data);
-
     const [fetchIpListError, fetchIpList] = await this.#proxyServerRepository.getByIpMask(
       model.data,
     );
@@ -75,7 +73,6 @@ class ProxyServerJobService extends IJobService {
     fetchIpList.map((v) => (v.mask = globalIpMask));
 
     const tasks = fetchIpList
-      .filter((v) => v.ip && range.contains(v.ip))
       .map((v) => new Array(1).fill(v))
       .map((v) => this.#ipAddrRepository.add(v));
     const executeTasks = await Promise.all(tasks);
@@ -111,7 +108,15 @@ class ProxyServerJobService extends IJobService {
       return;
     }
 
-    const allIpListFilter = allIpList.filter((v) => v.ip && range.contains(v.ip));
+    const nets = networkInterfaces();
+    const allIpListExist = [];
+    for (const name of Object.keys(nets)) {
+      for (const net of nets[name]) {
+        allIpListExist.push(net.address);
+      }
+    }
+
+    const allIpListFilter = allIpList.filter((v) => v.ip && allIpListExist.indexOf(v.ip) > -1);
 
     const [addProxyError] = await this.#proxyServerFileRepository.add(allIpListFilter);
     if (addProxyError) {
