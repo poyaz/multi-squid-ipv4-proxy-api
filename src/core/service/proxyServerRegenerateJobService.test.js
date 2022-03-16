@@ -104,6 +104,50 @@ suite(`ProxyServerRegenerateJobService`, () => {
       inputModel.status = JobModel.STATUS_PENDING;
       inputModel.totalRecord = 5;
 
+      const outputIpModel1 = new IpAddressModel();
+      outputIpModel1.ip = '192.168.1.1';
+      outputIpModel1.mask = 32;
+      outputIpModel1.gateway = '192.168.1.6';
+      outputIpModel1.interface = 'ens192';
+
+      const outputIpModel2 = new IpAddressModel();
+      outputIpModel2.ip = '192.168.1.2';
+      outputIpModel2.mask = 32;
+      outputIpModel2.gateway = '192.168.1.6';
+      outputIpModel2.interface = 'ens192';
+
+      const outputIpModel3 = new IpAddressModel();
+      outputIpModel3.ip = '192.168.1.3';
+      outputIpModel3.mask = 32;
+      outputIpModel3.gateway = '192.168.1.6';
+      outputIpModel3.interface = 'ens192';
+
+      const outputIpModel4 = new IpAddressModel();
+      outputIpModel4.ip = '192.168.1.4';
+      outputIpModel4.mask = 32;
+      outputIpModel4.gateway = '192.168.1.6';
+      outputIpModel4.interface = 'ens192';
+
+      const outputIpModel5 = new IpAddressModel();
+      outputIpModel5.ip = '192.168.1.5';
+      outputIpModel5.mask = 32;
+      outputIpModel5.gateway = '192.168.1.6';
+      outputIpModel5.interface = 'ens192';
+
+      const outputIpModel6 = new IpAddressModel();
+      outputIpModel6.ip = '192.168.11.5';
+      outputIpModel6.mask = 32;
+      outputIpModel6.gateway = '192.168.11.6';
+      outputIpModel6.interface = 'ens192';
+
+      testObj.inputModel = inputModel;
+      testObj.outputIpModel1 = outputIpModel1;
+      testObj.outputIpModel2 = outputIpModel2;
+      testObj.outputIpModel3 = outputIpModel3;
+      testObj.outputIpModel4 = outputIpModel4;
+      testObj.outputIpModel5 = outputIpModel5;
+      testObj.outputIpModel6 = outputIpModel6;
+
       testObj.consoleError = sinon.stub(console, 'error');
     });
 
@@ -156,6 +200,7 @@ suite(`ProxyServerRegenerateJobService`, () => {
         testObj.outputIpModel3,
         testObj.outputIpModel4,
         testObj.outputIpModel5,
+        testObj.outputIpModel6,
       ];
       testObj.proxyServerRepository.getAll.resolves([null, outputIpModelList]);
       testObj.proxyServerFileRepository.add.resolves([null]);
@@ -165,6 +210,7 @@ suite(`ProxyServerRegenerateJobService`, () => {
 
       testObj.proxyServerRepository.getAll.should.have.callCount(1);
       testObj.proxyServerFileRepository.add.should.have.callCount(1);
+      testObj.proxyServerFileRepository.add.should.have.calledWith(sinon.match.has('length', 5));
       testObj.jobRepository.update.should.have.callCount(1);
       testObj.jobRepository.update.should.have.calledWith(
         sinon.match.instanceOf(JobModel).and(sinon.match.has('status', JobModel.STATUS_SUCCESS)),

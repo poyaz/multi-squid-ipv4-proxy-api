@@ -2,6 +2,7 @@
  * Created by pooya on 9/4/21.
  */
 
+const ipAddresses = require('ip-addresses');
 const JobModel = require('~src/core/model/jobModel');
 const IJobService = require('~src/core/interface/iJobService');
 
@@ -52,13 +53,17 @@ class ProxyServerRegenerateJobService extends IJobService {
   }
 
   async execute(model) {
+    const range = ipAddresses.v4.subnet(model.data);
+
     const [allIpListError, allIpList] = await this.#proxyServerRepository.getAll();
     if (allIpListError) {
       await this._updateJobStatus(allIpListError, model);
       return;
     }
 
-    const [addProxyError] = await this.#proxyServerFileRepository.add(allIpList);
+    const allIpListFilter = allIpList.filter((v) => v.ip && range.contains(v.ip));
+
+    const [addProxyError] = await this.#proxyServerFileRepository.add(allIpListFilter);
     if (addProxyError) {
       await this._updateJobStatus(addProxyError, model);
       return;
