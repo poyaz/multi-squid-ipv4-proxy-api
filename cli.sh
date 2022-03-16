@@ -47,6 +47,8 @@ function _usage() {
   echo -e "      --join-cluster\t\tJoin new server to exist cluster"
   echo -e "      --fetch-cluster\t\tFetch cluster token from exist node"
   echo -e "      --discord\t\t\tConfig Discord oauth for external authenticate"
+  echo -e "      --enable-check-url\tEnable check url is block for proxy"
+  echo -e "      --disable-check-url\tDisable check url is block for proxy"
   echo ""
   echo -e "  -v, --version\t\t\tShow version information and exit"
   echo -e "  -h, --help\t\t\tShow help"
@@ -266,6 +268,16 @@ while [[ $# -gt 0 ]]; do
 
   --discord)
     execute_mode="discord"
+    shift
+    ;;
+
+  --enable-check-url)
+    execute_mode="enable-check-url"
+    shift
+    ;;
+
+  --disable-check-url)
+    execute_mode="disable-check-url"
     shift
     ;;
 
@@ -579,6 +591,34 @@ if [[ $execute_mode == "discord" ]]; then
   sed -i \
       -e "s/\(OAUTH_DISCORD_CLIENT_ID=\).*/\1$DISCORD_CLIENT_ID/g" \
       -e "s/\(OAUTH_DISCORD_CLIENT_SECRET=\).*/\1$DISCORD_CLIENT_SECRET/g" \
+      "$DEFAULT_NODE_ENV_FILE"
+
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  exit
+fi
+
+if [[ $execute_mode == "enable-check-url" ]]; then
+  if ! [[ -f $DEFAULT_NODE_ENV_FILE ]]; then
+    echo "[ERR] Please init service! Usage: bash $0 --init"
+    exit
+  fi
+
+  sed -i \
+      -e "s/SQUID_CHECK_BLOCK_URL=.*/SQUID_CHECK_BLOCK_URL=true/g" \
+      "$DEFAULT_NODE_ENV_FILE"
+
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  exit
+fi
+
+if [[ $execute_mode == "disable-check-url" ]]; then
+  if ! [[ -f $DEFAULT_NODE_ENV_FILE ]]; then
+    echo "[ERR] Please init service! Usage: bash $0 --init"
+    exit
+  fi
+
+  sed -i \
+      -e "s/SQUID_CHECK_BLOCK_URL=.*/SQUID_CHECK_BLOCK_URL=false/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
   docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
