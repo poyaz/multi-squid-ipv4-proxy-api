@@ -46,7 +46,8 @@
     "squid": {
       "perIpInstance": 100,
       "portListener": null,
-      "scriptApiToken": ""
+      "scriptApiToken": "",
+      "checkBlockUrl": false
     },
     "timezone": {
       "locales": "en",

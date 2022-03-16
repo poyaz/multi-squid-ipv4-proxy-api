@@ -45,7 +45,8 @@
     "squid": {
       "perIpInstance": "SQUID_PER_IP_INSTANCE",
       "portListener": "SQUID_PORT_LISTENER",
-      "scriptApiToken": "SQUID_SCRIPT_API_TOKEN"
+      "scriptApiToken": "SQUID_SCRIPT_API_TOKEN",
+      "checkBlockUrl": "SQUID_CHECK_BLOCK_URL"
     },
     "timezone": {
       "locales": "TIMEZONE_LOCALES",
