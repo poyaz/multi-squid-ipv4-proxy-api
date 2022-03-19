@@ -705,9 +705,12 @@ class ExpressApi extends IRunner {
     router.post('/v1/oauth/:platform', async (req, res, next) => {
       try {
         const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
-        const response = await oauthController.auth();
-
-        res.redirect(response);
+        const [error, url] = await oauthController.auth();
+        if (error) {
+          this._sendResponse(req, res, [error]);
+        } else {
+          res.redirect(url);
+        }
 
         return next(null);
       } catch (error) {
