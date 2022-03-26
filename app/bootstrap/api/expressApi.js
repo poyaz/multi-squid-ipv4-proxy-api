@@ -689,7 +689,7 @@ class ExpressApi extends IRunner {
   _oauthRoute() {
     const oauthHttpApi = this._dependency.oauthHttpApi;
 
-    router.get('/v1/oauth', this._middlewareAdminAccess.bind(this), async (req, res, next) => {
+    router.get('/v1/oauth', async (req, res, next) => {
       try {
         const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
         const response = await oauthController.getOptions();

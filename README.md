@@ -1085,7 +1085,7 @@ Get list of external oauth configuration
 
 * Method: `GET`
 * URL: `api/v1/oauth`
-* Authorized type: `admin`
+* Authorized type: `anonymest`
 
 ```bash
 curl \
