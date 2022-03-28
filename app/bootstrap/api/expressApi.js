@@ -5,13 +5,14 @@
 const cluster = require('cluster');
 const expressApi = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const IRunner = require('~interface/iRunner');
 
 const app = expressApi();
 const router = expressApi.Router();
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(bodyParser.json());
 
 class ExpressApi extends IRunner {
