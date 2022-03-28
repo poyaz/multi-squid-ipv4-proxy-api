@@ -1123,7 +1123,7 @@ curl \
 
 ## Login with oauth external platform
 
-This API use for a client and after execute force client to redirect in oauth service
+This API use for a client and after execute generate a client url to redirect in oauth service
 
 **P.S:**
 
@@ -1155,4 +1155,9 @@ curl \
 
 ### Output:
 
-Redirect client to oauth service for a login
+```json5
+{
+  "status": "success",
+  "data": "http://oauth-platform-url"
+}
+```

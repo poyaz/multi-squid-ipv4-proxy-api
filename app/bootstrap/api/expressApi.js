@@ -11,7 +11,12 @@ const IRunner = require('~interface/iRunner');
 const app = expressApi();
 const router = expressApi.Router();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  }),
+);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -706,12 +711,9 @@ class ExpressApi extends IRunner {
     router.post('/v1/oauth/:platform', async (req, res, next) => {
       try {
         const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
-        const [error, url] = await oauthController.auth();
-        if (error) {
-          this._sendResponse(req, res, [error]);
-        } else {
-          res.redirect(url);
-        }
+        const response = await oauthController.auth();
+
+        this._sendResponse(req, res, response);
 
         return next(null);
       } catch (error) {
