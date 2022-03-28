@@ -1091,7 +1091,6 @@ Get list of external oauth configuration
 curl \
   -X GET \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/oauth'
 ```
 
@@ -1101,7 +1100,6 @@ curl \
 curl \
     -X GET \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/oauth'
 ```
 
@@ -1139,7 +1137,6 @@ If authenticate successfully execute after that username has been created and ne
 curl \
   -X POST \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/oauth/:platform'
 ```
 
@@ -1149,7 +1146,6 @@ curl \
 curl \
     -X POST \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/oauth/discord'
 ```
 
