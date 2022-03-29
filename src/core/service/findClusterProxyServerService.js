@@ -4,7 +4,6 @@
 
 const IProxyServerService = require('~src/core/interface/iProxyServerService');
 const IServerService = require('~src/core/interface/iServerService');
-const { networkInterfaces } = require('os');
 
 class FindClusterProxyServerService extends IProxyServerService {
   /**
