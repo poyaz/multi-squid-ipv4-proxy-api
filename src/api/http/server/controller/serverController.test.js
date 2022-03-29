@@ -28,12 +28,14 @@ suite(`ServerController`, () => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const { serverService, serverController } = helper.fakeServerController(
-      testObj.req,
-      testObj.res,
-    );
+    const {
+      serverService,
+      findClusterServerService,
+      serverController,
+    } = helper.fakeServerController(testObj.req, testObj.res);
 
     testObj.serverService = serverService;
+    testObj.findClusterServerService = findClusterServerService;
     testObj.serverController = serverController;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
@@ -83,11 +85,11 @@ suite(`ServerController`, () => {
 
   suite(`Get all interface of server`, () => {
     test(`Should error get all interface of server`, async () => {
-      testObj.serverService.getAllInterface.resolves([new UnknownException()]);
+      testObj.findClusterServerService.getAllInterface.resolves([new UnknownException()]);
 
       const [error] = await testObj.serverController.getAllInterface();
 
-      testObj.serverService.getAllInterface.should.have.callCount(1);
+      testObj.findClusterServerService.getAllInterface.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
@@ -97,9 +99,42 @@ suite(`ServerController`, () => {
       outputModel1.interfaceName = 'eth0';
       outputModel1.interfacePrefix = 'eth0';
       outputModel1.ipList = ['192.168.1.1', '192.168.1.2'];
-      testObj.serverService.getAllInterface.resolves([null, [outputModel1]]);
+      testObj.findClusterServerService.getAllInterface.resolves([null, [outputModel1]]);
 
       const [error, result] = await testObj.serverController.getAllInterface();
+
+      testObj.findClusterServerService.getAllInterface.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.length(1);
+      expect(result[0]).to.be.a('object');
+      expect(result[0]).to.have.include({
+        hostname: 'host1',
+        interfaceName: 'eth0',
+        interfacePrefix: 'eth0',
+      });
+      expect(result[0].ipList).to.have.deep.equal(['192.168.1.1', '192.168.1.2']);
+    });
+  });
+
+  suite(`Get all interface of server in self instance`, () => {
+    test(`Should error get all interface of server in self instance`, async () => {
+      testObj.serverService.getAllInterface.resolves([new UnknownException()]);
+
+      const [error] = await testObj.serverController.getAllInterfaceInSelfInstance();
+
+      testObj.serverService.getAllInterface.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all interface of server in self instance`, async () => {
+      const outputModel1 = new IpInterfaceModel();
+      outputModel1.hostname = 'host1';
+      outputModel1.interfaceName = 'eth0';
+      outputModel1.interfacePrefix = 'eth0';
+      outputModel1.ipList = ['192.168.1.1', '192.168.1.2'];
+      testObj.serverService.getAllInterface.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.serverController.getAllInterfaceInSelfInstance();
 
       testObj.serverService.getAllInterface.should.have.callCount(1);
       expect(error).to.be.a('null');

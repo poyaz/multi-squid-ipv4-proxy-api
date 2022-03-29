@@ -10,6 +10,10 @@ class ServerControllerFactory {
    */
   #serverService;
   /**
+   * @type {IServerService}
+   */
+  #findClusterServerService;
+  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -17,10 +21,12 @@ class ServerControllerFactory {
   /**
    *
    * @param {IServerService} serverService
+   * @param {IServerService} findClusterServerService
    * @param {IDateTime} dateTime
    */
-  constructor(serverService, dateTime) {
+  constructor(serverService, findClusterServerService, dateTime) {
     this.#serverService = serverService;
+    this.#findClusterServerService = findClusterServerService;
     this.#dateTime = dateTime;
   }
 
@@ -31,7 +37,13 @@ class ServerControllerFactory {
    * @return {ServerController}
    */
   create(req, res) {
-    return new ServerController(req, res, this.#serverService, this.#dateTime);
+    return new ServerController(
+      req,
+      res,
+      this.#serverService,
+      this.#findClusterServerService,
+      this.#dateTime,
+    );
   }
 }
 

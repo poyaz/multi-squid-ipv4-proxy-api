@@ -572,13 +572,21 @@ function fakeServerController(req, res) {
   const ServerController = require('~src/api/http/server/controller/serverController');
 
   const serverService = sinon.createStubInstance(IServerService);
+  const findClusterServerService = sinon.createStubInstance(IServerService);
 
   const dateTime = new DateTime();
 
-  const serverController = new ServerController(req, res, serverService, dateTime);
+  const serverController = new ServerController(
+    req,
+    res,
+    serverService,
+    findClusterServerService,
+    dateTime,
+  );
 
   return {
     serverService,
+    findClusterServerService,
     serverController,
   };
 }

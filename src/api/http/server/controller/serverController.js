@@ -16,6 +16,10 @@ class ServerController {
    */
   #serverService;
   /**
+   * @type {IServerService}
+   */
+  #findClusterServerService;
+  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -25,12 +29,14 @@ class ServerController {
    * @param req
    * @param res
    * @param {IServerService} serverService
+   * @param {IServerService} findClusterServerService
    * @param {IDateTime} dateTime
    */
-  constructor(req, res, serverService, dateTime) {
+  constructor(req, res, serverService, findClusterServerService, dateTime) {
     this.#req = req;
     this.#res = res;
     this.#serverService = serverService;
+    this.#findClusterServerService = findClusterServerService;
     this.#dateTime = dateTime;
   }
 
@@ -47,6 +53,18 @@ class ServerController {
   }
 
   async getAllInterface() {
+    const [error, data] = await this.#findClusterServerService.getAllInterface();
+    if (error) {
+      return [error];
+    }
+
+    const getAllInterfaceOutputModel = new GetAllInterfaceOutputModel();
+    const result = getAllInterfaceOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async getAllInterfaceInSelfInstance() {
     const [error, data] = await this.#serverService.getAllInterface();
     if (error) {
       return [error];
