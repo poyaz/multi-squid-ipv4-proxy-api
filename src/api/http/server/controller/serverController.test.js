@@ -12,6 +12,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const helper = require('~src/helper');
 
 const ServerModel = require('~src/core/model/serverModel');
+const IpInterfaceModel = require('~src/core/model/ipInterfaceModel');
 const UnknownException = require('~src/core/exception/unknownException');
 
 chai.should();
@@ -77,6 +78,39 @@ suite(`ServerController`, () => {
         isEnable: true,
       });
       expect(result[0].insertDate).to.have.match(testObj.dateRegex);
+    });
+  });
+
+  suite(`Get all interface of server`, () => {
+    test(`Should error get all interface of server`, async () => {
+      testObj.serverService.getAllInterface.resolves([new UnknownException()]);
+
+      const [error] = await testObj.serverController.getAllInterface();
+
+      testObj.serverService.getAllInterface.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all interface of server`, async () => {
+      const outputModel1 = new IpInterfaceModel();
+      outputModel1.hostname = 'host1';
+      outputModel1.interfaceName = 'eth0';
+      outputModel1.interfacePrefix = 'eth0';
+      outputModel1.ipList = ['192.168.1.1', '192.168.1.2'];
+      testObj.serverService.getAllInterface.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.serverController.getAllInterface();
+
+      testObj.serverService.getAllInterface.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.length(1);
+      expect(result[0]).to.be.a('object');
+      expect(result[0]).to.have.include({
+        hostname: 'host1',
+        interfaceName: 'eth0',
+        interfacePrefix: 'eth0',
+      });
+      expect(result[0].ipList).to.have.deep.equal(['192.168.1.1', '192.168.1.2']);
     });
   });
 
@@ -167,34 +201,6 @@ suite(`ServerController`, () => {
       const [error] = await testObj.serverController.update();
 
       testObj.serverService.update.should.have.callCount(1);
-      expect(error).to.be.a('null');
-    });
-  });
-
-  suite('Add new ip range to exist server', () => {
-    test(`Should error add new ip range to exist server`, async () => {
-      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
-      testObj.req.body = {
-        ipRange: ['192.168.3.1/24'],
-      };
-      testObj.serverService.appendIpRangeByServiceId.resolves([new UnknownException()]);
-
-      const [error] = await testObj.serverController.appendIpRange();
-
-      testObj.serverService.appendIpRangeByServiceId.should.have.callCount(1);
-      expect(error).to.be.an.instanceof(UnknownException);
-    });
-
-    test(`Should successful add new ip range to exist server`, async () => {
-      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
-      testObj.req.body = {
-        ipRange: ['192.168.3.1/24'],
-      };
-      testObj.serverService.appendIpRangeByServiceId.resolves([null]);
-
-      const [error] = await testObj.serverController.appendIpRange();
-
-      testObj.serverService.appendIpRangeByServiceId.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
   });

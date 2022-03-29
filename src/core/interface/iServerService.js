@@ -18,6 +18,16 @@ class IServerService {
 
   /**
    *
+   * @return {Promise<(Error|Array<IpInterfaceModel>)[]>}
+   */
+  async getAllInterface() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} ipMask
    * @return {Promise<(Error|string|ServerModel)[]>}
    */

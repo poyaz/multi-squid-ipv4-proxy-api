@@ -3,6 +3,7 @@
  */
 
 const GetAllServerOutputModel = require('./model/getAllServerOutputModel');
+const GetAllInterfaceOutputModel = require('./model/getAllInterfaceOutputModel');
 const AddServerInputModel = require('./model/addServerInputModel');
 const UpdateServerInputModel = require('./model/updateServerInputModel');
 const BaseServerOutputModel = require('./model/baseServerOutputModel');
@@ -41,6 +42,18 @@ class ServerController {
 
     const getAllServerOutputModel = new GetAllServerOutputModel(this.#dateTime);
     const result = getAllServerOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async getAllInterface() {
+    const [error, data] = await this.#serverService.getAllInterface();
+    if (error) {
+      return [error];
+    }
+
+    const getAllInterfaceOutputModel = new GetAllInterfaceOutputModel();
+    const result = getAllInterfaceOutputModel.getOutput(data);
 
     return [null, result];
   }
