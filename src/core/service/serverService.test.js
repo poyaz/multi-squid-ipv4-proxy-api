@@ -388,7 +388,7 @@ suite(`ServerService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should error delete when server id not exist`, async () => {
+    test(`Should successfully delete when server id not exist`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputModel = new ServerModel();
       outputModel.id = inputId;
