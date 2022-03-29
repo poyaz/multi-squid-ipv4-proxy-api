@@ -770,6 +770,28 @@ function fakeDiscordExternalAuthService(clientId, redirectUrl) {
   };
 }
 
+function fakeFindClusterServerService(currentInstanceIp) {
+  const IServerService = require('~src/core/interface/iServerService');
+  const IServerApiRepository = require('~src/core/interface/iServerApiRepository');
+  const FindClusterServerService = require('~src/core/service/findClusterServerService');
+
+  const serverService = sinon.createStubInstance(IServerService);
+
+  const serverApiRepository = sinon.createStubInstance(IServerApiRepository);
+
+  const findClusterServerService = new FindClusterServerService(
+    serverService,
+    serverApiRepository,
+    currentInstanceIp,
+  );
+
+  return {
+    serverService,
+    serverApiRepository,
+    findClusterServerService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -812,4 +834,5 @@ module.exports = {
   fakeFindClusterUserService,
   fakeOauthController,
   fakeDiscordExternalAuthService,
+  fakeFindClusterServerService,
 };

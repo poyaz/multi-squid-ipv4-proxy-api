@@ -88,6 +88,17 @@ class IServerApiRepository {
     error['args'] = { username, isEnable, serverModel };
     throw error;
   }
+
+  /**
+   *
+   * @param {ServerModel} serverModel
+   * @return {Promise<(Error|Array<IpInterfaceModel>)[]>}
+   */
+  async getAllInterfaceOfServer(serverModel) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { serverModel };
+    throw error;
+  }
 }
 
 module.exports = IServerApiRepository;
