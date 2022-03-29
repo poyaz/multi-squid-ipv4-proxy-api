@@ -7,6 +7,7 @@ const IServerApiRepository = require('~src/core/interface/iServerApiRepository')
 
 const JobModel = require('~src/core/model/jobModel');
 const PackageModel = require('~src/core/model/packageModel');
+const IpInterfaceModel = require('~src/core/model/ipInterfaceModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const ApiCallException = require('~src/core/exception/apiCallException');
 const NotFoundException = require('~src/core/exception/notFoundException');
@@ -190,6 +191,26 @@ class ProxyServerApiRepository extends IServerApiRepository {
     }
   }
 
+  async getAllInterfaceOfServer(serverModel) {
+    try {
+      const response = await axios.get(
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/server/interface`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: this.#apiToken,
+          },
+        },
+      );
+
+      const result = response.data.data.map((v) => this._fillIpInterface(v));
+
+      return [null, result];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   _errorHandler(error) {
     if (error.response) {
       switch (error.response.status) {
@@ -235,6 +256,16 @@ class ProxyServerApiRepository extends IServerApiRepository {
     model.expireDate = body['expireDate']
       ? this.#dateTime.gregorianDateWithTimezone(body['expireDate'], 'YYYY-MM-DD')
       : null;
+
+    return model;
+  }
+
+  _fillIpInterface(body) {
+    const model = new IpInterfaceModel();
+    model.hostname = body.hostname;
+    model.interfaceName = body.interfaceName;
+    model.interfacePrefix = body.interfacePrefix;
+    model.ipList = body.ipList;
 
     return model;
   }

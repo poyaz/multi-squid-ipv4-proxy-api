@@ -24,6 +24,7 @@ const JobModel = require('~src/core/model/jobModel');
 const ServerModel = require('~src/core/model/serverModel');
 const PackageModel = require('~src/core/model/packageModel');
 const IpAddressModel = require('~src/core/model/ipAddressModel');
+const IpInterfaceModel = require('~src/core/model/ipInterfaceModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const ApiCallException = require('~src/core/exception/apiCallException');
 const NotFoundException = require('~src/core/exception/notFoundException');
@@ -335,7 +336,7 @@ suite(`ProxyServerApiRepository`, () => {
           jobId: testObj.identifierGenerator.generateId(),
         },
       };
-      axiosPostStub.resolves(outputObj);
+      axiosPostStub.resolves({ data: outputObj });
 
       const [error, result] = await testObj.proxyServerApiRepository.generateIp(
         inputIpAddressModel,
@@ -402,7 +403,7 @@ suite(`ProxyServerApiRepository`, () => {
           jobId: testObj.identifierGenerator.generateId(),
         },
       };
-      axiosDeleteStub.resolves(outputObj);
+      axiosDeleteStub.resolves({ data: outputObj });
 
       const [error, result] = await testObj.proxyServerApiRepository.deleteIp(
         inputIpAddressModel,
@@ -467,7 +468,7 @@ suite(`ProxyServerApiRepository`, () => {
           },
         ],
       };
-      axiosGetStub.resolves(outputObj);
+      axiosGetStub.resolves({ data: outputObj });
 
       const [error, result] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
         inputUsername,
@@ -682,6 +683,62 @@ suite(`ProxyServerApiRepository`, () => {
       axiosPutStub.should.have.callCount(1);
       axiosPutStub.should.have.calledWith(sinon.match(/enable/));
       expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Get all interface of server`, () => {
+    test(`Should error get all interface of server`, async () => {
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const apiError = new Error('API call error');
+      axiosGetStub.throws(apiError);
+
+      const [error] = await testObj.proxyServerApiRepository.getAllInterfaceOfServer(
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully get all interface of server for each instance`, async () => {
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const outputObj = {
+        status: 'success',
+        data: [
+          {
+            hostname: 'host1',
+            interfaceName: 'eth01',
+            interfacePrefix: 'eth01',
+            ipList: ['192.168.1.1'],
+          },
+          {
+            hostname: 'host1',
+            interfaceName: 'eth01:2',
+            interfacePrefix: 'eth01',
+            ipList: ['192.168.1.2'],
+          },
+        ],
+      };
+      axiosGetStub.resolves({ data: outputObj });
+
+      const [error, result] = await testObj.proxyServerApiRepository.getAllInterfaceOfServer(
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(sinon.match.string);
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.equal(2);
+      expect(result[0]).to.be.an.instanceof(IpInterfaceModel);
+      expect(result[1]).to.be.an.instanceof(IpInterfaceModel);
     });
   });
 });
