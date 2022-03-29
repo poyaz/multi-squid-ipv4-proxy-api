@@ -2,8 +2,9 @@
  * Created by pooya on 2/13/22.
  */
 
-const { networkInterfaces } = require('os');
+const { hostname, networkInterfaces } = require('os');
 const IServerService = require('~src/core/interface/iServerService');
+const IpInterfaceModel = require('~src/core/model/ipInterfaceModel');
 const NotFoundException = require('~src/core/exception/notFoundException');
 
 class ServerService extends IServerService {
@@ -30,6 +31,35 @@ class ServerService extends IServerService {
 
   async getAll() {
     return this.#serverRepository.getAll();
+  }
+
+  async getAllInterface() {
+    const serverHostname = hostname();
+    const nets = networkInterfaces();
+
+    const interfaceList = [];
+    for (const name of Object.keys(nets)) {
+      if (name.match(/^(lo$|br-|^docker)/)) {
+        continue;
+      }
+
+      const ipList = nets[name]
+        .filter((v) => v.family.toLowerCase() === 'ipv4' && v.address !== '127.0.0.1')
+        .map((v) => v.address);
+      if (ipList.length === 0) {
+        continue;
+      }
+
+      const interfaceModel = new IpInterfaceModel();
+      interfaceModel.hostname = serverHostname;
+      interfaceModel.interfaceName = name;
+      interfaceModel.interfacePrefix = name.split(':')[0];
+      interfaceModel.ipList = ipList;
+
+      interfaceList.push(interfaceModel);
+    }
+
+    return [null, interfaceList];
   }
 
   async findInstanceExecute(ipMask) {

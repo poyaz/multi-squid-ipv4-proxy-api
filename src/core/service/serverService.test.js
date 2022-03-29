@@ -9,10 +9,12 @@ const sinonChai = require('sinon-chai');
 
 const os = require('os');
 const networkInterfaces = sinon.stub(os, 'networkInterfaces');
+const hostname = sinon.stub(os, 'hostname');
 
 const helper = require('~src/helper');
 
 const ServerModel = require('~src/core/model/serverModel');
+const IpInterfaceModel = require('~src/core/model/ipInterfaceModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const IServerService = require('~src/core/interface/iServerService');
@@ -42,10 +44,12 @@ suite(`ServerService`, () => {
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
     testObj.networkInterfaces = networkInterfaces;
+    testObj.hostname = hostname;
   });
 
   teardown(() => {
     testObj.networkInterfaces.restore();
+    testObj.hostname.restore();
   });
 
   suite(`Get all server`, () => {
@@ -76,6 +80,62 @@ suite(`ServerService`, () => {
       expect(error).to.be.a('null');
       expect(result.length).to.be.eq(1);
       expect(result[0]).to.be.instanceof(ServerModel);
+    });
+  });
+
+  suite(`Get all interface of server`, () => {
+    test(`Should successfully get interface of server (skip loopback and bridge device)`, async () => {
+      testObj.networkInterfaces.returns({
+        lo: [{ address: '127.0.0.1', family: 'IPv4' }],
+        'br-1': [{ address: '10.10.10.1', family: 'IPv4' }],
+        ens192: [
+          {
+            address: '192.168.1.1',
+            family: 'IPv4',
+          },
+          {
+            address: '192.168.1.2',
+            family: 'IPv4',
+          },
+          {
+            address: '66c9:e45f:100d:843d:81bb:1409:c5c1:9fcf',
+            family: 'IPv6',
+          },
+        ],
+        'ens192:1': [
+          {
+            address: '192.168.1.3',
+            family: 'IPv4',
+          },
+          {
+            address: '127.0.0.1',
+            family: 'IPv4',
+          },
+        ],
+        docker: [{ address: '172.30.0.1', family: 'IPv4' }],
+      });
+      testObj.hostname.returns('host1');
+
+      const [error, result] = await testObj.serverService.getAllInterface();
+
+      testObj.networkInterfaces.should.have.callCount(1);
+      testObj.hostname.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.eq(2);
+      expect(result[0]).to.be.instanceof(IpInterfaceModel);
+      expect(result[0]).to.have.include({
+        hostname: 'host1',
+        interfaceName: 'ens192',
+        interfacePrefix: 'ens192',
+      });
+      expect(result[0].ipList).to.have.deep.equal(['192.168.1.1', '192.168.1.2']);
+      expect(result[1]).to.be.instanceof(IpInterfaceModel);
+      expect(result[1]).to.have.include({
+        hostname: 'host1',
+        interfaceName: 'ens192:1',
+        interfacePrefix: 'ens192',
+      });
+      expect(result[1].ipList).to.have.deep.equal(['192.168.1.3']);
     });
   });
 
