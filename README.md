@@ -935,6 +935,57 @@ curl \
 }
 ```
 
+## Get all interface of servers
+
+Get list all interface of servers cluster
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/server/interface`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/server/interface'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/server/interface'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "totalItem": 1,
+  "data": [
+    {
+      // Hostname
+      "hostname": "host1",
+      // Interface name
+      "interfaceName": "venet0",
+      // Prefix interface name
+      "interfacePrefix": "venet0",
+      // List of ip Address
+      "ipList": [
+        "192.168.1.2"
+      ]
+    }
+  ]
+}
+```
+
 ## Create new server
 
 Create new server
