@@ -490,6 +490,7 @@ class ExpressApi extends IRunner {
   _instanceRoute() {
     const packageHttpApi = this._dependency.packageHttpApi;
     const userHttpApi = this._dependency.userHttpApi;
+    const serverHttpApi = this._dependency.serverHttpApi;
 
     router.post(
       '/v1/instance/self/user',
@@ -600,6 +601,23 @@ class ExpressApi extends IRunner {
         }
       },
     );
+
+    router.get(
+      '/v1/instance/self/server/interface',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const serverController = serverHttpApi.serverControllerFactory.create(req, res);
+          const response = await serverController.getAllInterfaceInSelfInstance();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
   }
 
   _serverRoute() {
@@ -617,6 +635,23 @@ class ExpressApi extends IRunner {
         return next(error);
       }
     });
+
+    router.get(
+      '/v1/server/interface',
+      this._middlewareAdminAccess.bind(this),
+      async (req, res, next) => {
+        try {
+          const serverController = serverHttpApi.serverControllerFactory.create(req, res);
+          const response = await serverController.getAllInterface();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
     router.post(
       '/v1/server',

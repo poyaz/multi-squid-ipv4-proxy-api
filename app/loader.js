@@ -36,6 +36,7 @@ const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApi
 const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
 const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
 const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
+const FindClusterServerService = require('~src/core/service/findClusterServerService');
 const FindClusterUserService = require('~src/core/service/findClusterUserService');
 const JobService = require('~src/core/service/jobService');
 const PackageService = require('~src/core/service/packageService');
@@ -204,6 +205,11 @@ class Loader {
       serverService,
       proxyServerApiRepository,
     );
+    const findClusterServerService = new FindClusterServerService(
+      serverService,
+      proxyServerApiRepository,
+      currentInstanceIp,
+    );
     const findClusterUserService = new FindClusterUserService(
       userService,
       serverService,
@@ -262,7 +268,11 @@ class Loader {
       addServerValidation: new AddServerValidationMiddlewareFactory(),
       updateServerValidation: new UpdateServerValidationMiddlewareFactory(),
     };
-    const serverControllerFactory = new ServerControllerFactory(serverService, dateTime);
+    const serverControllerFactory = new ServerControllerFactory(
+      serverService,
+      findClusterServerService,
+      dateTime,
+    );
 
     // Other API
     // --------------------------
