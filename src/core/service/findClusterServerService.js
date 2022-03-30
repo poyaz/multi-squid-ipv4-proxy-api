@@ -67,7 +67,14 @@ class FindClusterServerService extends IServerService {
       dataInterface.push(...dataExecute);
     }
 
-    return [null, dataInterface];
+    const result = dataInterface.filter(
+      (s, index) =>
+        dataInterface.findIndex(
+          (d) => s.hostname === d.hostname && s.interfaceName === d.interfaceName,
+        ) === index,
+    );
+
+    return [null, result];
   }
 
   async findInstanceExecute(ipMask) {

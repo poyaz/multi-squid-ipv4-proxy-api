@@ -229,6 +229,79 @@ suite(`FindClusterServerService`, () => {
       });
       expect(result[2].ipList).to.have.deep.equal(['192.168.1.3']);
     });
+
+    test(`Should error get all interface of server in all instance (without duplicate)`, async () => {
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputModelIpInterface1 = new IpInterfaceModel();
+      outputModelIpInterface1.hostname = 'host4';
+      outputModelIpInterface1.interfaceName = 'ens192';
+      outputModelIpInterface1.interfacePrefix = 'ens192';
+      outputModelIpInterface1.ipList = ['192.168.1.4'];
+      testObj.serverService.getAllInterface.resolves([null, [outputModelIpInterface1]]);
+      const outputInstanceModelIpInterface1 = new IpInterfaceModel();
+      outputInstanceModelIpInterface1.hostname = 'host1';
+      outputInstanceModelIpInterface1.interfaceName = 'ens192';
+      outputInstanceModelIpInterface1.interfacePrefix = 'ens192';
+      outputInstanceModelIpInterface1.ipList = ['192.168.1.1'];
+      const outputInstanceModelIpInterface2 = new IpInterfaceModel();
+      outputInstanceModelIpInterface2.hostname = 'host1';
+      outputInstanceModelIpInterface2.interfaceName = 'ens192';
+      outputInstanceModelIpInterface2.interfacePrefix = 'ens192';
+      outputInstanceModelIpInterface2.ipList = ['192.168.1.3'];
+      testObj.serverApiRepository.getAllInterfaceOfServer
+        .onCall(0)
+        .resolves([null, [outputInstanceModelIpInterface1]])
+        .onCall(1)
+        .resolves([null, [outputInstanceModelIpInterface2]]);
+
+      const [error, result] = await testObj.findClusterServerService.getAllInterface();
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.serverService.getAllInterface.should.have.callCount(1);
+      testObj.serverApiRepository.getAllInterfaceOfServer.should.have.callCount(2);
+      testObj.serverApiRepository.getAllInterfaceOfServer.should.have.calledWith(
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.eq(2);
+      expect(result[0]).to.be.instanceof(IpInterfaceModel);
+      expect(result[0]).to.have.include({
+        hostname: 'host4',
+        interfaceName: 'ens192',
+        interfacePrefix: 'ens192',
+      });
+      expect(result[0].ipList).to.have.deep.equal(['192.168.1.4']);
+      expect(result[1]).to.be.instanceof(IpInterfaceModel);
+      expect(result[1]).to.have.include({
+        hostname: 'host1',
+        interfaceName: 'ens192',
+        interfacePrefix: 'ens192',
+      });
+      expect(result[1].ipList).to.have.deep.equal(['192.168.1.1']);
+    });
   });
 
   suite(`Find server instance`, () => {
