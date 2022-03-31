@@ -234,7 +234,7 @@ class Loader {
 
     const jobControllerFactory = new JobControllerFactory(jobService, dateTime);
 
-    const oauthControllerFactory = new OauthControllerFactory(discordExternalAuthService, jwt);
+    const oauthControllerFactory = new OauthControllerFactory(discordExternalAuthService, jwt, oauthHtmlPageConfig);
 
     const packageMiddlewares = {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
