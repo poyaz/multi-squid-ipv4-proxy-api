@@ -68,7 +68,7 @@ class OauthController {
     const loginExternalUserOutputModel = new LoginExternalUserOutputModel(this.#jwt);
     const result = loginExternalUserOutputModel.getOutput(data);
 
-    const redirectUrl = this.#oauthHtmlPage.address.replaceAll(this.#oauthHtmlPage.key, result.token);
+    const redirectUrl = this.#oauthHtmlPage.address.split(this.#oauthHtmlPage.key).join(result.token);
 
     return [null, redirectUrl];
   }
