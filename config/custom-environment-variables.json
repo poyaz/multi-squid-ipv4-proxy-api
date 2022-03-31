@@ -65,6 +65,10 @@
       "discord": {
         "id": "OAUTH_DISCORD_CLIENT_ID",
         "secret": "OAUTH_DISCORD_CLIENT_SECRET"
+      },
+      "htmlPage": {
+        "address": "OAUTH_HTML_PAGE_ADDRESS",
+        "key": "OAUTH_HTML_PAGE_KEY_NAME"
       }
     }
   }

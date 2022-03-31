@@ -125,6 +125,10 @@ class Loader {
       host: realProjectPathForDockerConfig,
       current: this._options.cwd,
     };
+    const oauthHtmlPageConfig = {
+      address: this._config.getStr('custom.oauth.htmlPage.address'),
+      key: this._config.getStr('custom.oauth.htmlPage.key'),
+    };
 
     // Repository
     // ----------

@@ -759,9 +759,13 @@ class ExpressApi extends IRunner {
     router.get('/v1/oauth/:platform/callback', async (req, res, next) => {
       try {
         const oauthController = oauthHttpApi.oauthControllerFactory.create(req, res);
-        const response = await oauthController.verify();
+        const [error, url] = await oauthController.verify();
 
-        this._sendResponse(req, res, response);
+        if (error) {
+          this._sendResponse(req, res, [error]);
+        } else {
+          res.redirect(url);
+        }
 
         return next(null);
       } catch (error) {

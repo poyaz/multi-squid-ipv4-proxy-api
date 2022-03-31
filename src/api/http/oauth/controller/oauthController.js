@@ -13,6 +13,7 @@ class OauthController {
    */
   #externalAuthService;
   #jwt;
+  #oauthHtmlPage;
 
   /**
    *
@@ -20,12 +21,14 @@ class OauthController {
    * @param res
    * @param {IExternalAuthService} externalAuthService
    * @param jwt
+   * @param {Object<address: string, key: string>} oauthHtmlPage
    */
-  constructor(req, res, externalAuthService, jwt) {
+  constructor(req, res, externalAuthService, jwt, oauthHtmlPage) {
     this.#req = req;
     this.#res = res;
     this.#externalAuthService = externalAuthService;
     this.#jwt = jwt;
+    this.#oauthHtmlPage = oauthHtmlPage;
   }
 
   async getOptions() {
@@ -65,7 +68,9 @@ class OauthController {
     const loginExternalUserOutputModel = new LoginExternalUserOutputModel(this.#jwt);
     const result = loginExternalUserOutputModel.getOutput(data);
 
-    return [null, result];
+    const redirectUrl = this.#oauthHtmlPage.address.replaceAll(this.#oauthHtmlPage.key, result.token);
+
+    return [null, redirectUrl];
   }
 }
 
