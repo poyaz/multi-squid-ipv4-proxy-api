@@ -48,6 +48,18 @@ class UserService extends IUserService {
     return this.#userRepository.getAll(filterInput);
   }
 
+  async getUserById(userId) {
+    const [error, data] = await this.#userRepository.getUserById(userId);
+    if (error) {
+      return [error];
+    }
+    if (!data) {
+      return [new NotFoundException()];
+    }
+
+    return [null, data];
+  }
+
   async checkUsernameAndPassword(username, password) {
     const [errorCheck, dataCheck] = await this.#userSquidRepository.checkUsernameAndPassword(
       username,

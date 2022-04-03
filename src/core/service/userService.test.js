@@ -90,6 +90,44 @@ suite(`UserService`, () => {
     });
   });
 
+  suite(`Get by user id`, () => {
+    test(`Should error get user by id`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      testObj.userRepository.getUserById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.getUserById(inputUserId);
+
+      testObj.userRepository.getUserById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error get user by id when user not found`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      testObj.userRepository.getUserById.resolves([null, null]);
+
+      const [error] = await testObj.userService.getUserById(inputUserId);
+
+      testObj.userRepository.getUserById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should successfully get user by id`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      outputModel.isEnable = true;
+      outputModel.insertDate = new Date();
+      testObj.userRepository.getUserById.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.userService.getUserById(inputUserId);
+
+      testObj.userRepository.getUserById.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(UserModel);
+    });
+  });
+
   suite(`Check username and password`, () => {
     test(`Should error check username and password`, async () => {
       const inputUsername = 'username';
