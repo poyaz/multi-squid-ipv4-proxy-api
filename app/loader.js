@@ -48,8 +48,7 @@ const UrlAccessService = require('~src/core/service/urlAccessService');
 const UserService = require('~src/core/service/userService');
 
 const AccessMiddlewareFactory = require('~src/api/http/accessMiddlewareFactory');
-const AdminAccessMiddlewareFactory = require('~src/api/http/adminAccessMiddlewareFactory');
-const UserAccessMiddlewareFactory = require('~src/api/http/userAccessMiddlewareFactory');
+const RoleAccessMiddlewareFactory = require('~src/api/http/roleAccessMiddlewareFactory');
 
 const JobControllerFactory = require('~src/api/http/job/controller/jobControllerFactory');
 
@@ -66,6 +65,7 @@ const ProxyControllerFactory = require('~src/api/http/proxy/controller/proxyCont
 const AddUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/addUserValidationMiddlewareFactory');
 const BlockUrlForUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/blockUrlForUserValidationMiddlewareFactory');
 const ChangePasswordUserValidationMiddlewareFactory = require('~src/api/http/user/middleware/changePasswordUserValidationMiddlewareFactory');
+const SelfUserAccessMiddlewareFactory = require('~src/api/http/user/middleware/selfUserAccessMiddlewareFactory');
 const UserControllerFactory = require('~src/api/http/user/controller/userControllerFactory');
 
 const AddServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/addServerValidationMiddlewareFactory');
@@ -229,12 +229,15 @@ class Loader {
     // -------------------------
 
     const accessMiddlewareFactory = new AccessMiddlewareFactory(jwt);
-    const adminAccessMiddlewareFactory = new AdminAccessMiddlewareFactory();
-    const userAccessMiddlewareFactory = new UserAccessMiddlewareFactory();
+    const roleAccessMiddlewareFactory = new RoleAccessMiddlewareFactory();
 
     const jobControllerFactory = new JobControllerFactory(jobService, dateTime);
 
-    const oauthControllerFactory = new OauthControllerFactory(discordExternalAuthService, jwt, oauthHtmlPageConfig);
+    const oauthControllerFactory = new OauthControllerFactory(
+      discordExternalAuthService,
+      jwt,
+      oauthHtmlPageConfig,
+    );
 
     const packageMiddlewares = {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
@@ -259,6 +262,7 @@ class Loader {
       addUserValidation: new AddUserValidationMiddlewareFactory(),
       blockUrlForUserValidation: new BlockUrlForUserValidationMiddlewareFactory(),
       changePasswordUserValidation: new ChangePasswordUserValidationMiddlewareFactory(),
+      selfUserAccess: new SelfUserAccessMiddlewareFactory(),
     };
     const userControllerFactory = new UserControllerFactory(
       userService,
@@ -292,8 +296,7 @@ class Loader {
     this._dependency.dateTime = dateTime;
 
     this._dependency.accessMiddlewareFactory = accessMiddlewareFactory;
-    this._dependency.adminAccessMiddlewareFactory = adminAccessMiddlewareFactory;
-    this._dependency.userAccessMiddlewareFactory = userAccessMiddlewareFactory;
+    this._dependency.roleAccessMiddlewareFactory = roleAccessMiddlewareFactory;
 
     this._dependency.jobHttpApi = {
       jobControllerFactory,
@@ -319,6 +322,7 @@ class Loader {
       addUserValidationMiddlewareFactory: userMiddlewares.addUserValidation,
       blockUrlForUserValidationMiddlewareFactory: userMiddlewares.blockUrlForUserValidation,
       changePasswordUserValidationMiddlewareFactory: userMiddlewares.changePasswordUserValidation,
+      selfUserAccessMiddlewareFactory: userMiddlewares.selfUserAccess,
       userControllerFactory,
     };
 
