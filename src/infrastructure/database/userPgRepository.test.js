@@ -235,6 +235,74 @@ suite(`UserPgRepository`, () => {
     });
   });
 
+  suite(`Get user by id`, () => {
+    test(`Should error get user by id`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.userRepository.getUserById(inputUserId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get user by id and return null`, async () => {
+      const filterInput = new UserModel();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getUserById(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('null');
+    });
+
+    test(`Should successfully get user by id and return record`, async () => {
+      const filterInput = new UserModel();
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.userRepository.getUserById(filterInput);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(UserModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: '',
+        isEnable: true,
+      });
+    });
+  });
+
   suite(`Check user exist`, () => {
     test(`Should error check user exist in database`, async () => {
       const inputUsername = 'username';

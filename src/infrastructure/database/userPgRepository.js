@@ -73,6 +73,31 @@ class UserPgRepository extends IUserRepository {
     }
   }
 
+  async getUserById(userId) {
+    const getAllQuery = {
+      text: singleLine`
+          SELECT *
+          FROM public.users
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [userId],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(getAllQuery);
+      if (rowCount === 0) {
+        return [null, null];
+      }
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async isUserExist(username) {
     const existQuery = {
       text: singleLine`
