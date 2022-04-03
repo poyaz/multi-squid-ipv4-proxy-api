@@ -80,6 +80,36 @@ suite(`FindClusterUserService`, () => {
     });
   });
 
+  suite(`Get user by id`, () => {
+    test(`Should error get user by id`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      testObj.userService.getUserById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterUserService.getUserById(inputUserId);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      testObj.userService.getUserById.should.have.calledWith(sinon.match(inputUserId));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully get user by id`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      outputModel.isEnable = true;
+      outputModel.insertDate = new Date();
+      testObj.userService.getUserById.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.findClusterUserService.getUserById(inputUserId);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(UserModel);
+    });
+  });
+
   suite(`Check username and password`, () => {
     test(`Should error check username and password`, async () => {
       const inputUsername = 'username';
