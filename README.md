@@ -21,6 +21,7 @@ Options:
       --join-cluster            Join new server to exist cluster
       --fetch-cluster           Fetch cluster token from exist node
       --discord                 Config Discord oauth for external authenticate
+      --oauth                   Config oauth for use in client page (PWA)
 
   -v, --version                 Show version information and exit
   -h, --help                    Show help
@@ -161,6 +162,33 @@ After execute command you should fill bellow step:
 * Step 2: You should enter your Discord client secret
 
 Finally, after use above command server has been restart automatically
+
+Oauth client page
+=================
+
+If you want to use oauth in html client or PWA you have to use below command for build redirect link in a server.
+
+```bash
+bash cli.sh --oauth
+Enter oauth client page url: -- (Step 1)
+Enter oauth client key name: -- (Step 2)
+```
+
+After execute command you should fill bellow step:
+
+* Step 1: You should enter your full page address
+* Step 2: You should enter your key need replace with token
+
+Example:
+
+```bash
+bash cli.sh --oauth
+Enter oauth client page url: http://localhost:8080/#/home?access_token=<token>
+Enter oauth client key name: <token>
+```
+
+My custom url is `http://localhost:8080/#/home?access_token=<token>` and I want to replace `<token>` in web server. It means server force client to redirect in `http://localhost:8080/#/home?access_token=eyJhbGciOiJI...` (This is sample page, and you should replace with own page url)
+
 
 API
 ===

@@ -47,6 +47,7 @@ function _usage() {
   echo -e "      --join-cluster\t\tJoin new server to exist cluster"
   echo -e "      --fetch-cluster\t\tFetch cluster token from exist node"
   echo -e "      --discord\t\t\tConfig Discord oauth for external authenticate"
+  echo -e "      --oauth\t\t\tConfig oauth for use in client page (PWA)"
   echo -e "      --enable-check-url\tEnable check url is block for proxy"
   echo -e "      --disable-check-url\tDisable check url is block for proxy"
   echo ""
@@ -268,6 +269,11 @@ while [[ $# -gt 0 ]]; do
 
   --discord)
     execute_mode="discord"
+    shift
+    ;;
+
+  --oauth)
+    execute_mode="oauth"
     shift
     ;;
 
@@ -591,6 +597,45 @@ if [[ $execute_mode == "discord" ]]; then
   sed -i \
       -e "s/\(OAUTH_DISCORD_CLIENT_ID=\).*/\1$DISCORD_CLIENT_ID/g" \
       -e "s/\(OAUTH_DISCORD_CLIENT_SECRET=\).*/\1$DISCORD_CLIENT_SECRET/g" \
+      "$DEFAULT_NODE_ENV_FILE"
+
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  exit
+fi
+
+if [[ $execute_mode == "oauth" ]]; then
+  if ! [[ -f $DEFAULT_NODE_ENV_FILE ]]; then
+    echo "[ERR] Please init service! Usage: bash $0 --init"
+    exit
+  fi
+
+  read -p "Enter oauth client page url: " OAUTH_PAGE_ADDRESS
+  if [[ -z ${OAUTH_PAGE_ADDRESS} ]]; then
+    echo "[ERR] Please enter oauth client page url"
+    echo ""
+
+    exit 1
+  fi
+
+  read -p "Enter oauth client key name: " OAUTH_PAGE_KEY_NAME
+  if [[ -z ${OAUTH_PAGE_KEY_NAME} ]]; then
+    echo "[ERR] Please oauth client key name"
+    echo ""
+
+    exit 1
+  fi
+
+  if [[ "$OAUTH_PAGE_KEY_NAME" == *"$"* ]]; then
+    echo "[ERR] Your oauth client key name can't contains dollar symbol ($)"
+    echo ""
+
+    exit 1
+  fi
+
+  OAUTH_PAGE_ADDRESS=$(echo $OAUTH_PAGE_ADDRESS | sed 's/\//\\\//g')
+  sed -i \
+      -e "s/\(OAUTH_HTML_PAGE_ADDRESS=\).*/\1$OAUTH_PAGE_ADDRESS/g" \
+      -e "s/\(OAUTH_HTML_PAGE_KEY_NAME=\).*/\1$OAUTH_PAGE_KEY_NAME/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
   docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
