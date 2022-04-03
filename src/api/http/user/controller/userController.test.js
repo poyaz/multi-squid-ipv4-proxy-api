@@ -159,11 +159,11 @@ suite(`UserController`, () => {
   suite(`Get user by id`, () => {
     test(`Should error get user by id`, async () => {
       testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
-      testObj.findClusterUserService.getByUserId.resolves([new UnknownException()]);
+      testObj.findClusterUserService.getUserById.resolves([new UnknownException()]);
 
       const [error] = await testObj.userController.getUserById();
 
-      testObj.findClusterUserService.getByUserId.should.have.callCount(1);
+      testObj.findClusterUserService.getUserById.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
@@ -174,11 +174,11 @@ suite(`UserController`, () => {
       outputModel.username = 'user1';
       outputModel.isEnable = true;
       outputModel.insertDate = new Date();
-      testObj.findClusterUserService.getByUserId.resolves([null, outputModel]);
+      testObj.findClusterUserService.getUserById.resolves([null, outputModel]);
 
       const [error, result] = await testObj.userController.getUserById();
 
-      testObj.findClusterUserService.getByUserId.should.have.callCount(1);
+      testObj.findClusterUserService.getUserById.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.have.include({
         id: testObj.identifierGenerator.generateId(),

@@ -71,7 +71,7 @@ class UserController {
   async getUserById() {
     const { userId } = this.#req.params;
 
-    const [error, data] = await this.#findClusterUserService.getByUserId(userId);
+    const [error, data] = await this.#findClusterUserService.getUserById(userId);
     if (error) {
       return [error];
     }
