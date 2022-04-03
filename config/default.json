@@ -69,10 +69,7 @@
       },
       "htmlPage": {
         "address": "",
-        "param": {
-          "address": "",
-          "key": ""
-        }
+        "key": ""
       }
     }
   }
