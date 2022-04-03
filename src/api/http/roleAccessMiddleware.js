@@ -6,15 +6,20 @@ const IHttpMiddleware = require('~src/api/interface/iHttpMiddleware');
 const ForbiddenException = require('~src/core/exception/forbiddenException');
 const UnauthorizedException = require('~src/core/exception/unauthorizedException');
 
-class AdminAccessMiddleware extends IHttpMiddleware {
+class RoleAccessMiddleware extends IHttpMiddleware {
   #req;
   #res;
+  /**
+   * @type {Array<string>}
+   */
+  #roles;
 
-  constructor(req, res) {
+  constructor(req, res, roles) {
     super();
 
     this.#req = req;
     this.#res = res;
+    this.#roles = roles;
   }
 
   async act() {
@@ -25,11 +30,7 @@ class AdminAccessMiddleware extends IHttpMiddleware {
       throw new UnauthorizedException();
     }
 
-    if (this.#req.user.verifyAccess) {
-      return;
-    }
-
-    if (this.#req.user.role !== 'admin') {
+    if (this.#roles.indexOf(this.#req.user.role) === -1) {
       throw new ForbiddenException();
     }
 
@@ -37,4 +38,4 @@ class AdminAccessMiddleware extends IHttpMiddleware {
   }
 }
 
-module.exports = AdminAccessMiddleware;
+module.exports = RoleAccessMiddleware;
