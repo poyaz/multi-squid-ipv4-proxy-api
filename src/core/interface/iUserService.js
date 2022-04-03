@@ -27,6 +27,17 @@ class IUserService {
 
   /**
    *
+   * @param {UserModel} userId
+   * @return {Promise<(Error|UserModel)[]>}
+   */
+  async getByUserId(userId) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { userId };
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} username
    * @param {string} password
    * @return {Promise<(Error|UserModel)[]>}

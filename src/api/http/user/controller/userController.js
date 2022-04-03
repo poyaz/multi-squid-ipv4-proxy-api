@@ -8,6 +8,7 @@ const LoginUserOutputModel = require('./model/loginUserOutputModel');
 const GetAllUserInputModel = require('./model/getAllUserInputModel');
 const GetAllUserOutputModel = require('./model/getAllUserOutputModel');
 const BlockUrlForUserInputModel = require('./model/blockUrlForUserInputModel');
+const BaseUserOutputModel = require('./model/baseUserOutputModel');
 
 class UserController {
   #req;
@@ -63,6 +64,20 @@ class UserController {
 
     const getAllUserOutputModel = new GetAllUserOutputModel(this.#dateTime);
     const result = getAllUserOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async getUserById() {
+    const { userId } = this.#req.params;
+
+    const [error, data] = await this.#findClusterUserService.getByUserId(userId);
+    if (error) {
+      return [error];
+    }
+
+    const baseUserOutputModel = new BaseUserOutputModel(this.#dateTime);
+    const result = baseUserOutputModel.getOutput(data);
 
     return [null, result];
   }

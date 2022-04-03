@@ -156,6 +156,38 @@ suite(`UserController`, () => {
     });
   });
 
+  suite(`Get user by id`, () => {
+    test(`Should error get user by id`, async () => {
+      testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
+      testObj.findClusterUserService.getByUserId.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userController.getUserById();
+
+      testObj.findClusterUserService.getByUserId.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get user by id`, async () => {
+      testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.username = 'user1';
+      outputModel.isEnable = true;
+      outputModel.insertDate = new Date();
+      testObj.findClusterUserService.getByUserId.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.userController.getUserById();
+
+      testObj.findClusterUserService.getByUserId.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+      });
+      expect(result.insertDate).to.have.match(testObj.dateRegex);
+    });
+  });
+
   suite(`Add new user`, () => {
     test(`Should error add new user`, async () => {
       testObj.req.body = { username: 'username', password: 'password' };
