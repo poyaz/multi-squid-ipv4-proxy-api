@@ -395,6 +395,48 @@ curl \
 }
 ```
 
+## Get user by id
+
+This API use for a get user by id
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/user`
+* Authorized type: `admin`, `self user`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/user/:userId'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/user/ec7c5690-c008-4c13-bf52-ba0bbff06fb0'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "id": "ec7c5690-c008-4c13-bf52-ba0bbff06fb0",
+    "username": "my_username",
+    "isEnable": true,
+    "insertDate": "2021-08-29 09:59:40"
+  }
+}
+```
+
 ## Create users
 
 This API use for create new user
@@ -447,7 +489,7 @@ This API use for a login user
 
 The output of this API is a token, and you can this token in below API list:
 
-* `GET /v1/user`
+* `GET /v1/user/:userId`
 * `PUT /v1/user/:username/password`
 * `POST /v1/package`
 * `PUT /v1/package/:packageId/renew`
