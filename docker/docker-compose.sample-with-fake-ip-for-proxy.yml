@@ -90,6 +90,12 @@ services:
       proxy:
         ipv4_address: 10.102.0.20
 
+  log-capture:
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_HTTP_PORT=8000
+      - "SQUID_SCRIPT_API_TOKEN=Bearer <token>"
+
 networks:
   proxy:
     driver: bridge

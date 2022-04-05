@@ -54,6 +54,15 @@ services:
     restart: "no"
     command: /bin/sh -c "sleep 1; exit"
 
+  log-capture:
+    image: bitnami/fluent-bit:1.9.1
+    volumes:
+      - $PWD/storage/externalConf/fluent-bit.conf:/etc/fluent-bit.conf
+      - $PWD/storage/externalConf/fluent-bit-parsers.conf:/etc/fluent-bit-parsers.conf
+    network_mode: host
+    command: "-c /etc/fluent-bit.conf"
+    restart: "always"
+
 volumes:
   postgres-storage:
 
