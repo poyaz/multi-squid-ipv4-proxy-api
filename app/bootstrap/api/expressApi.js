@@ -80,6 +80,7 @@ class ExpressApi extends IRunner {
     this._instanceRoute();
     this._serverRoute();
     this._oauthRoute();
+    this._logRoute();
   }
 
   _jobRoute() {
@@ -797,6 +798,16 @@ class ExpressApi extends IRunner {
       } catch (error) {
         return next(error);
       }
+    });
+  }
+
+  _logRoute() {
+    router.post('/v1/log', this._middlewareRoleAccess(['admin']), async (req, res, next) => {
+      console.log(req.headers);
+      console.log(req.body);
+
+      res.status(204).end();
+      next(null);
     });
   }
 
