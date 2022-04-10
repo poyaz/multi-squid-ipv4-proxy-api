@@ -286,6 +286,7 @@ suite(`PackageService`, () => {
       const outputFetchUser1 = new UserModel();
       outputFetchUser1.id = testObj.identifierGenerator.generateId();
       outputFetchUser1.username = 'user1';
+      outputFetchUser1.password = 'pass1';
       outputFetchUser1.isEnable = true;
       outputFetchUser1.insertDate = new Date();
       const outputAddPackage = new PackageModel();
@@ -318,6 +319,7 @@ suite(`PackageService`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceOf(PackageModel);
+      expect(result.password).to.be.equal('pass1');
     });
   });
 

@@ -103,6 +103,8 @@ class PackageService extends IPackageService {
       return [addFileError];
     }
 
+    addData.password = fetchData.password;
+
     this._reloadServer();
 
     return [null, addData];
