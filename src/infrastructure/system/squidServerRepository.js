@@ -181,15 +181,10 @@ class SquidServerRepository extends IProxyServerRepository {
 
       for await (const i of containerInstanceList) {
         const containerPath = `${this.#squidVolumePerInstanceFolder}${path.sep}squid${i}`;
-        const hasExistContainerVolume = await this._checkDirectoryExist(containerPath);
-        if (!hasExistContainerVolume) {
-          await fsAsync.mkdir(containerPath);
-        }
 
-        const containerLogPath = `${this.#squidVolumePerInstanceFolder}${path.sep}squid${i}-log`;
-        const hasExistContainerLogVolume = await this._checkDirectoryExist(containerLogPath);
-        if (!hasExistContainerLogVolume) {
-          await fsAsync.mkdir(containerLogPath);
+        const haExistContainerVolume = await this._checkDirectoryExist(containerPath);
+        if (!haExistContainerVolume) {
+          await fsAsync.mkdir(containerPath);
         }
 
         const exec = spawn('cp', [
@@ -236,29 +231,12 @@ class SquidServerRepository extends IProxyServerRepository {
           this.#projectPath.current,
           this.#projectPath.host,
         );
-        const containerLogPathVolume = containerLogPath.replace(
-          this.#projectPath.current,
-          this.#projectPath.host,
-        );
         const squidOtherConfDir = path.dirname(
           this.#squidPasswordFile.replace(this.#projectPath.current, this.#projectPath.host),
         );
         const squidIpAccessBashFileVolume = this.#squidIpAccessBashFile.replace(
           this.#projectPath.current,
           this.#projectPath.host,
-        );
-        const dockerLogVolumeName = `multi-squid-ipv4-proxy-api_squid_log-${i}`;
-        await this.#docker.createVolume(
-          {
-            Name: dockerLogVolumeName,
-            Driver: 'local',
-            DriverOpts: {
-              type: 'none',
-              o: 'bind',
-              device: containerLogPathVolume,
-            },
-          },
-          undefined,
         );
         const container = await this.#docker.createContainer(
           {
@@ -273,8 +251,7 @@ class SquidServerRepository extends IProxyServerRepository {
             HostConfig: {
               Binds: [
                 `/etc/localtime:/etc/localtime:ro`,
-                `${containerPathVolume}:/etc/squid/`,
-                `${dockerLogVolumeName}:/var/log/squid/`,
+                `${containerPathVolume}:/etc/squid`,
                 `${squidOtherConfDir}:${this.#squidOtherConfDir}`,
                 `${squidIpAccessBashFileVolume}:/tmp/squid-block-url.sh`,
               ],

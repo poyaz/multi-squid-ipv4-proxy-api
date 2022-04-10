@@ -252,8 +252,8 @@ suite(`SquidServerRepository`, () => {
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       testObj.container.remove.should.have.callCount(1);
-      fsAsync.access.should.have.callCount(2);
-      fsAsync.mkdir.should.have.callCount(2);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
       childProcess.spawn.should.have.callCount(1);
       expect(error).to.be.an.instanceof(CommandExecuteException);
       expect(error).to.have.property('httpCode', 400);
@@ -290,8 +290,8 @@ suite(`SquidServerRepository`, () => {
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       testObj.container.remove.should.have.callCount(1);
-      fsAsync.access.should.have.callCount(2);
-      fsAsync.mkdir.should.have.callCount(2);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
       childProcess.spawn.should.have.callCount(1);
       expect(error).to.be.an.instanceof(CommandExecuteException);
       expect(error).to.have.property('httpCode', 400);
@@ -329,8 +329,8 @@ suite(`SquidServerRepository`, () => {
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       testObj.container.remove.should.have.callCount(1);
-      fsAsync.access.should.have.callCount(2);
-      fsAsync.mkdir.should.have.callCount(2);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
       childProcess.spawn.should.have.callCount(1);
       fsAsync.writeFile.should.have.callCount(1);
       expect(error).to.be.an.instanceof(CommandExecuteException);
@@ -370,8 +370,8 @@ suite(`SquidServerRepository`, () => {
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       testObj.container.remove.should.have.callCount(1);
-      fsAsync.access.should.have.callCount(2);
-      fsAsync.mkdir.should.have.callCount(2);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
       childProcess.spawn.should.have.callCount(1);
       fsAsync.writeFile.should.have.callCount(1);
       testObj.docker.createContainer.should.have.callCount(1);
@@ -413,8 +413,8 @@ suite(`SquidServerRepository`, () => {
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       testObj.container.remove.should.have.callCount(1);
-      fsAsync.access.should.have.callCount(2);
-      fsAsync.mkdir.should.have.callCount(2);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
       childProcess.spawn.should.have.callCount(1);
       fsAsync.writeFile.should.have.callCount(1);
       testObj.docker.createContainer.should.have.callCount(1);
@@ -456,8 +456,8 @@ suite(`SquidServerRepository`, () => {
         sinon.match(testObj.identifierGenerator.generateId()),
       );
       testObj.container.remove.should.have.callCount(1);
-      fsAsync.access.should.have.callCount(2);
-      fsAsync.mkdir.should.have.callCount(2);
+      fsAsync.access.should.have.callCount(1);
+      fsAsync.mkdir.should.have.callCount(1);
       childProcess.spawn.should.have.callCount(1);
       fsAsync.writeFile.should.have.callCount(1);
       testObj.docker.createContainer.should.have.callCount(1);
