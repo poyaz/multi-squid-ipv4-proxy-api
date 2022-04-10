@@ -923,7 +923,7 @@ For a remove exist package
 
 * Method: `DELETE`
 * URL: `api/v1/package/:packageId`
-* Authorized type: `admin`
+* Authorized type: `admin` and `normal user`
 
 ```bash
 curl \
