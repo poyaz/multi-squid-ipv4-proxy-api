@@ -43,6 +43,7 @@ class PackagePgRepository extends IPackageRepository {
           SELECT DISTINCT ON (p.id) p.id,
                                     u.id                                                        AS user_id,
                                     u.username,
+                                    u.password,
                                     p.expire_date,
                                     p.insert_date,
                                     count(*)                                                    AS count_ip,
@@ -86,6 +87,7 @@ class PackagePgRepository extends IPackageRepository {
           SELECT DISTINCT ON (p.id, p.insert_date) p.id,
                                                    u.id                                                        AS user_id,
                                                    u.username,
+                                                   u.password,
                                                    p.expire_date,
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
@@ -340,6 +342,7 @@ class PackagePgRepository extends IPackageRepository {
     model.id = row['id'];
     model.userId = row['user_id'];
     model.username = row['username'];
+    model.password = row['password'];
     model.countIp = row['count_ip'];
     model.ipList = row['ip_list'];
     model.expireDate = row['expire_date'];

@@ -6,6 +6,7 @@
  * @property {uuid} id
  * @property {uuid} userId
  * @property {string} username
+ * @property {string} password
  * @property {number} countIp
  * @property {Array<{ip: string, port: number}>} ipList
  * @property {Date} insertDate
@@ -17,6 +18,7 @@ class PackageModel {
   id = undefined;
   userId = undefined;
   username = undefined;
+  password = undefined;
   countIp = undefined;
   ipList = [];
   insertDate = undefined;

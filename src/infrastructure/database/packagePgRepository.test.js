@@ -100,6 +100,7 @@ suite(`PackagePgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               user_id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               count_ip: 1,
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
               expire_date: new Date(),
@@ -123,6 +124,7 @@ suite(`PackagePgRepository`, () => {
         id: testObj.identifierGenerator.generateId(),
         userId: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        password: 'pass1',
         countIp: 1,
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
@@ -181,6 +183,7 @@ suite(`PackagePgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               user_id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               count_ip: 1,
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
               expire_date: new Date(),
@@ -205,6 +208,7 @@ suite(`PackagePgRepository`, () => {
         id: testObj.identifierGenerator.generateId(),
         userId: testObj.identifierGenerator.generateId(),
         username: inputUsername,
+        password: 'pass1',
         countIp: 1,
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
