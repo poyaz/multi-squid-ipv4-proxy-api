@@ -810,6 +810,7 @@ curl \
   "data": {
     "id": "cb194947-29b2-47cc-bb7f-24e10d4515e2",
     "username": "my_username",
+    "password": "my_password",
     "countIp": 1,
     "ipList": [
       {
@@ -859,12 +860,14 @@ curl \
     {
       "id": "cb194947-29b2-47cc-bb7f-24e10d4515e2",
       "username": "my_username",
+      "password": "my_password",
       "countIp": 25,
       "expireDate": "2021-10-25"
     },
     {
       "id": "ebc143cd-221a-4841-86ff-13687105b99e",
       "username": "my_username",
+      "password": "my_password",
       "countIp": 10,
       "expireDate": "2021-08-25"
     }
