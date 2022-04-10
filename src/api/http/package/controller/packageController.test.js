@@ -62,6 +62,7 @@ suite(`PackageController`, () => {
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.userId = testObj.identifierGenerator.generateId();
       outputModel.username = 'user1';
+      outputModel.password = 'pass1';
       outputModel.countIp = 1;
       outputModel.ipList = [{ ip: '192.168.1.2', port: 8080 }];
       outputModel.insertDate = new Date();
@@ -80,6 +81,7 @@ suite(`PackageController`, () => {
         id: testObj.identifierGenerator.generateId(),
         userId: testObj.identifierGenerator.generateId(),
         username: testObj.req.body.username,
+        password: 'pass1',
         countIp: 1,
       });
       expect(result.insertDate).to.have.match(testObj.dateRegex);
@@ -107,6 +109,7 @@ suite(`PackageController`, () => {
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.userId = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
+      outputModel1.password = 'pass1';
       outputModel1.countIp = 2;
       outputModel1.ipList = [
         { ip: '192.168.1.2', port: 8080 },
@@ -118,6 +121,7 @@ suite(`PackageController`, () => {
       outputModel2.id = testObj.identifierGenerator.generateId();
       outputModel2.userId = testObj.identifierGenerator.generateId();
       outputModel2.username = 'user1';
+      outputModel2.password = 'pass1';
       outputModel2.countIp = 1;
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
@@ -140,6 +144,7 @@ suite(`PackageController`, () => {
         id: testObj.identifierGenerator.generateId(),
         userId: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        password: 'pass1',
         countIp: 2,
       });
       expect(result[0].ipList[0]).to.have.include({
@@ -157,6 +162,7 @@ suite(`PackageController`, () => {
         id: testObj.identifierGenerator.generateId(),
         userId: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        password: 'pass1',
         countIp: 1,
       });
       expect(result[1].ipList[0]).to.have.include({
@@ -188,6 +194,7 @@ suite(`PackageController`, () => {
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.userId = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
+      outputModel1.password = 'pass1';
       outputModel1.countIp = 2;
       outputModel1.ipList = [
         { ip: '192.168.1.2', port: 8080 },
@@ -218,6 +225,7 @@ suite(`PackageController`, () => {
         id: testObj.identifierGenerator.generateId(),
         userId: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        password: 'pass1',
         countIp: 2,
       });
       expect(result[0].ipList[0]).to.have.include({

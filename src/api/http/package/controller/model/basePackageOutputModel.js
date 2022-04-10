@@ -26,6 +26,7 @@ class BasePackageOutputModel {
     obj.id = model.id;
     obj.userId = model.userId;
     obj.username = model.username;
+    obj.password = model.password;
     obj.countIp = model.countIp;
     obj.ipList = model.ipList.map((v) => ({ ip: v.ip, port: v.port }));
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
