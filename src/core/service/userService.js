@@ -133,8 +133,13 @@ class UserService extends IUserService {
     updateModel.username = username;
     updateModel.password = password;
     const [updateError] = await this.#userSquidRepository.update(updateModel);
-    if (updateModel) {
+    if (updateError) {
       return [updateError];
+    }
+
+    const [updateUserError] = await this.#userRepository.update(updateModel);
+    if (updateUserError) {
+      return [updateUserError];
     }
 
     return [null];

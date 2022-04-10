@@ -448,17 +448,53 @@ suite(`UserService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successfully change password`, async () => {
+    test(`Should error change password when update password in database`, async () => {
       const inputUsername = 'user1';
       const inputPassword = 'password';
       testObj.userRepository.isUserExist.resolves([null, true]);
       testObj.userSquidRepository.update.resolves([null]);
+      testObj.userRepository.update.resolves([new UnknownException()]);
 
       const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
 
       testObj.userRepository.isUserExist.should.have.callCount(1);
       testObj.userSquidRepository.update.should.have.callCount(1);
       testObj.userSquidRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('password', inputPassword)),
+      );
+      testObj.userRepository.update.should.have.callCount(1);
+      testObj.userRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('password', inputPassword)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully change password`, async () => {
+      const inputUsername = 'user1';
+      const inputPassword = 'password';
+      testObj.userRepository.isUserExist.resolves([null, true]);
+      testObj.userSquidRepository.update.resolves([null]);
+      testObj.userRepository.update.resolves([null]);
+
+      const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userSquidRepository.update.should.have.callCount(1);
+      testObj.userSquidRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', inputUsername))
+          .and(sinon.match.has('password', inputPassword)),
+      );
+      testObj.userRepository.update.should.have.callCount(1);
+      testObj.userRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(UserModel)
           .and(sinon.match.has('username', inputUsername))
