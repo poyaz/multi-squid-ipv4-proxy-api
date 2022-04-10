@@ -408,7 +408,7 @@ class ExpressApi extends IRunner {
 
     router.delete(
       '/v1/package/:packageId',
-      this._middlewareRoleAccess(['admin']),
+      this._middlewareRoleAccess(['user', 'admin']),
       async (req, res, next) => {
         try {
           const packageController = packageHttpApi.packageControllerFactory.create(req, res);
@@ -802,6 +802,9 @@ class ExpressApi extends IRunner {
   }
 
   _logRoute() {
+    /**
+     * @todo Should create controller and service with model for store and get data
+     */
     router.post('/v1/log', this._middlewareRoleAccess(['admin']), async (req, res, next) => {
       console.log(req.headers);
       console.log(req.body);
