@@ -88,12 +88,14 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'user2',
+              password: 'pass2',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -111,13 +113,13 @@ suite(`UserPgRepository`, () => {
       expect(result[0]).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
-        password: '',
+        password: 'pass1',
         isEnable: true,
       });
       expect(result[1]).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user2',
-        password: '',
+        password: 'pass2',
         isEnable: true,
       });
     });
@@ -134,6 +136,7 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -154,7 +157,7 @@ suite(`UserPgRepository`, () => {
       expect(result[0]).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
-        password: '',
+        password: 'pass1',
         isEnable: true,
       });
     });
@@ -171,6 +174,7 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -191,7 +195,7 @@ suite(`UserPgRepository`, () => {
       expect(result[0]).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
-        password: '',
+        password: 'pass1',
         isEnable: true,
       });
     });
@@ -209,6 +213,7 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -229,7 +234,7 @@ suite(`UserPgRepository`, () => {
       expect(result[0]).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
-        password: '',
+        password: 'pass1',
         isEnable: true,
       });
     });
@@ -281,6 +286,7 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
+              password: 'pass1',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -297,7 +303,7 @@ suite(`UserPgRepository`, () => {
       expect(result).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
-        password: '',
+        password: 'pass1',
         isEnable: true,
       });
     });
@@ -403,6 +409,7 @@ suite(`UserPgRepository`, () => {
             {
               id: testObj.identifierGenerator.generateId(),
               username: 'username',
+              password: 'pass1',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -421,8 +428,8 @@ suite(`UserPgRepository`, () => {
         sinon.match.has(
           'values',
           sinon.match.array
-            .startsWith([testObj.identifierGenerator.generateId(), inputModel.username, true])
-            .and(sinon.match.has('length', 4)),
+            .startsWith([testObj.identifierGenerator.generateId(), inputModel.username, inputModel.password, true])
+            .and(sinon.match.has('length', 5)),
         ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
@@ -430,7 +437,7 @@ suite(`UserPgRepository`, () => {
       expect(result).to.have.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'username',
-        password: '',
+        password: 'pass1',
         isEnable: true,
       });
     });
