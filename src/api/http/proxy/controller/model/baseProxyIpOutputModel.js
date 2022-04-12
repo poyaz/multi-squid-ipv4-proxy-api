@@ -30,7 +30,7 @@ class BaseProxyIpOutputModel {
     obj.gateway = model.gateway;
     obj.interface = model.interface;
     obj.type = model.type;
-    obj.country = model.country;
+    obj.country = model.country ? model.country.toUpperCase() : model.country;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
 
     return obj;

@@ -13,7 +13,7 @@ class GenerateProxyInputModel {
     model.gateway = body.gateway;
     model.interface = body.interface;
     model.type = body.type;
-    model.country = body.country;
+    model.country = body.country.toUpperCase();
 
     return model;
   }
