@@ -71,42 +71,56 @@ suite(`ProxyServerService`, () => {
       inputModel.mask = 29;
       inputModel.gateway = '192.168.1.6';
       inputModel.interface = 'ens192';
+      inputModel.type = 'isp';
+      inputModel.country = 'gb';
 
       const outputModel1 = new IpAddressModel();
       outputModel1.ip = '192.168.1.1';
       outputModel1.mask = 32;
       outputModel1.gateway = '192.168.1.6';
       outputModel1.interface = 'ens192';
+      outputModel1.type = 'isp';
+      outputModel1.country = 'GB';
 
       const outputModel2 = new IpAddressModel();
       outputModel2.ip = '192.168.1.2';
       outputModel2.mask = 32;
       outputModel2.gateway = '192.168.1.6';
       outputModel2.interface = 'ens192';
+      outputModel2.type = 'isp';
+      outputModel2.country = 'GB';
 
       const outputModel3 = new IpAddressModel();
       outputModel3.ip = '192.168.1.3';
       outputModel3.mask = 32;
       outputModel3.gateway = '192.168.1.6';
       outputModel3.interface = 'ens192';
+      outputModel3.type = 'isp';
+      outputModel3.country = 'GB';
 
       const outputModel4 = new IpAddressModel();
       outputModel4.ip = '192.168.1.4';
       outputModel4.mask = 32;
       outputModel4.gateway = '192.168.1.6';
       outputModel4.interface = 'ens192';
+      outputModel4.type = 'isp';
+      outputModel4.country = 'GB';
 
       const outputModel5 = new IpAddressModel();
       outputModel5.ip = '192.168.1.5';
       outputModel5.mask = 32;
       outputModel5.gateway = '192.168.1.6';
       outputModel5.interface = 'ens192';
+      outputModel5.type = 'isp';
+      outputModel5.country = 'GB';
 
       const outputModel6 = new IpAddressModel();
       outputModel6.ip = '192.168.1.6';
       outputModel6.mask = 32;
       outputModel6.gateway = '192.168.1.6';
       outputModel6.interface = 'ens192';
+      outputModel6.type = 'isp';
+      outputModel6.country = 'GB';
 
       testObj.inputModel = inputModel;
       testObj.outputModel1 = outputModel1;

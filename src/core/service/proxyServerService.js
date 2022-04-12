@@ -67,6 +67,8 @@ class ProxyServerService extends IProxyServerService {
       tmpModel.port = this.#defaultPort;
       tmpModel.gateway = model.gateway;
       tmpModel.interface = model.interface;
+      tmpModel.type = model.type;
+      tmpModel.country = model.country;
 
       ipModels.push(tmpModel);
     } else {
@@ -82,6 +84,8 @@ class ProxyServerService extends IProxyServerService {
         tmpModel.port = this.#defaultPort;
         tmpModel.gateway = model.gateway;
         tmpModel.interface = model.interface;
+        tmpModel.type = model.type;
+        tmpModel.country = model.country;
 
         ipModels.push(tmpModel);
       }
