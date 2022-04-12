@@ -96,6 +96,8 @@ suite(`ProxyServerRepository`, () => {
               ip: '192.168.1.1',
               port: 8080,
               gateway: '192.168.1.3',
+              proxy_type: 'isp',
+              country_code: 'gb',
             },
           ];
         },
@@ -118,6 +120,8 @@ suite(`ProxyServerRepository`, () => {
         ip: '192.168.1.1',
         port: 8080,
         gateway: '192.168.1.3',
+        type: 'isp',
+        country: 'GB',
       });
     });
   });
@@ -171,6 +175,8 @@ suite(`ProxyServerRepository`, () => {
               ip: '192.168.1.1',
               port: 8080,
               gateway: '192.168.1.3',
+              proxy_type: 'isp',
+              country_code: 'gb',
             },
           ];
         },
@@ -193,6 +199,8 @@ suite(`ProxyServerRepository`, () => {
         ip: '192.168.1.1',
         port: 8080,
         gateway: '192.168.1.3',
+        type: 'isp',
+        country: 'GB',
       });
     });
   });
@@ -204,18 +212,24 @@ suite(`ProxyServerRepository`, () => {
       inputIpModel1.mask = 32;
       inputIpModel1.gateway = '192.168.1.6';
       inputIpModel1.interface = 'ens192';
+      inputIpModel1.type = 'isp';
+      inputIpModel1.country = 'GB';
 
       const inputIpModel2 = new IpAddressModel();
       inputIpModel2.ip = '192.168.1.2';
       inputIpModel2.mask = 32;
       inputIpModel2.gateway = '192.168.1.6';
       inputIpModel2.interface = 'ens192';
+      inputIpModel2.type = 'isp';
+      inputIpModel2.country = 'GB';
 
       const inputIpModel3 = new IpAddressModel();
       inputIpModel3.ip = '192.168.1.3';
       inputIpModel3.mask = 32;
       inputIpModel3.gateway = '192.168.1.6';
       inputIpModel3.interface = 'ens192';
+      inputIpModel3.type = 'isp';
+      inputIpModel3.country = 'GB';
 
       testObj.inputIpModel1 = inputIpModel1;
       testObj.inputIpModel2 = inputIpModel2;
@@ -250,6 +264,8 @@ suite(`ProxyServerRepository`, () => {
               ip: '192.168.1.1',
               port: 8080,
               gateway: '192.168.1.6',
+              proxy_type: 'isp',
+              country_code: 'gb',
             },
             {
               id: testObj.identifierGenerator.generateId(),
@@ -257,6 +273,8 @@ suite(`ProxyServerRepository`, () => {
               ip: '192.168.1.2',
               port: 8080,
               gateway: '192.168.1.6',
+              proxy_type: 'isp',
+              country_code: 'gb',
             },
             {
               id: testObj.identifierGenerator.generateId(),
@@ -264,6 +282,8 @@ suite(`ProxyServerRepository`, () => {
               ip: '192.168.1.3',
               port: 8080,
               gateway: '192.168.1.6',
+              proxy_type: 'isp',
+              country_code: 'gb',
             },
           ];
         },
@@ -286,6 +306,8 @@ suite(`ProxyServerRepository`, () => {
         ip: '192.168.1.1',
         port: 8080,
         gateway: '192.168.1.6',
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[1]).to.be.an.instanceof(IpAddressModel);
       expect(result[1]).to.be.includes({
@@ -294,6 +316,8 @@ suite(`ProxyServerRepository`, () => {
         ip: '192.168.1.2',
         port: 8080,
         gateway: '192.168.1.6',
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[2]).to.be.an.instanceof(IpAddressModel);
       expect(result[2]).to.be.includes({
@@ -302,6 +326,8 @@ suite(`ProxyServerRepository`, () => {
         ip: '192.168.1.3',
         port: 8080,
         gateway: '192.168.1.6',
+        type: 'isp',
+        country: 'GB',
       });
     });
   });

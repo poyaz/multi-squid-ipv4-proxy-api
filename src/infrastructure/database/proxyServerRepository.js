@@ -42,7 +42,9 @@ class ProxyServerRepository extends IProxyServerRepository {
                  interface,
                  ip,
                  port,
-                 gateway
+                 gateway,
+                 proxy_type,
+                 country_code
           FROM public.bind_address
           WHERE delete_date ISNULL
             AND is_enable = false
@@ -55,7 +57,9 @@ class ProxyServerRepository extends IProxyServerRepository {
                  interface,
                  ip,
                  port,
-                 gateway
+                 gateway,
+                 proxy_type,
+                 country_code
           FROM public.bind_address
           WHERE delete_date ISNULL
             AND is_enable = false
@@ -85,7 +89,9 @@ class ProxyServerRepository extends IProxyServerRepository {
                  interface,
                  ip,
                  port,
-                 gateway
+                 gateway,
+                 proxy_type,
+                 country_code
           FROM public.bind_address
           WHERE delete_date ISNULL
             AND is_enable = true
@@ -115,23 +121,36 @@ class ProxyServerRepository extends IProxyServerRepository {
       ip: v.ip,
       port: v.port,
       gateway: v.gateway,
+      type: v.type,
+      country: v.country.toUpperCase(),
     }));
 
     const addQuery = {
       text: singleLine`
-          INSERT INTO public.bind_address (id, interface, ip, port, gateway, insert_date)
-          SELECT public.uuid_generate_v4(), interface, ip, port, gateway, $1
+          INSERT INTO public.bind_address (id, interface, ip, port, gateway, proxy_type,
+                                           country_code, insert_date)
+          SELECT public.uuid_generate_v4(),
+                 interface,
+                 ip,
+                 port,
+                 gateway,
+                 proxy_type,
+                 country_code,
+                 $1
           FROM json_to_recordset($2) as (interface varchar(100), ip varchar(100), port int,
-                                         gateway varchar(100))
+                                         gateway varchar(100), proxy_type varchar(10),
+                                         country_code varchar(10))
           ON CONFLICT (ip)
           WHERE delete_date ISNULL
               DO
           UPDATE
-          SET interface   = EXCLUDED.interface,
-              ip          = EXCLUDED.ip,
-              port        = EXCLUDED.port,
-              gateway     = EXCLUDED.gateway,
-              update_date = EXCLUDED.insert_date
+          SET interface    = EXCLUDED.interface,
+              ip           = EXCLUDED.ip,
+              port         = EXCLUDED.port,
+              gateway      = EXCLUDED.gateway,
+              proxy_type   = EXCLUDED.proxy_type,
+              country_code = EXCLUDED.country_code,
+              update_date  = EXCLUDED.insert_date
       `,
       values: [now, JSON.stringify(insertRecordList)],
     };
@@ -222,6 +241,8 @@ class ProxyServerRepository extends IProxyServerRepository {
     model.mask = 32;
     model.port = row['port'];
     model.gateway = row['gateway'];
+    model.type = row['proxy_type'];
+    model.country = row['country_code'].toUpperCase();
 
     return model;
   }
