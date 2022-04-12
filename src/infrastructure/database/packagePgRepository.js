@@ -48,7 +48,7 @@ class PackagePgRepository extends IPackageRepository {
                                     p.insert_date,
                                     count(*)                                                    AS count_ip,
                                     (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
-                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
+                                    (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
                                     jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
           FROM public.users u,
                public.packages p,
@@ -94,7 +94,7 @@ class PackagePgRepository extends IPackageRepository {
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
                                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
-                                                   (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
+                                                   (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
                                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
           FROM public.users u,
                public.packages p,
@@ -142,7 +142,7 @@ class PackagePgRepository extends IPackageRepository {
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
                                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
-                                                   (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
+                                                   (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
                                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
           FROM public.users u,
                public.packages p,
