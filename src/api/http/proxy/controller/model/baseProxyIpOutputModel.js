@@ -29,6 +29,8 @@ class BaseProxyIpOutputModel {
     obj.mask = model.mask;
     obj.gateway = model.gateway;
     obj.interface = model.interface;
+    obj.type = model.type;
+    obj.country = model.country;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
 
     return obj;

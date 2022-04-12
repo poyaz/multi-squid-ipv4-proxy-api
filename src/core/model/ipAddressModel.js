@@ -10,6 +10,9 @@
  * @package {number} mask
  * @package {string} gateway
  * @package {Date} interface
+ * @package {string} type
+ * @package {string} country
+ * @package {Date} insertDate
  * @package {Date} updateDate
  * @package {Date} deleteDate
  */
@@ -20,6 +23,8 @@ class IpAddressModel {
   mask = undefined;
   gateway = undefined;
   interface = undefined;
+  type = undefined;
+  country = undefined;
   insertDate = undefined;
   updateDate = undefined;
   deleteDate = undefined;

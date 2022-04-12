@@ -12,6 +12,8 @@ class GenerateProxyInputModel {
     model.mask = body.mask;
     model.gateway = body.gateway;
     model.interface = body.interface;
+    model.type = body.type;
+    model.country = body.country;
 
     return model;
   }

@@ -59,6 +59,8 @@ suite(`ProxyController`, () => {
       outputModel1.mask = 24;
       outputModel1.interface = 'ens192';
       outputModel1.gateway = '192.168.1.224';
+      outputModel1.type = 'isp';
+      outputModel1.country = 'GB';
       outputModel1.insertDate = new Date();
       testObj.proxyServerService.getAll.resolves([null, [outputModel1]]);
 
@@ -75,6 +77,8 @@ suite(`ProxyController`, () => {
         mask: 24,
         interface: 'ens192',
         gateway: '192.168.1.224',
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[0].insertDate).to.have.match(testObj.dateRegex);
     });
@@ -87,6 +91,8 @@ suite(`ProxyController`, () => {
         mask: 32,
         gateway: '192.168.1.1',
         interface: 'ens192',
+        type: 'isp',
+        country: 'GB',
       };
       testObj.proxyServerService.add.resolves([new UnknownException()]);
 
@@ -103,6 +109,8 @@ suite(`ProxyController`, () => {
         mask: 32,
         gateway: '192.168.1.1',
         interface: 'ens192',
+        type: 'isp',
+        country: 'GB',
       };
       const outputModel = new JobModel();
       outputModel.id = testObj.identifierGenerator.generateId();
