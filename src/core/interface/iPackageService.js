@@ -39,6 +39,17 @@ class IPackageService {
 
   /**
    *
+   * @param {uuid} id
+   * @return {Promise<(Error)[]>}
+   */
+  async cancel(id) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id };
+    throw error;
+  }
+
+  /**
+   *
    * @return {Promise<(Error)[]>}
    */
   async disableExpirePackage() {

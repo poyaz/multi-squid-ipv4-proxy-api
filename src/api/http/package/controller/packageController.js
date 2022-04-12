@@ -103,6 +103,17 @@ class PackageController {
     return [null, { expireDate: body.expire }];
   }
 
+  async cancelPackage() {
+    const { packageId } = this.#req.params;
+
+    const [error] = await this.#findClusterPackageService.cancel(packageId);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
+
   async removePackage() {
     const { packageId } = this.#req.params;
 

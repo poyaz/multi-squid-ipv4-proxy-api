@@ -324,6 +324,35 @@ suite(`PackageController`, () => {
     });
   });
 
+  suite(`Cancel package`, () => {
+    test(`Should error renew expire date`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.findClusterPackageService.cancel.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageController.cancelPackage();
+
+      testObj.findClusterPackageService.cancel.should.have.callCount(1);
+      testObj.findClusterPackageService.cancel.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully renew expire date`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.findClusterPackageService.cancel.resolves([null]);
+
+      const [error, result] = await testObj.packageController.cancelPackage();
+
+      testObj.findClusterPackageService.cancel.should.have.callCount(1);
+      testObj.findClusterPackageService.cancel.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('undefined');
+    });
+  });
+
   suite(`Delete package`, () => {
     test(`Should error delete package`, async () => {
       testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
