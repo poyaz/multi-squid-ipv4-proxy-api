@@ -69,6 +69,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -88,7 +90,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       expect(error).to.be.an.instanceof(ApiCallException);
       expect(error).to.have.property('httpCode', 400);
@@ -100,6 +104,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -120,7 +126,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       expect(error).to.be.an.instanceof(ApiCallException);
       expect(error).to.have.property('httpCode', 400);
@@ -132,6 +140,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -158,7 +168,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       expect(error).to.be.an.instanceof(UnauthorizedException);
       expect(error).to.have.property('httpCode', 401);
@@ -170,6 +182,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -196,7 +210,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       expect(error).to.be.an.instanceof(ForbiddenException);
       expect(error).to.have.property('httpCode', 403);
@@ -208,6 +224,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -234,7 +252,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       expect(error).to.be.an.instanceof(NotFoundException);
       expect(error).to.have.property('httpCode', 404);
@@ -246,6 +266,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -273,7 +295,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       testObj.consoleError.should.have.callCount(1);
       expect(error).to.be.an.instanceof(SchemaValidatorException);
@@ -287,6 +311,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -313,7 +339,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       testObj.consoleError.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
@@ -326,6 +354,8 @@ suite(`ProxyServerApiRepository`, () => {
       inputIpAddressModel.mask = 24;
       inputIpAddressModel.gateway = '192.168.1.1';
       inputIpAddressModel.interface = 'ens192';
+      inputIpAddressModel.type = 'isp';
+      inputIpAddressModel.country = 'GB';
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -350,7 +380,9 @@ suite(`ProxyServerApiRepository`, () => {
           .has('ip', inputIpAddressModel.ip)
           .and(sinon.match.has('mask', inputIpAddressModel.mask))
           .and(sinon.match.has('gateway', inputIpAddressModel.gateway))
-          .and(sinon.match.has('interface', inputIpAddressModel.interface)),
+          .and(sinon.match.has('interface', inputIpAddressModel.interface))
+          .and(sinon.match.has('type', inputIpAddressModel.type))
+          .and(sinon.match.has('country', inputIpAddressModel.country)),
       );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(JobModel);
@@ -457,14 +489,22 @@ suite(`ProxyServerApiRepository`, () => {
           {
             id: testObj.identifierGenerator.generateId(),
             username: 'my_username',
+            password: 'my_password',
             countIp: 25,
+            type: 'isp',
+            country: 'GB',
             expireDate: '2021-10-25',
+            ipList: [],
           },
           {
             id: testObj.identifierGenerator.generateId(),
             username: 'my_username',
+            password: 'my_password',
             countIp: 10,
+            type: 'isp',
+            country: 'GB',
             expireDate: '2021-08-25',
+            ipList: [],
           },
         ],
       };

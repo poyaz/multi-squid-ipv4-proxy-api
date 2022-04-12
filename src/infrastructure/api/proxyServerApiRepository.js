@@ -46,6 +46,8 @@ class ProxyServerApiRepository extends IServerApiRepository {
           mask: model.mask,
           gateway: model.gateway,
           interface: model.interface,
+          type: model.type,
+          country: model.country,
         },
         {
           headers: {
@@ -251,8 +253,11 @@ class ProxyServerApiRepository extends IServerApiRepository {
     const model = new PackageModel();
     model.id = body['id'];
     model.username = body['username'];
+    model.password = body['password'];
     model.ipList = body['ipList'];
     model.countIp = body['countIp'];
+    model.type = body['type'];
+    model.country = body['country'];
     model.expireDate = body['expireDate']
       ? this.#dateTime.gregorianDateWithTimezone(body['expireDate'], 'YYYY-MM-DD')
       : null;
