@@ -2,7 +2,11 @@
  * Created by pooya on 8/23/21.
  */
 
-const Joi = require('joi').extend(require('@joi/date'));
+const JoiCountry = require('@meanie/joi-country');
+JoiCountry.setValidCodes(require('~src/countryAlpha2.json'));
+const JoiDate = require('@joi/date');
+
+const Joi = require('joi').extend(JoiDate).extend(JoiCountry);
 
 const IHttpMiddleware = require('~src/api/interface/iHttpMiddleware');
 
@@ -30,6 +34,8 @@ class CreatePackageValidationMiddleware extends IHttpMiddleware {
     const schema = Joi.object({
       username: usernamePattern,
       count: Joi.number().min(1).required(),
+      type: Joi.string().valid('isp', 'dc').required(),
+      country: Joi.country().required(),
       expire: dateFormat.required(),
     });
 

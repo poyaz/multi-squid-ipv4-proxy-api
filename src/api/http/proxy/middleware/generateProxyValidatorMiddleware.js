@@ -2,7 +2,10 @@
  * Created by pooya on 8/29/21.
  */
 
-const Joi = require('joi').extend(require('@joi/date'));
+const JoiCountry = require('@meanie/joi-country');
+JoiCountry.setValidCodes(require('~src/countryAlpha2.json'));
+
+const Joi = require('joi').extend(JoiCountry);
 
 const IHttpMiddleware = require('~src/api/interface/iHttpMiddleware');
 
@@ -32,6 +35,8 @@ class GenerateProxyValidatorMiddleware extends IHttpMiddleware {
       mask: maskFormat.required(),
       gateway: ipPattern,
       interface: Joi.string().required(),
+      type: Joi.string().valid('isp', 'dc').required(),
+      country: Joi.country().required(),
     });
 
     const result = schema.validate(body);

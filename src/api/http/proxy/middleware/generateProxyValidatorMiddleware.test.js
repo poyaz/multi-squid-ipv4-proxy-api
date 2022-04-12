@@ -137,8 +137,78 @@ suite(`GenerateProxyValidatorMiddleware`, () => {
       );
   });
 
-  test(`Should successfully for init proxy`, async () => {
+  test(`Should error for init proxy if type not exist`, async () => {
     testObj.req.body = { ip: '192.168.1.2', mask: 32, gateway: '192.168.1.1', interface: 'ens192' };
+
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"type" is required`);
+  });
+
+  test(`Should error for init proxy if type not valid`, async () => {
+    testObj.req.body = {
+      ip: '192.168.1.2',
+      mask: 32,
+      gateway: '192.168.1.1',
+      interface: 'ens192',
+      type: 'abc',
+    };
+
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"type" must be one of [isp, dc]`);
+  });
+
+  test(`Should error for init proxy if country not exist`, async () => {
+    testObj.req.body = {
+      ip: '192.168.1.2',
+      mask: 32,
+      gateway: '192.168.1.1',
+      interface: 'ens192',
+      type: 'isp',
+    };
+
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"country" is required`);
+  });
+
+  test(`Should error for init proxy if country not valid`, async () => {
+    testObj.req.body = {
+      ip: '192.168.1.2',
+      mask: 32,
+      gateway: '192.168.1.1',
+      interface: 'ens192',
+      type: 'isp',
+      country: 'ab',
+    };
+
+    const badCall = testObj.generateProxyValidatorMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `must be a valid country code`);
+  });
+
+  test(`Should successfully for init proxy`, async () => {
+    testObj.req.body = {
+      ip: '192.168.1.2',
+      mask: 32,
+      gateway: '192.168.1.1',
+      interface: 'ens192',
+      type: 'isp',
+      country: 'GB',
+    };
 
     await testObj.generateProxyValidatorMiddleware.act();
   });

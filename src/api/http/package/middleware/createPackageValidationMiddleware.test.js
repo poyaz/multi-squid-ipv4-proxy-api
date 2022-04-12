@@ -48,17 +48,6 @@ suite(`CreatePackageValidationMiddleware`, () => {
       .and.have.nested.property('additionalInfo[0].message', `"username" is required`);
   });
 
-  test(`Should error for create new package if count not exits`, async () => {
-    testObj.req.body = { username: 'my_username' };
-
-    const badCall = testObj.createPackageValidationMiddleware.act();
-
-    await expect(badCall)
-      .to.eventually.have.rejectedWith(SchemaValidatorException)
-      .and.have.property('httpCode', 400)
-      .and.have.nested.property('additionalInfo[0].message', `"count" is required`);
-  });
-
   test(`Should error for create new package if username invalid`, async () => {
     testObj.req.body = { username: 'my$username|' };
 
@@ -71,6 +60,17 @@ suite(`CreatePackageValidationMiddleware`, () => {
         'additionalInfo[0].message',
         `"username" with value "my$username|" fails to match the required pattern: /^[a-zA-Z0-9_.]{3,20}/`,
       );
+  });
+
+  test(`Should error for create new package if count not exist`, async () => {
+    testObj.req.body = { username: 'my_username' };
+
+    const badCall = testObj.createPackageValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"count" is required`);
   });
 
   test(`Should error for create new package if count invalid`, async () => {
@@ -87,8 +87,52 @@ suite(`CreatePackageValidationMiddleware`, () => {
       );
   });
 
-  test(`Should error for create new package if expire not exits`, async () => {
+  test(`Should error for create new package if proxy type not exist`, async () => {
     testObj.req.body = { username: 'my_username', count: 1 };
+
+    const badCall = testObj.createPackageValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"type" is required`);
+  });
+
+  test(`Should error for create new package if proxy type not valid`, async () => {
+    testObj.req.body = { username: 'my_username', count: 1, type: 'abc' };
+
+    const badCall = testObj.createPackageValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"type" must be one of [isp, dc]`);
+  });
+
+  test(`Should error for create new package if country not exist`, async () => {
+    testObj.req.body = { username: 'my_username', count: 1, type: 'isp' };
+
+    const badCall = testObj.createPackageValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `"country" is required`);
+  });
+
+  test(`Should error for create new package if country not valid`, async () => {
+    testObj.req.body = { username: 'my_username', count: 1, type: 'isp', country: 'test' };
+
+    const badCall = testObj.createPackageValidationMiddleware.act();
+
+    await expect(badCall)
+      .to.eventually.have.rejectedWith(SchemaValidatorException)
+      .and.have.property('httpCode', 400)
+      .and.have.nested.property('additionalInfo[0].message', `must be a valid country code`);
+  });
+
+  test(`Should error for create new package if expire not exist`, async () => {
+    testObj.req.body = { username: 'my_username', count: 1, type: 'isp', country: 'GB' };
 
     const badCall = testObj.createPackageValidationMiddleware.act();
 
@@ -99,7 +143,13 @@ suite(`CreatePackageValidationMiddleware`, () => {
   });
 
   test(`Should error for create new package if expire not valid`, async () => {
-    testObj.req.body = { username: 'my_username', count: 1, expire: '111' };
+    testObj.req.body = {
+      username: 'my_username',
+      count: 1,
+      type: 'isp',
+      country: 'GB',
+      expire: '111',
+    };
 
     const badCall = testObj.createPackageValidationMiddleware.act();
 
@@ -112,8 +162,14 @@ suite(`CreatePackageValidationMiddleware`, () => {
       );
   });
 
-  test(`Should error for create new package if expire not valid`, async () => {
-    testObj.req.body = { username: 'my_username', count: 3, expire: '2021-08-25' };
+  test(`Should error for create new package if expire not valid (date have past)`, async () => {
+    testObj.req.body = {
+      username: 'my_username',
+      count: 3,
+      type: 'isp',
+      country: 'GB',
+      expire: '2021-08-25',
+    };
 
     const badCall = testObj.createPackageValidationMiddleware.act();
 
@@ -125,7 +181,7 @@ suite(`CreatePackageValidationMiddleware`, () => {
 
   test(`Should successfully for create new package`, async () => {
     const expire = helper.formatDate(new Date(new Date().getTime() + 24 * 60 * 60 * 1000));
-    testObj.req.body = { username: 'my_username', count: 3, expire };
+    testObj.req.body = { username: 'my_username', count: 3, type: 'dc', country: 'GB', expire };
 
     await testObj.createPackageValidationMiddleware.act();
   });
