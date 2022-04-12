@@ -521,6 +521,7 @@ The output of this API is a token, and you can this token in below API list:
 * `PUT /v1/user/:username/password`
 * `POST /v1/package`
 * `PUT /v1/package/:packageId/renew`
+* `PUT /v1/package/:packageId/cancel`
 * `GET /v1/package/user/:username`
 
 ### Information:
@@ -918,6 +919,42 @@ curl \
 }
 ```
 
+## Cancel package
+
+If package expire date not end, You can cancel proxy
+
+### Information:
+
+* Method: `PUT`
+* URL: `api/v1/package/:packageId/cancel`
+* Authorized type: `admin` and `normal user`
+
+```bash
+curl \
+  -X PUT \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/package/:packageId/cancel'
+```
+
+### Example:
+
+```bash
+curl \
+    -X PUT \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/package/cb194947-29b2-47cc-bb7f-24e10d4515e2/cancel'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
 ## Delete package
 
 For a remove exist package
@@ -926,7 +963,7 @@ For a remove exist package
 
 * Method: `DELETE`
 * URL: `api/v1/package/:packageId`
-* Authorized type: `admin` and `normal user`
+* Authorized type: `admin`
 
 ```bash
 curl \

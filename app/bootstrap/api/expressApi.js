@@ -389,6 +389,23 @@ class ExpressApi extends IRunner {
       },
     );
 
+    router.put(
+      '/v1/package/:packageId/cancel',
+      this._middlewareRoleAccess(['user', 'admin']),
+      async (req, res, next) => {
+        try {
+          const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+          const response = await packageController.cancelPackage();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
     router.post(
       '/v1/package/:packageId/sync',
       this._middlewareRoleAccess(['admin']),
@@ -408,7 +425,7 @@ class ExpressApi extends IRunner {
 
     router.delete(
       '/v1/package/:packageId',
-      this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareRoleAccess(['admin']),
       async (req, res, next) => {
         try {
           const packageController = packageHttpApi.packageControllerFactory.create(req, res);
