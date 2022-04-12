@@ -47,6 +47,8 @@ class PackagePgRepository extends IPackageRepository {
                                     p.expire_date,
                                     p.insert_date,
                                     count(*)                                                    AS count_ip,
+                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
+                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
                                     jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
           FROM public.users u,
                public.packages p,
@@ -91,6 +93,8 @@ class PackagePgRepository extends IPackageRepository {
                                                    p.expire_date,
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
+                                                   (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
+                                                   (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
                                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
           FROM public.users u,
                public.packages p,
@@ -137,6 +141,8 @@ class PackagePgRepository extends IPackageRepository {
                                                    p.expire_date,
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
+                                                   (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
+                                                   (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
                                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
           FROM public.users u,
                public.packages p,
@@ -181,6 +187,8 @@ class PackagePgRepository extends IPackageRepository {
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
     const packageId = this.#identifierGenerator.generateId();
     const expireDate = this.#dateTime.gregorianWithTimezoneString(model.expireDate);
+    const proxyType = model.type ? model.type : '-';
+    const countryCode = model.country ? model.country.toUpperCase() : '-';
 
     const insertToPackage = {
       text: singleLine`
@@ -197,6 +205,8 @@ class PackagePgRepository extends IPackageRepository {
               FROM public.bind_address ba
               WHERE delete_date ISNULL
                 AND ba.is_enable = true
+                AND ba.proxy_type = $5
+                AND ba.country_code = $6
                   EXCEPT
               SELECT DISTINCT ba.id, ba.ip, ba.port
               FROM public.users u,
@@ -213,7 +223,9 @@ class PackagePgRepository extends IPackageRepository {
                 AND mbdp.delete_date ISNULL
                 AND ba.delete_date ISNULL
                 AND u.id = $1
-                AND p.expire_date < $2)
+                AND p.expire_date < $2
+                AND ba.proxy_type = $5
+                AND ba.country_code = $6)
           INSERT
           INTO public.map_bind_address_package (id, bind_address_id, package_id)
           SELECT public.uuid_generate_v4(), id, $3
@@ -222,7 +234,7 @@ class PackagePgRepository extends IPackageRepository {
           LIMIT $4
           RETURNING (SELECT ip FROM public.bind_address ba WHERE ba.id = bind_address_id), (SELECT port FROM public.bind_address ba WHERE ba.id = bind_address_id)
       `,
-      values: [model.userId, expireDate, packageId, model.countIp],
+      values: [model.userId, expireDate, packageId, model.countIp, proxyType, countryCode],
     };
 
     const transaction = { isStart: false };
@@ -244,6 +256,8 @@ class PackagePgRepository extends IPackageRepository {
 
       packageRows[0]['username'] = model.username;
       packageRows[0]['count_ip'] = rowCount;
+      packageRows[0]['proxy_type'] = proxyType;
+      packageRows[0]['country_code'] = countryCode;
 
       const result = this._fillModel(packageRows[0]);
 
@@ -344,6 +358,8 @@ class PackagePgRepository extends IPackageRepository {
     model.username = row['username'];
     model.password = row['password'];
     model.countIp = row['count_ip'];
+    model.type = row['proxy_type'];
+    model.country = row['country_code'] ? row['country_code'].toUpperCase() : row['country_code'];
     model.ipList = row['ip_list'];
     model.expireDate = row['expire_date'];
     model.insertDate = row['insert_date'];

@@ -8,6 +8,8 @@
  * @property {string} username
  * @property {string} password
  * @property {number} countIp
+ * @property {string} type
+ * @property {string} country
  * @property {Array<{ip: string, port: number}>} ipList
  * @property {Date} insertDate
  * @property {Date} updateDate
@@ -20,6 +22,8 @@ class PackageModel {
   username = undefined;
   password = undefined;
   countIp = undefined;
+  type = undefined;
+  country = undefined;
   ipList = [];
   insertDate = undefined;
   updateDate = undefined;

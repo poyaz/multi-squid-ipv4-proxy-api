@@ -102,6 +102,8 @@ suite(`PackagePgRepository`, () => {
               username: 'user1',
               password: 'pass1',
               count_ip: 1,
+              proxy_type: 'isp',
+              country_code: 'GB',
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
               expire_date: new Date(),
               insert_date: new Date(),
@@ -126,6 +128,8 @@ suite(`PackagePgRepository`, () => {
         username: 'user1',
         password: 'pass1',
         countIp: 1,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
       expect(result.insertDate).to.be.an.instanceOf(Date);
@@ -185,6 +189,8 @@ suite(`PackagePgRepository`, () => {
               username: 'user1',
               password: 'pass1',
               count_ip: 1,
+              proxy_type: 'isp',
+              country_code: 'gb',
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
               expire_date: new Date(),
               insert_date: new Date(),
@@ -210,6 +216,8 @@ suite(`PackagePgRepository`, () => {
         username: inputUsername,
         password: 'pass1',
         countIp: 1,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
@@ -263,6 +271,8 @@ suite(`PackagePgRepository`, () => {
               user_id: testObj.identifierGenerator.generateId(),
               username: 'user1',
               count_ip: 1,
+              proxy_type: 'isp',
+              country_code: 'gb',
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
               expire_date: new Date(),
               insert_date: new Date(),
@@ -285,6 +295,8 @@ suite(`PackagePgRepository`, () => {
         userId: testObj.identifierGenerator.generateId(),
         username: 'user1',
         countIp: 1,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
@@ -298,6 +310,8 @@ suite(`PackagePgRepository`, () => {
       inputModel.userId = testObj.identifierGenerator.generateId();
       inputModel.username = 'user1';
       inputModel.countIp = 2;
+      inputModel.type = 'isp';
+      inputModel.country = 'gb';
       inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
 
       testObj.inputModel = inputModel;
@@ -444,7 +458,7 @@ suite(`PackagePgRepository`, () => {
           ),
       );
       testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
-      const sinonMatch2 = sinon.match.has('values', sinon.match.has('length', 4));
+      const sinonMatch2 = sinon.match.has('values', sinon.match.has('length', 6));
       testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
       testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
       testObj.fillModelSpy.should.have.callCount(1);
@@ -456,6 +470,8 @@ suite(`PackagePgRepository`, () => {
         userId: testObj.identifierGenerator.generateId(),
         username: testObj.inputModel.username,
         countIp: testObj.inputModel.countIp,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
       expect(result.insertDate).to.be.an.instanceOf(Date);
