@@ -407,11 +407,14 @@ suite(`UserService`, () => {
     test(`Should error change password when fetch user`, async () => {
       const inputUsername = 'user1';
       const inputPassword = 'password';
-      testObj.userRepository.isUserExist.resolves([new UnknownException()]);
+      testObj.userRepository.getAll.resolves([new UnknownException()]);
 
       const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
 
-      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.has('username', inputUsername),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
@@ -419,11 +422,14 @@ suite(`UserService`, () => {
     test(`Should error change password when user not found`, async () => {
       const inputUsername = 'user1';
       const inputPassword = 'password';
-      testObj.userRepository.isUserExist.resolves([null, false]);
+      testObj.userRepository.getAll.resolves([null, []]);
 
       const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
 
-      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.has('username', inputUsername),
+      );
       expect(error).to.be.an.instanceof(NotFoundException);
       expect(error).to.have.property('httpCode', 404);
     });
@@ -431,16 +437,22 @@ suite(`UserService`, () => {
     test(`Should error change password when update password`, async () => {
       const inputUsername = 'user1';
       const inputPassword = 'password';
-      testObj.userRepository.isUserExist.resolves([null, true]);
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
       testObj.userSquidRepository.update.resolves([new UnknownException()]);
 
       const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
 
-      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.has('username', inputUsername),
+      );
       testObj.userSquidRepository.update.should.have.callCount(1);
       testObj.userSquidRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(UserModel)
+          .and(sinon.match.has('id', outputModel.id))
           .and(sinon.match.has('username', inputUsername))
           .and(sinon.match.has('password', inputPassword)),
       );
@@ -451,17 +463,23 @@ suite(`UserService`, () => {
     test(`Should error change password when update password in database`, async () => {
       const inputUsername = 'user1';
       const inputPassword = 'password';
-      testObj.userRepository.isUserExist.resolves([null, true]);
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
       testObj.userSquidRepository.update.resolves([null]);
       testObj.userRepository.update.resolves([new UnknownException()]);
 
       const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
 
-      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.has('username', inputUsername),
+      );
       testObj.userSquidRepository.update.should.have.callCount(1);
       testObj.userSquidRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(UserModel)
+          .and(sinon.match.has('id', outputModel.id))
           .and(sinon.match.has('username', inputUsername))
           .and(sinon.match.has('password', inputPassword)),
       );
@@ -469,6 +487,7 @@ suite(`UserService`, () => {
       testObj.userRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(UserModel)
+          .and(sinon.match.has('id', outputModel.id))
           .and(sinon.match.has('username', inputUsername))
           .and(sinon.match.has('password', inputPassword)),
       );
@@ -479,17 +498,23 @@ suite(`UserService`, () => {
     test(`Should successfully change password`, async () => {
       const inputUsername = 'user1';
       const inputPassword = 'password';
-      testObj.userRepository.isUserExist.resolves([null, true]);
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      testObj.userRepository.getAll.resolves([null, [outputModel]]);
       testObj.userSquidRepository.update.resolves([null]);
       testObj.userRepository.update.resolves([null]);
 
       const [error] = await testObj.userService.changePassword(inputUsername, inputPassword);
 
-      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.callCount(1);
+      testObj.userRepository.getAll.should.have.calledWith(
+        sinon.match.has('username', inputUsername),
+      );
       testObj.userSquidRepository.update.should.have.callCount(1);
       testObj.userSquidRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(UserModel)
+          .and(sinon.match.has('id', outputModel.id))
           .and(sinon.match.has('username', inputUsername))
           .and(sinon.match.has('password', inputPassword)),
       );
@@ -497,6 +522,7 @@ suite(`UserService`, () => {
       testObj.userRepository.update.should.have.calledWith(
         sinon.match
           .instanceOf(UserModel)
+          .and(sinon.match.has('id', outputModel.id))
           .and(sinon.match.has('username', inputUsername))
           .and(sinon.match.has('password', inputPassword)),
       );

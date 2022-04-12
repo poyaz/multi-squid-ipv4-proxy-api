@@ -121,15 +121,18 @@ class UserService extends IUserService {
   }
 
   async changePassword(username, password) {
-    const [existError, existData] = await this.#userRepository.isUserExist(username);
-    if (existError) {
-      return [existError];
+    const filterModel = new UserModel();
+    filterModel.username = username;
+    const [fetchError, fetchData] = await this.#userRepository.getAll(filterModel);
+    if (fetchError) {
+      return [fetchError];
     }
-    if (!existData) {
+    if (fetchData.length === 0) {
       return [new NotFoundException()];
     }
 
     const updateModel = new UserModel();
+    updateModel.id = fetchData[0].id;
     updateModel.username = username;
     updateModel.password = password;
     const [updateError] = await this.#userSquidRepository.update(updateModel);
