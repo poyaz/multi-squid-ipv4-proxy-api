@@ -20,6 +20,7 @@
     "ip-addresses": "^1.0.0",
     "dockerode": "^3.2.1",
     "joi": "^17.4.2",
+    "@meanie/joi-country": "^2.2.0",
     "jsonwebtoken": "8.5.1",
     "pg": "8.5.1",
     "uuid": "8.3.1",
