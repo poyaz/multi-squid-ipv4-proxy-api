@@ -28,6 +28,8 @@ class BasePackageOutputModel {
     obj.username = model.username;
     obj.password = model.password;
     obj.countIp = model.countIp;
+    obj.type = model.type;
+    obj.country = model.country.toUpperCase();
     obj.ipList = model.ipList.map((v) => ({ ip: v.ip, port: v.port }));
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
     obj.updateDate = this._gregorianWithTimezoneString(model.updateDate);

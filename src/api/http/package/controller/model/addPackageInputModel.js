@@ -27,6 +27,8 @@ class AddPackageInputModel {
     const model = new PackageModel();
     model.username = body.username;
     model.countIp = body.count;
+    model.type = body.type;
+    model.country = body.country.toUpperCase();
     model.expireDate = this.#dateTime.gregorianDateWithTimezone(body.expire, 'YYYY-MM-DD');
 
     return model;

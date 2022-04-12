@@ -44,7 +44,13 @@ suite(`PackageController`, () => {
 
   suite(`Create new package`, () => {
     test(`Should error create new package`, async () => {
-      testObj.req.body = { username: 'user1', countIp: 1, expire: '2021-08-25' };
+      testObj.req.body = {
+        username: 'user1',
+        countIp: 1,
+        expire: '2021-08-25',
+        type: 'isp',
+        country: 'GB',
+      };
       testObj.findClusterPackageService.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.packageController.addPackage();
@@ -57,13 +63,21 @@ suite(`PackageController`, () => {
     });
 
     test(`Should successfully create new package`, async () => {
-      testObj.req.body = { username: 'user1', countIp: 1, expire: '2021-08-25' };
+      testObj.req.body = {
+        username: 'user1',
+        countIp: 1,
+        expire: '2021-08-25',
+        type: 'isp',
+        country: 'GB',
+      };
       const outputModel = new PackageModel();
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.userId = testObj.identifierGenerator.generateId();
       outputModel.username = 'user1';
       outputModel.password = 'pass1';
       outputModel.countIp = 1;
+      outputModel.type = 'isp';
+      outputModel.country = 'GB';
       outputModel.ipList = [{ ip: '192.168.1.2', port: 8080 }];
       outputModel.insertDate = new Date();
       outputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
@@ -83,6 +97,12 @@ suite(`PackageController`, () => {
         username: testObj.req.body.username,
         password: 'pass1',
         countIp: 1,
+        type: 'isp',
+        country: 'GB',
+      });
+      expect(result.ipList[0]).to.have.include({
+        ip: '192.168.1.2',
+        port: 8080,
       });
       expect(result.insertDate).to.have.match(testObj.dateRegex);
       expect(result.expireDate).to.have.match(testObj.expireRegex);
@@ -111,6 +131,8 @@ suite(`PackageController`, () => {
       outputModel1.username = 'user1';
       outputModel1.password = 'pass1';
       outputModel1.countIp = 2;
+      outputModel1.type = 'isp';
+      outputModel1.country = 'GB';
       outputModel1.ipList = [
         { ip: '192.168.1.2', port: 8080 },
         { ip: '192.168.1.3', port: 8080 },
@@ -123,6 +145,8 @@ suite(`PackageController`, () => {
       outputModel2.username = 'user1';
       outputModel2.password = 'pass1';
       outputModel2.countIp = 1;
+      outputModel2.type = 'isp';
+      outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
@@ -146,6 +170,8 @@ suite(`PackageController`, () => {
         username: 'user1',
         password: 'pass1',
         countIp: 2,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[0].ipList[0]).to.have.include({
         ip: '192.168.1.2',
@@ -164,6 +190,8 @@ suite(`PackageController`, () => {
         username: 'user1',
         password: 'pass1',
         countIp: 1,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[1].ipList[0]).to.have.include({
         ip: '192.168.1.4',
@@ -196,6 +224,8 @@ suite(`PackageController`, () => {
       outputModel1.username = 'user1';
       outputModel1.password = 'pass1';
       outputModel1.countIp = 2;
+      outputModel1.type = 'isp';
+      outputModel1.country = 'GB';
       outputModel1.ipList = [
         { ip: '192.168.1.2', port: 8080 },
         { ip: '192.168.1.3', port: 8080 },
@@ -207,6 +237,8 @@ suite(`PackageController`, () => {
       outputModel2.userId = testObj.identifierGenerator.generateId();
       outputModel2.username = 'user1';
       outputModel2.countIp = 1;
+      outputModel2.type = 'isp';
+      outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
@@ -227,6 +259,8 @@ suite(`PackageController`, () => {
         username: 'user1',
         password: 'pass1',
         countIp: 2,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[0].ipList[0]).to.have.include({
         ip: '192.168.1.2',
@@ -244,6 +278,8 @@ suite(`PackageController`, () => {
         userId: testObj.identifierGenerator.generateId(),
         username: 'user1',
         countIp: 1,
+        type: 'isp',
+        country: 'GB',
       });
       expect(result[1].ipList[0]).to.have.include({
         ip: '192.168.1.4',
