@@ -8,6 +8,7 @@ const IPackageService = require('~src/core/interface/iPackageService');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const ExpireDateException = require('~src/core/exception/expireDateException');
 const DisableUserException = require('~src/core/exception/disableUserException');
+const AlreadyExpireException = require('~src/core/exception/alreadyExpireException');
 
 class PackageService extends IPackageService {
   /**
@@ -111,18 +112,15 @@ class PackageService extends IPackageService {
   }
 
   async renew(id, expireDate) {
-    const [fetchError, fetchData] = await this.#packageRepository.getById(id);
+    const [fetchError, fetchData] = await this._getPackageInfoIfExistById(id);
     if (fetchError) {
       return [fetchError];
-    }
-    if (!fetchData) {
-      return [new NotFoundException()];
     }
     if (
       fetchData.expireDate instanceof Date &&
       fetchData.expireDate.getTime() <= new Date().getTime()
     ) {
-      return [new ExpireDateException()];
+      return [new AlreadyExpireException()];
     }
 
     const updateModel = new PackageModel();
@@ -132,6 +130,33 @@ class PackageService extends IPackageService {
     const [updateError] = await this.#packageRepository.update(updateModel);
     if (updateError) {
       return [updateError];
+    }
+
+    return [null];
+  }
+
+  async cancel(id) {
+    const [fetchError, fetchData] = await this._getPackageInfoIfExistById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (
+      fetchData.expireDate instanceof Date &&
+      fetchData.expireDate.getTime() <= new Date().getTime()
+    ) {
+      return [new AlreadyExpireException()];
+    }
+
+    const cancelModel = new PackageModel();
+    cancelModel.id = id;
+    cancelModel.expireDate = new Date(
+      fetchData.expireDate.getFullYear(),
+      fetchData.expireDate.getMonth() + 1,
+      0,
+    );
+    const [error] = await this.#packageRepository.update(cancelModel);
+    if (error) {
+      return [error];
     }
 
     return [null];
@@ -241,6 +266,18 @@ class PackageService extends IPackageService {
     }
 
     return [null, fetchData[0]];
+  }
+
+  async _getPackageInfoIfExistById(id) {
+    const [fetchError, fetchData] = await this.#packageRepository.getById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (!fetchData) {
+      return [new NotFoundException()];
+    }
+
+    return [null, fetchData];
   }
 
   _reloadServer() {
