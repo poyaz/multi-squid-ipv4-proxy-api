@@ -179,26 +179,37 @@ class PackageService extends IPackageService {
       return [expirePackageError];
     }
 
+    const packageModelExpireList = [];
     if (expirePackageList.length === 0) {
-      return [null];
+      return [null, packageModelExpireList];
     }
 
     let totalSuccessfulExpireCount = 0;
     for await (const expirePackage of expirePackageList) {
-      const [updateError] = await this.#packageFileRepository.update(expirePackage);
-      if (updateError) {
-        console.error('updateDisablePackage', updateError);
+      const [updateProxyFileError] = await this.#packageFileRepository.update(expirePackage);
+      if (updateProxyFileError) {
+        console.error('updateExpirePackage', updateProxyFileError);
+        continue;
+      }
+
+      const expireStatusPackage = new PackageModel();
+      expireStatusPackage.id = expirePackage.id;
+      expireStatusPackage.status = PackageModel.STATUS_EXPIRE;
+      const [updateStatusError] = await this.#packageRepository.update(expireStatusPackage);
+      if (updateStatusError) {
+        console.error('updateStatusExpirePackage', updateStatusError);
         continue;
       }
 
       totalSuccessfulExpireCount++;
+      packageModelExpireList.push(expirePackage);
     }
 
     if (totalSuccessfulExpireCount > 0) {
       this._reloadServer();
     }
 
-    return [null];
+    return [null, packageModelExpireList];
   }
 
   async remove(id) {

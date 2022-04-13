@@ -582,11 +582,12 @@ suite(`PackageService`, () => {
       const outputModeList = [];
       testObj.packageRepository.getAllExpirePackage.resolves([null, outputModeList]);
 
-      const [error] = await testObj.packageService.disableExpirePackage();
+      const [error, result] = await testObj.packageService.disableExpirePackage();
 
       testObj.packageRepository.getAllExpirePackage.should.have.callCount(1);
       testObj.packageFileRepository.update.should.have.callCount(0);
       expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
     });
 
     test(`Should successfully disable expire package with reload`, async () => {
@@ -606,19 +607,27 @@ suite(`PackageService`, () => {
       const outputModeList = [outputModel1, outputModel2];
       testObj.packageRepository.getAllExpirePackage.resolves([null, outputModeList]);
       testObj.packageFileRepository.update.resolves([null]);
+      testObj.packageRepository.update.resolves([null]);
 
-      const [error] = await testObj.packageService.disableExpirePackage();
+      const [error, result] = await testObj.packageService.disableExpirePackage();
 
       testObj.packageRepository.getAllExpirePackage.should.have.callCount(1);
       testObj.packageFileRepository.update.should.have.callCount(2);
       testObj.packageFileRepository.update.should.have.calledWith(
         sinon.match.instanceOf(PackageModel),
       );
+      testObj.packageRepository.update.should.have.callCount(2);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('status', PackageModel.STATUS_EXPIRE)),
+      );
       testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
+      expect(result).to.be.length(2);
     });
 
-    test(`Should successfully disable expire package with reload (with error in one record)`, async () => {
+    test(`Should successfully disable expire package with reload (with error in update proxy file)`, async () => {
       const outputModel1 = new PackageModel();
       outputModel1.username = 'user1';
       outputModel1.countIp = 2;
@@ -636,17 +645,65 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getAllExpirePackage.resolves([null, outputModeList]);
       testObj.packageFileRepository.update.onCall(0).resolves([new UnknownException()]);
       testObj.packageFileRepository.update.onCall(1).resolves([null]);
+      testObj.packageRepository.update.resolves([null]);
 
-      const [error] = await testObj.packageService.disableExpirePackage();
+      const [error, result] = await testObj.packageService.disableExpirePackage();
 
       testObj.packageRepository.getAllExpirePackage.should.have.callCount(1);
       testObj.packageFileRepository.update.should.have.callCount(2);
       testObj.packageFileRepository.update.should.have.calledWith(
         sinon.match.instanceOf(PackageModel),
       );
+      testObj.packageRepository.update.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('status', PackageModel.STATUS_EXPIRE)),
+      );
       testObj.consoleError.should.callCount(1);
       testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+    });
+
+    test(`Should successfully disable expire package with reload (with error in update package status)`, async () => {
+      const outputModel1 = new PackageModel();
+      outputModel1.username = 'user1';
+      outputModel1.countIp = 2;
+      outputModel1.ipList = [
+        { ip: '192.168.1.1', port: 8080 },
+        { ip: '192.168.1.2', port: 8080 },
+      ];
+      outputModel1.expireDate = new Date();
+      const outputModel2 = new PackageModel();
+      outputModel2.username = 'user2';
+      outputModel2.countIp = 1;
+      outputModel2.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputModel2.expireDate = new Date();
+      const outputModeList = [outputModel1, outputModel2];
+      testObj.packageRepository.getAllExpirePackage.resolves([null, outputModeList]);
+      testObj.packageRepository.getAllExpirePackage.resolves([null, outputModeList]);
+      testObj.packageFileRepository.update.resolves([null]);
+      testObj.packageRepository.update.onCall(0).resolves([new UnknownException()]);
+      testObj.packageRepository.update.onCall(1).resolves([null]);
+
+      const [error, result] = await testObj.packageService.disableExpirePackage();
+
+      testObj.packageRepository.getAllExpirePackage.should.have.callCount(1);
+      testObj.packageFileRepository.update.should.have.callCount(2);
+      testObj.packageFileRepository.update.should.have.calledWith(
+        sinon.match.instanceOf(PackageModel),
+      );
+      testObj.packageRepository.update.should.have.callCount(2);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('status', PackageModel.STATUS_EXPIRE)),
+      );
+      testObj.consoleError.should.callCount(1);
+      testObj.proxySquidRepository.reload.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
     });
   });
 

@@ -50,7 +50,7 @@ class IPackageService {
 
   /**
    *
-   * @return {Promise<(Error)[]>}
+   * @return {Promise<(Error|Array<PackageModel>|[])[]>}
    */
   async disableExpirePackage() {
     const error = new Error('The method has to be overridden by subclasses.');

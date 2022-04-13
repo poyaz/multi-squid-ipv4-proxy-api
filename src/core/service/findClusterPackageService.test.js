@@ -572,23 +572,177 @@ suite(`FindClusterPackageService`, () => {
   });
 
   suite(`Disable expire package`, () => {
-    test(`Should error disable expire package`, async () => {
+    test(`Should error disable expire package when get all instance has fail`, async () => {
+      testObj.serverService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.disableExpirePackage();
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error disable expire package in current instance because not found any server`, async () => {
+      testObj.serverService.getAll.resolves([null, []]);
       testObj.packageService.disableExpirePackage.resolves([new UnknownException()]);
 
       const [error] = await testObj.findClusterPackageService.disableExpirePackage();
 
+      testObj.serverService.getAll.should.have.callCount(1);
       testObj.packageService.disableExpirePackage.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successful disable expire package`, async () => {
-      testObj.packageService.disableExpirePackage.resolves([null]);
+    test(`Should successful disable expire package in current instance because not found any server`, async () => {
+      testObj.serverService.getAll.resolves([null, []]);
+      testObj.packageService.disableExpirePackage.resolves([null, []]);
+
+      const [error, result] = await testObj.findClusterPackageService.disableExpirePackage();
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.disableExpirePackage.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should successful disable expire package and don't execute in other server because no expire package record exist`, async () => {
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputDisablePackage = new PackageModel();
+      outputDisablePackage.id = testObj.identifierGenerator.generateId();
+      outputDisablePackage.username = 'user1';
+      outputDisablePackage.countIp = 1;
+      outputDisablePackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputDisablePackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputDisablePackage.insertDate = new Date();
+      testObj.packageService.disableExpirePackage.resolves([null, []]);
+
+      const [error, result] = await testObj.findClusterPackageService.disableExpirePackage();
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.disableExpirePackage.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should error disable expire package in all instance when send request has been fail in all server or at least one server`, async () => {
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputDisablePackage = new PackageModel();
+      outputDisablePackage.id = testObj.identifierGenerator.generateId();
+      outputDisablePackage.username = 'user1';
+      outputDisablePackage.countIp = 1;
+      outputDisablePackage.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputDisablePackage.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputDisablePackage.insertDate = new Date();
+      testObj.packageService.disableExpirePackage.resolves([null, [outputDisablePackage]]);
+      testObj.serverApiRepository.syncPackageById.resolves([new UnknownException()]);
 
       const [error] = await testObj.findClusterPackageService.disableExpirePackage();
 
+      testObj.serverService.getAll.should.have.callCount(1);
       testObj.packageService.disableExpirePackage.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputDisablePackage.id),
+        sinon.match.instanceOf(ServerModel),
+      );
+      expect(error).to.be.an.instanceof(SyncPackageProxyException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful disable expire package in all instance`, async () => {
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      const outputDisablePackage1 = new PackageModel();
+      outputDisablePackage1.id = testObj.identifierGenerator.generateId();
+      outputDisablePackage1.username = 'user1';
+      outputDisablePackage1.countIp = 1;
+      outputDisablePackage1.ipList = [{ ip: '192.168.1.3', port: 8080 }];
+      outputDisablePackage1.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputDisablePackage1.insertDate = new Date();
+      testObj.packageService.disableExpirePackage.resolves([null, [outputDisablePackage1]]);
+      testObj.serverApiRepository.syncPackageById.resolves([null]);
+
+      const [error, result] = await testObj.findClusterPackageService.disableExpirePackage();
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.disableExpirePackage.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      testObj.serverApiRepository.syncPackageById.should.have.calledWith(
+        sinon.match(outputDisablePackage1.id),
+        sinon.match.instanceOf(ServerModel),
+      );
       expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
     });
   });
 

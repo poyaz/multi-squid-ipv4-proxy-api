@@ -257,7 +257,14 @@ suite(`PackagePgRepository`, () => {
       const [error, result] = await testObj.packageRepository.getAllExpirePackage();
 
       testObj.postgresDb.query.should.have.callCount(1);
-      testObj.postgresDb.query.should.have.calledWith(sinon.match.hasNested('values.length', 1));
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match
+            .has('length', 2)
+            .and(sinon.match.array.startsWith([PackageModel.STATUS_EXPIRE])),
+        ),
+      );
       testObj.fillModelSpy.should.have.callCount(0);
       expect(error).to.be.a('null');
       expect(result).to.be.length(0);
@@ -290,7 +297,14 @@ suite(`PackagePgRepository`, () => {
       const [error, result] = await testObj.packageRepository.getAllExpirePackage();
 
       testObj.postgresDb.query.should.have.callCount(1);
-      testObj.postgresDb.query.should.have.calledWith(sinon.match.hasNested('values.length', 1));
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match
+            .has('length', 2)
+            .and(sinon.match.array.startsWith([PackageModel.STATUS_EXPIRE])),
+        ),
+      );
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.length(1);

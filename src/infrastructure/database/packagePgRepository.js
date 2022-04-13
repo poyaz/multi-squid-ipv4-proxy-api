@@ -160,11 +160,12 @@ class PackagePgRepository extends IPackageRepository {
             AND p.delete_date ISNULL
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
-            AND p.expire_date < $1
-          GROUP BY p.id, u.id, u.username, p.expire_date, p.insert_date
+            AND p.status <> $1
+            AND p.expire_date < $2
+          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date
           ORDER BY p.insert_date DESC
       `,
-      values: [now],
+      values: [PackageModel.STATUS_EXPIRE, now],
     };
 
     try {
