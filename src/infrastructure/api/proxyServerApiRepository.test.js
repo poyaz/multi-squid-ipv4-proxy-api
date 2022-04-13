@@ -495,6 +495,7 @@ suite(`ProxyServerApiRepository`, () => {
             country: 'GB',
             expireDate: '2021-10-25',
             ipList: [],
+            isEnable: true,
           },
           {
             id: testObj.identifierGenerator.generateId(),
@@ -505,6 +506,7 @@ suite(`ProxyServerApiRepository`, () => {
             country: 'GB',
             expireDate: '2021-08-25',
             ipList: [],
+            isEnable: true,
           },
         ],
       };
