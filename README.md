@@ -781,7 +781,7 @@ Create new package for users
 
 * `username` string with [a-zA-Z0-9_.] between 3 and 20 (Example: **test1** or **test_1** or **test**.1)
 * `count` number greater than equal 1 (Example: **3**)
-* `expire` Date format for start block time with a format YYYY-MM-DD (Example: **2021-10-04**)
+* `expire` Date format for start block time with a format YYYY-MM-DD (Example: **2021-10-04**) - this field has optional
 
 ```bash
 curl \
@@ -812,6 +812,9 @@ curl \
     "id": "cb194947-29b2-47cc-bb7f-24e10d4515e2",
     "username": "my_username",
     "password": "my_password",
+    "type": "isp",
+    "country": "GB",
+    "status": "enable",
     "countIp": 1,
     "ipList": [
       {
@@ -834,6 +837,12 @@ Get list of user's package
 * URL: `api/v1/package/user/:username`
 * Authorized type: `admin` and `normal user`
 
+### Query string format
+
+* `type` string
+* `country` string valid 2-alpha country name
+* `status` string
+
 ```bash
 curl \
   -X GET \
@@ -850,6 +859,18 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/package/user/my_username'
+    
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/package/user/my_username?type=isp'
+    
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/package/user/my_username?type=isp&country=GB'
 ```
 
 ### Output:
@@ -862,6 +883,9 @@ curl \
       "id": "cb194947-29b2-47cc-bb7f-24e10d4515e2",
       "username": "my_username",
       "password": "my_password",
+      "type": "isp",
+      "country": "GB",
+      "status": "enable",
       "countIp": 25,
       "expireDate": "2021-10-25"
     },
@@ -869,6 +893,9 @@ curl \
       "id": "ebc143cd-221a-4841-86ff-13687105b99e",
       "username": "my_username",
       "password": "my_password",
+      "type": "isp",
+      "country": "GB",
+      "status": "enable",
       "countIp": 10,
       "expireDate": "2021-08-25"
     }
