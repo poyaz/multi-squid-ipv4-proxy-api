@@ -133,6 +133,41 @@ class FindClusterPackageService extends IPackageService {
     return this.#packageService.renew(id, expireDate);
   }
 
+  async cancel(id) {
+    const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
+    if (errorAllServer) {
+      return [errorAllServer];
+    }
+
+    const [errorRemovePackage] = await this.#packageService.cancel(id);
+    if (errorRemovePackage) {
+      return [errorRemovePackage];
+    }
+
+    if (dataAllServer.length === 0) {
+      return [null];
+    }
+
+    const tasks = [];
+    for (let i = 0; i < dataAllServer.length; i++) {
+      const serverModel = dataAllServer[i];
+      if (serverModel.isEnable && serverModel.hostIpAddress !== this.#currentInstanceIp) {
+        tasks.push(this.#serverApiRepository.syncPackageById(id, serverModel));
+      }
+    }
+
+    const resultTasks = await Promise.all(tasks);
+
+    for (let i = 0; i < resultTasks.length; i++) {
+      const [errorExecute] = resultTasks[i];
+      if (errorExecute) {
+        return [new SyncPackageProxyException()];
+      }
+    }
+
+    return [null];
+  }
+
   async disableExpirePackage() {
     return this.#packageService.disableExpirePackage();
   }
@@ -143,13 +178,13 @@ class FindClusterPackageService extends IPackageService {
       return [errorAllServer];
     }
 
-    const [errorRemovePackage, dataRemovePackage] = await this.#packageService.remove(id);
+    const [errorRemovePackage] = await this.#packageService.remove(id);
     if (errorRemovePackage) {
       return [errorRemovePackage];
     }
 
     if (dataAllServer.length === 0) {
-      return [null, dataRemovePackage];
+      return [null];
     }
 
     const tasks = [];
