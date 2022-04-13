@@ -6,7 +6,7 @@ const UserModel = require('~src/core/model/userModel');
 const PackageModel = require('~src/core/model/packageModel');
 const IPackageService = require('~src/core/interface/iPackageService');
 const NotFoundException = require('~src/core/exception/notFoundException');
-const ExpireDateException = require('~src/core/exception/expireDateException');
+const ItemDisableException = require('~src/core/exception/itemDisableException');
 const DisableUserException = require('~src/core/exception/disableUserException');
 const AlreadyExpireException = require('~src/core/exception/alreadyExpireException');
 
@@ -94,6 +94,7 @@ class PackageService extends IPackageService {
     }
 
     model.userId = fetchData.id;
+    model.isEnable = true;
     const [addError, addData] = await this.#packageRepository.add(model);
     if (addError) {
       return [addError];
@@ -140,6 +141,9 @@ class PackageService extends IPackageService {
     if (fetchError) {
       return [fetchError];
     }
+    if (!fetchData.isEnable) {
+      return [new ItemDisableException()];
+    }
     if (
       fetchData.expireDate instanceof Date &&
       fetchData.expireDate.getTime() <= new Date().getTime()
@@ -149,14 +153,16 @@ class PackageService extends IPackageService {
 
     const cancelModel = new PackageModel();
     cancelModel.id = id;
-    cancelModel.expireDate = new Date(
-      fetchData.expireDate.getFullYear(),
-      fetchData.expireDate.getMonth() + 1,
-      0,
-    );
+    cancelModel.expireDate = new Date();
     const [error] = await this.#packageRepository.update(cancelModel);
     if (error) {
       return [error];
+    }
+    const [updateError] = await this.#packageFileRepository.update(cancelModel);
+    if (updateError) {
+      console.error('updateCancelPackage', updateError);
+    } else {
+      this._reloadServer();
     }
 
     return [null];
