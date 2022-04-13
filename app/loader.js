@@ -285,7 +285,7 @@ class Loader {
     // Other API
     // --------------------------
 
-    const packageCronjob = new PackageCronjob(packageService);
+    const packageCronjob = new PackageCronjob(findClusterPackageService);
     const reloadCronjob = new ReloadCronjob(proxyServerService);
 
     // Fill dependency
