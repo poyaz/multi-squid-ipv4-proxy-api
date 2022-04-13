@@ -11,6 +11,7 @@
  * @property {string} type
  * @property {string} country
  * @property {Array<{ip: string, port: number}>} ipList
+ * @property {boolean} isEnable
  * @property {Date} insertDate
  * @property {Date} updateDate
  * @property {Date} deleteDate
@@ -25,6 +26,7 @@ class PackageModel {
   type = undefined;
   country = undefined;
   ipList = [];
+  isEnable = undefined;
   insertDate = undefined;
   updateDate = undefined;
   deleteDate = undefined;
