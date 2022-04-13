@@ -781,6 +781,8 @@ Create new package for users
 
 * `username` string with [a-zA-Z0-9_.] between 3 and 20 (Example: **test1** or **test_1** or **test**.1)
 * `count` number greater than equal 1 (Example: **3**)
+* `type` string
+* `country` string valid 2-alpha country code
 * `expire` Date format for start block time with a format YYYY-MM-DD (Example: **2021-10-04**) - this field has optional
 
 ```bash
@@ -789,7 +791,7 @@ curl \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/package' \
-  -d '{"username": "<your-username>", "count": <total-ip-need-use>, "expire": "<expire-date>"}'
+  -d '{"username": "<your-username>", "count": <total-ip-need-use>, "type": "<proxy-type>", "country": "<country-code>", "expire": "<expire-date>"}'
 ```
 
 ### Example:
@@ -800,7 +802,7 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/package'
-    -d '{"username": "my_username", "count": 25, "expire": "2021-10-25"}'
+    -d '{"username": "my_username", "count": 25, "type": "isp", "country": "GB", "expire": "2021-10-25"}'
 ```
 
 ### Output:
