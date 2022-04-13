@@ -303,7 +303,7 @@ class PackagePgRepository extends IPackageRepository {
     const param = [model.id];
 
     if (typeof model.status !== 'undefined') {
-      param.push(this.#dateTime.gregorianWithTimezoneString(model.status));
+      param.push(model.status);
       columns.push(`status = $${param.length}`);
     }
     if (typeof model.expireDate !== 'undefined') {
