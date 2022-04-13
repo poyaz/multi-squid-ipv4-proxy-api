@@ -39,7 +39,7 @@ class IPackageService {
 
   /**
    *
-   * @param {uuid} id
+   * @param {string} id
    * @return {Promise<(Error)[]>}
    */
   async cancel(id) {
