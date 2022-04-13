@@ -11,13 +11,18 @@
  * @property {string} type
  * @property {string} country
  * @property {Array<{ip: string, port: number}>} ipList
- * @property {boolean} isEnable
+ * @property {string} status
  * @property {Date} insertDate
  * @property {Date} updateDate
  * @property {Date} deleteDate
  * @property {Date} expireDate
  */
 class PackageModel {
+  static STATUS_ENABLE = 'enable';
+  static STATUS_DISABLE = 'disable';
+  static STATUS_EXPIRE = 'expire';
+  static STATUS_CANCEL = 'cancel';
+
   id = undefined;
   userId = undefined;
   username = undefined;
@@ -26,7 +31,7 @@ class PackageModel {
   type = undefined;
   country = undefined;
   ipList = [];
-  isEnable = undefined;
+  status = undefined;
   insertDate = undefined;
   updateDate = undefined;
   deleteDate = undefined;

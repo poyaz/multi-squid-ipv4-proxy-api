@@ -44,6 +44,7 @@ class PackagePgRepository extends IPackageRepository {
                                     u.id                                                        AS user_id,
                                     u.username,
                                     u.password,
+                                    p.status,
                                     p.expire_date,
                                     p.insert_date,
                                     count(*)                                                    AS count_ip,
@@ -64,7 +65,7 @@ class PackagePgRepository extends IPackageRepository {
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND p.id = $1
-          GROUP BY p.id, u.id, u.username, p.expire_date, p.insert_date
+          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date
       `,
       values: [id],
     };
@@ -90,6 +91,7 @@ class PackagePgRepository extends IPackageRepository {
                                                    u.id                                                        AS user_id,
                                                    u.username,
                                                    u.password,
+                                                   p.status,
                                                    p.expire_date,
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
@@ -110,7 +112,7 @@ class PackagePgRepository extends IPackageRepository {
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND u.username = $1
-          GROUP BY p.id, u.id, u.username, p.expire_date, p.insert_date
+          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date
           ORDER BY p.insert_date DESC
       `,
       values: [username],
@@ -138,6 +140,7 @@ class PackagePgRepository extends IPackageRepository {
           SELECT DISTINCT ON (p.id, p.insert_date) p.id,
                                                    u.id                                                        AS user_id,
                                                    u.username,
+                                                   p.status,
                                                    p.expire_date,
                                                    p.insert_date,
                                                    count(*)                                                    AS count_ip,
@@ -192,11 +195,11 @@ class PackagePgRepository extends IPackageRepository {
 
     const insertToPackage = {
       text: singleLine`
-          INSERT INTO public.packages (id, user_id, expire_date, insert_date)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO public.packages (id, user_id, status, expire_date, insert_date)
+          VALUES ($1, $2, $3, $4, $5)
           RETURNING *
       `,
-      values: [packageId, model.userId, expireDate, now],
+      values: [packageId, model.userId, model.status, expireDate, now],
     };
     const insertToMap = {
       text: singleLine`
@@ -279,6 +282,10 @@ class PackagePgRepository extends IPackageRepository {
     const columns = [];
     const param = [model.id];
 
+    if (typeof model.status !== 'undefined') {
+      param.push(this.#dateTime.gregorianWithTimezoneString(model.status));
+      columns.push(`status = $${param.length}`);
+    }
     if (typeof model.expireDate !== 'undefined') {
       param.push(this.#dateTime.gregorianWithTimezoneString(model.expireDate));
       columns.push(`expire_date = $${param.length}`);
@@ -365,6 +372,7 @@ class PackagePgRepository extends IPackageRepository {
     model.type = row['proxy_type'];
     model.country = row['country_code'] ? row['country_code'].toUpperCase() : row['country_code'];
     model.ipList = row['ip_list'];
+    model.status = row['status'];
     model.expireDate = row['expire_date'];
     model.insertDate = row['insert_date'];
 

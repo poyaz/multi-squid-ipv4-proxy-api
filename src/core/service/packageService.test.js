@@ -233,7 +233,8 @@ suite(`PackageService`, () => {
       testObj.packageRepository.add.should.have.calledWith(
         sinon.match
           .instanceOf(PackageModel)
-          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId())),
+          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('status', PackageModel.STATUS_ENABLE)),
       );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
@@ -266,7 +267,8 @@ suite(`PackageService`, () => {
       testObj.packageRepository.add.should.have.calledWith(
         sinon.match
           .instanceOf(PackageModel)
-          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId())),
+          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('status', PackageModel.STATUS_ENABLE)),
       );
       testObj.packageFileRepository.add.should.have.callCount(1);
       testObj.packageFileRepository.add.should.have.calledWith(
@@ -310,7 +312,7 @@ suite(`PackageService`, () => {
         sinon.match
           .instanceOf(PackageModel)
           .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
-          .and(sinon.match.has('isEnable', true)),
+          .and(sinon.match.has('status', PackageModel.STATUS_ENABLE)),
       );
       testObj.packageFileRepository.add.should.have.callCount(1);
       testObj.packageFileRepository.add.should.have.calledWith(
@@ -436,7 +438,7 @@ suite(`PackageService`, () => {
     test(`Should error cancel package when package already expired`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputFetchModel = new PackageModel();
-      outputFetchModel.isEnable = true;
+      outputFetchModel.status = PackageModel.STATUS_ENABLE;
       outputFetchModel.expireDate = new Date(new Date().getTime() - 60000);
       testObj.packageRepository.getById.resolves([null, outputFetchModel]);
 
@@ -447,10 +449,10 @@ suite(`PackageService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should error cancel package when package is disable`, async () => {
+    test(`Should error cancel package when package is not enable`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputFetchModel = new PackageModel();
-      outputFetchModel.isEnable = false;
+      outputFetchModel.status = PackageModel.STATUS_DISABLE;
       testObj.packageRepository.getById.resolves([null, outputFetchModel]);
 
       const [error] = await testObj.packageService.cancel(inputId);
@@ -463,7 +465,7 @@ suite(`PackageService`, () => {
     test(`Should error cancel package when update expire date`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputFetchModel = new PackageModel();
-      outputFetchModel.isEnable = true;
+      outputFetchModel.status = PackageModel.STATUS_ENABLE;
       testObj.packageRepository.getById.resolves([null, outputFetchModel]);
       testObj.packageRepository.update.resolves([new UnknownException()]);
 
@@ -472,7 +474,15 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getById.should.have.callCount(1);
       testObj.packageRepository.update.should.have.callCount(1);
       testObj.packageRepository.update.should.have.calledWith(
-        sinon.match.instanceOf(PackageModel).and(sinon.match.has('expireDate', new Date())),
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('status', PackageModel.STATUS_CANCEL))
+          .and(
+            sinon.match.has(
+              'expireDate',
+              new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
+            ),
+          ),
       );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
@@ -481,7 +491,7 @@ suite(`PackageService`, () => {
     test(`Should successfully cancel package (update proxy file has errored)`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputFetchModel = new PackageModel();
-      outputFetchModel.isEnable = true;
+      outputFetchModel.status = PackageModel.STATUS_ENABLE;
       testObj.packageRepository.getById.resolves([null, outputFetchModel]);
       testObj.packageRepository.update.resolves([null]);
       testObj.packageFileRepository.update.resolves([new UnknownException()]);
@@ -491,7 +501,15 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getById.should.have.callCount(1);
       testObj.packageRepository.update.should.have.callCount(1);
       testObj.packageRepository.update.should.have.calledWith(
-        sinon.match.instanceOf(PackageModel).and(sinon.match.has('expireDate', new Date())),
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('status', PackageModel.STATUS_CANCEL))
+          .and(
+            sinon.match.has(
+              'expireDate',
+              new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
+            ),
+          ),
       );
       testObj.packageFileRepository.update.should.have.callCount(1);
       testObj.consoleError.should.callCount(1);
@@ -501,7 +519,7 @@ suite(`PackageService`, () => {
     test(`Should successfully cancel package`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputFetchModel = new PackageModel();
-      outputFetchModel.isEnable = true;
+      outputFetchModel.status = PackageModel.STATUS_ENABLE;
       testObj.packageRepository.getById.resolves([null, outputFetchModel]);
       testObj.packageRepository.update.resolves([null]);
       testObj.packageFileRepository.update.resolves([null]);
@@ -511,7 +529,15 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getById.should.have.callCount(1);
       testObj.packageRepository.update.should.have.callCount(1);
       testObj.packageRepository.update.should.have.calledWith(
-        sinon.match.instanceOf(PackageModel).and(sinon.match.has('expireDate', new Date())),
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('status', PackageModel.STATUS_CANCEL))
+          .and(
+            sinon.match.has(
+              'expireDate',
+              new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
+            ),
+          ),
       );
       testObj.packageFileRepository.update.should.have.callCount(1);
       testObj.proxySquidRepository.reload.should.have.callCount(1);

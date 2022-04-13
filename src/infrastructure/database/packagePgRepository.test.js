@@ -105,6 +105,7 @@ suite(`PackagePgRepository`, () => {
               proxy_type: 'isp',
               country_code: 'GB',
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
             },
@@ -130,6 +131,7 @@ suite(`PackagePgRepository`, () => {
         countIp: 1,
         type: 'isp',
         country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
       expect(result.insertDate).to.be.an.instanceOf(Date);
@@ -192,6 +194,7 @@ suite(`PackagePgRepository`, () => {
               proxy_type: 'isp',
               country_code: 'gb',
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
             },
@@ -218,6 +221,7 @@ suite(`PackagePgRepository`, () => {
         countIp: 1,
         type: 'isp',
         country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
@@ -274,6 +278,7 @@ suite(`PackagePgRepository`, () => {
               proxy_type: 'isp',
               country_code: 'gb',
               ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
             },
@@ -297,6 +302,7 @@ suite(`PackagePgRepository`, () => {
         countIp: 1,
         type: 'isp',
         country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
@@ -312,6 +318,7 @@ suite(`PackagePgRepository`, () => {
       inputModel.countIp = 2;
       inputModel.type = 'isp';
       inputModel.country = 'gb';
+      inputModel.status = PackageModel.STATUS_ENABLE;
       inputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
 
       testObj.inputModel = inputModel;
@@ -412,6 +419,7 @@ suite(`PackagePgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               user_id: testObj.identifierGenerator.generateId(),
               username: testObj.inputModel.username,
+              status: PackageModel.STATUS_ENABLE,
               expire_date: testObj.inputModel.expireDate,
               insert_date: new Date(),
             },
@@ -449,11 +457,12 @@ suite(`PackagePgRepository`, () => {
       const sinonMatch1 = sinon.match.has(
         'values',
         sinon.match
-          .has('length', 4)
+          .has('length', 5)
           .and(
             sinon.match.array.startsWith([
               testObj.identifierGenerator.generateId(),
               inputModel.userId,
+              inputModel.status,
             ]),
           ),
       );
@@ -472,6 +481,7 @@ suite(`PackagePgRepository`, () => {
         countIp: testObj.inputModel.countIp,
         type: 'isp',
         country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
       expect(result.insertDate).to.be.an.instanceOf(Date);

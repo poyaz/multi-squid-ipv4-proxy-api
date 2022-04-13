@@ -79,7 +79,7 @@ suite(`PackageController`, () => {
       outputModel.type = 'isp';
       outputModel.country = 'GB';
       outputModel.ipList = [{ ip: '192.168.1.2', port: 8080 }];
-      outputModel.isEnable = true;
+      outputModel.status = PackageModel.STATUS_ENABLE;
       outputModel.insertDate = new Date();
       outputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
       testObj.findClusterPackageService.add.resolves([null, outputModel]);
@@ -100,7 +100,7 @@ suite(`PackageController`, () => {
         countIp: 1,
         type: 'isp',
         country: 'GB',
-        isEnable: true,
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result.ipList[0]).to.have.include({
         ip: '192.168.1.2',
@@ -139,7 +139,7 @@ suite(`PackageController`, () => {
         { ip: '192.168.1.2', port: 8080 },
         { ip: '192.168.1.3', port: 8080 },
       ];
-      outputModel1.isEnable = true;
+      outputModel1.status = PackageModel.STATUS_ENABLE;
       outputModel1.expireDate = new Date();
       outputModel1.insertDate = new Date();
       const outputModel2 = new PackageModel();
@@ -151,7 +151,7 @@ suite(`PackageController`, () => {
       outputModel2.type = 'isp';
       outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
-      outputModel2.isEnable = true;
+      outputModel2.status = PackageModel.STATUS_ENABLE;
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
       testObj.findClusterPackageService.getAllByUsername.resolves([
@@ -176,7 +176,7 @@ suite(`PackageController`, () => {
         countIp: 2,
         type: 'isp',
         country: 'GB',
-        isEnable: true,
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result[0].ipList[0]).to.have.include({
         ip: '192.168.1.2',
@@ -197,7 +197,7 @@ suite(`PackageController`, () => {
         countIp: 1,
         type: 'isp',
         country: 'GB',
-        isEnable: true,
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result[1].ipList[0]).to.have.include({
         ip: '192.168.1.4',
@@ -236,7 +236,7 @@ suite(`PackageController`, () => {
         { ip: '192.168.1.2', port: 8080 },
         { ip: '192.168.1.3', port: 8080 },
       ];
-      outputModel1.isEnable = true;
+      outputModel1.status = PackageModel.STATUS_ENABLE;
       outputModel1.expireDate = new Date();
       outputModel1.insertDate = new Date();
       const outputModel2 = new PackageModel();
@@ -247,7 +247,7 @@ suite(`PackageController`, () => {
       outputModel2.type = 'isp';
       outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
-      outputModel2.isEnable = true;
+      outputModel2.status = PackageModel.STATUS_ENABLE;
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
       testObj.packageService.getAllByUsername.resolves([null, [outputModel1, outputModel2]]);
@@ -269,7 +269,7 @@ suite(`PackageController`, () => {
         countIp: 2,
         type: 'isp',
         country: 'GB',
-        isEnable: true,
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result[0].ipList[0]).to.have.include({
         ip: '192.168.1.2',
@@ -289,7 +289,7 @@ suite(`PackageController`, () => {
         countIp: 1,
         type: 'isp',
         country: 'GB',
-        isEnable: true,
+        status: PackageModel.STATUS_ENABLE,
       });
       expect(result[1].ipList[0]).to.have.include({
         ip: '192.168.1.4',

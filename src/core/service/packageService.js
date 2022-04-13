@@ -94,7 +94,7 @@ class PackageService extends IPackageService {
     }
 
     model.userId = fetchData.id;
-    model.isEnable = true;
+    model.status = PackageModel.STATUS_ENABLE;
     const [addError, addData] = await this.#packageRepository.add(model);
     if (addError) {
       return [addError];
@@ -141,7 +141,7 @@ class PackageService extends IPackageService {
     if (fetchError) {
       return [fetchError];
     }
-    if (!fetchData.isEnable) {
+    if (fetchData.status !== PackageModel.STATUS_ENABLE) {
       return [new ItemDisableException()];
     }
     if (
@@ -151,9 +151,11 @@ class PackageService extends IPackageService {
       return [new AlreadyExpireException()];
     }
 
+    const now = new Date();
     const cancelModel = new PackageModel();
     cancelModel.id = id;
-    cancelModel.expireDate = new Date();
+    cancelModel.status = PackageModel.STATUS_CANCEL;
+    cancelModel.expireDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const [error] = await this.#packageRepository.update(cancelModel);
     if (error) {
       return [error];

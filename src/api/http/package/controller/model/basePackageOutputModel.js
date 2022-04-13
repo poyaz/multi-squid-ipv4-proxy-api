@@ -31,7 +31,7 @@ class BasePackageOutputModel {
     obj.type = model.type;
     obj.country = model.country.toUpperCase();
     obj.ipList = model.ipList.map((v) => ({ ip: v.ip, port: v.port }));
-    obj.isEnable = model.isEnable;
+    obj.status = model.status;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
     obj.updateDate = this._gregorianWithTimezoneString(model.updateDate);
     obj.expireDate = this._gregorianExpireDateWithTimezoneString(model.expireDate);
