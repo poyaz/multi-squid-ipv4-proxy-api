@@ -29,7 +29,9 @@ class AddPackageInputModel {
     model.countIp = body.count;
     model.type = body.type;
     model.country = body.country.toUpperCase();
-    model.expireDate = this.#dateTime.gregorianDateWithTimezone(body.expire, 'YYYY-MM-DD');
+    model.expireDate = body.expire
+      ? this.#dateTime.gregorianDateWithTimezone(body.expire, 'YYYY-MM-DD')
+      : null;
 
     return model;
   }

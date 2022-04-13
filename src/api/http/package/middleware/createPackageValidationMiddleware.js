@@ -36,7 +36,7 @@ class CreatePackageValidationMiddleware extends IHttpMiddleware {
       count: Joi.number().min(1).required(),
       type: Joi.string().valid('isp', 'dc').required(),
       country: Joi.country().required(),
-      expire: dateFormat.required(),
+      expire: dateFormat.optional(),
     });
 
     const result = schema.validate(body);

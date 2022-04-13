@@ -131,17 +131,6 @@ suite(`CreatePackageValidationMiddleware`, () => {
       .and.have.nested.property('additionalInfo[0].message', `must be a valid country code`);
   });
 
-  test(`Should error for create new package if expire not exist`, async () => {
-    testObj.req.body = { username: 'my_username', count: 1, type: 'isp', country: 'GB' };
-
-    const badCall = testObj.createPackageValidationMiddleware.act();
-
-    await expect(badCall)
-      .to.eventually.have.rejectedWith(SchemaValidatorException)
-      .and.have.property('httpCode', 400)
-      .and.have.nested.property('additionalInfo[0].message', `"expire" is required`);
-  });
-
   test(`Should error for create new package if expire not valid`, async () => {
     testObj.req.body = {
       username: 'my_username',
@@ -182,6 +171,12 @@ suite(`CreatePackageValidationMiddleware`, () => {
   test(`Should successfully for create new package`, async () => {
     const expire = helper.formatDate(new Date(new Date().getTime() + 24 * 60 * 60 * 1000));
     testObj.req.body = { username: 'my_username', count: 3, type: 'dc', country: 'GB', expire };
+
+    await testObj.createPackageValidationMiddleware.act();
+  });
+
+  test(`Should successfully for create new package (without expireDate)`, async () => {
+    testObj.req.body = { username: 'my_username', count: 3, type: 'dc', country: 'GB' };
 
     await testObj.createPackageValidationMiddleware.act();
   });
