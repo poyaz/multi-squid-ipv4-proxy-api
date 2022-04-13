@@ -310,10 +310,6 @@ class PackagePgRepository extends IPackageRepository {
       param.push(this.#dateTime.gregorianWithTimezoneString(model.expireDate));
       columns.push(`expire_date = $${param.length}`);
     }
-    if (typeof model.updateDate !== 'undefined') {
-      param.push(this.#dateTime.gregorianWithTimezoneString(model.updateDate));
-      columns.push(`update_date = $${param.length}`);
-    }
     if (typeof model.deleteDate !== 'undefined') {
       param.push(this.#dateTime.gregorianWithTimezoneString(model.deleteDate));
       columns.push(`delete_date = $${param.length}`);

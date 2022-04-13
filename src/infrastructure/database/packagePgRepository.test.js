@@ -736,7 +736,6 @@ suite(`PackagePgRepository`, () => {
       const inputModel = new PackageModel();
       inputModel.id = testObj.identifierGenerator.generateId();
       inputModel.expireDate = new Date();
-      inputModel.updateDate = new Date();
       const fetchQuery = {
         get rowCount() {
           return 1;
