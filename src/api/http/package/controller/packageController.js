@@ -6,6 +6,7 @@ const AddPackageInputModel = require('./model/addPackageInputModel');
 const AddPackageOutputModel = require('./model/addPackageOutputModel');
 const GetAllByUsernamePackageOutputModel = require('./model/getAllByUsernamePackageOutputModel');
 const RenewPackageInputModel = require('./model/renewPackageInputModel');
+const GetAllByUsernamePackageInputModel = require('./model/getAllByUsernamePackageInputModel');
 
 class PackageController {
   #req;
@@ -41,8 +42,15 @@ class PackageController {
 
   async getAllByUsername() {
     const { username } = this.#req.params;
+    const qs = this.#req.query;
 
-    const [error, data] = await this.#findClusterPackageService.getAllByUsername(username);
+    const getAllByUsernamePackageInputModel = new GetAllByUsernamePackageInputModel();
+    const filterModel = getAllByUsernamePackageInputModel.getModel(qs);
+
+    const [error, data] = await this.#findClusterPackageService.getAllByUsername(
+      username,
+      filterModel,
+    );
     if (error) {
       return [error];
     }
@@ -57,8 +65,12 @@ class PackageController {
 
   async getAllByUsernameInSelfInstance() {
     const { username } = this.#req.params;
+    const qs = this.#req.query;
 
-    const [error, data] = await this.#packageService.getAllByUsername(username);
+    const getAllByUsernamePackageInputModel = new GetAllByUsernamePackageInputModel();
+    const filterModel = getAllByUsernamePackageInputModel.getModel(qs);
+
+    const [error, data] = await this.#packageService.getAllByUsername(username, filterModel);
     if (error) {
       return [error];
     }

@@ -45,9 +45,13 @@ suite(`PackageService`, () => {
   suite(`Get all package by username`, () => {
     test(`Should error get all package by username when check user exist`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([new UnknownException()]);
 
-      const [error] = await testObj.packageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.packageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.userService.getAll.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
@@ -56,9 +60,13 @@ suite(`PackageService`, () => {
 
     test(`Should error get all package by username when user not found`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([null, []]);
 
-      const [error] = await testObj.packageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.packageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.userService.getAll.should.have.callCount(1);
       expect(error).to.be.an.instanceof(NotFoundException);
@@ -67,25 +75,36 @@ suite(`PackageService`, () => {
 
     test(`Should error get all package by username when fetch from database`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([null, [new UserModel()]]);
       testObj.packageRepository.getAllByUsername.resolves([new UnknownException()]);
 
-      const [error] = await testObj.packageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.packageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageRepository.getAllByUsername.should.have.callCount(1);
-      testObj.packageRepository.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      testObj.packageRepository.getAllByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
     test(`Should error get all package by username when fetch from file`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([null, [new UserModel()]]);
       testObj.packageRepository.getAllByUsername.resolves([null, []]);
       testObj.packageFileRepository.getAllByUsername.resolves([new UnknownException()]);
 
-      const [error] = await testObj.packageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.packageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageRepository.getAllByUsername.should.have.callCount(1);
@@ -100,6 +119,7 @@ suite(`PackageService`, () => {
 
     test(`Should successfully get all package by username and merge ip list (return empty list)`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([null, [new UserModel()]]);
       const outputFetchModel1 = new PackageModel();
       outputFetchModel1.id = testObj.identifierGenerator.generateId();
@@ -111,11 +131,17 @@ suite(`PackageService`, () => {
       testObj.packageRepository.getAllByUsername.resolves([null, [outputFetchModel1]]);
       testObj.packageFileRepository.getAllByUsername.resolves([null, []]);
 
-      const [error, result] = await testObj.packageService.getAllByUsername(inputUsername);
+      const [error, result] = await testObj.packageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageRepository.getAllByUsername.should.have.callCount(1);
-      testObj.packageRepository.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      testObj.packageRepository.getAllByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+      );
       testObj.packageFileRepository.getAllByUsername.should.have.callCount(1);
       testObj.packageFileRepository.getAllByUsername.should.have.calledWith(
         sinon.match(inputUsername),
@@ -126,6 +152,7 @@ suite(`PackageService`, () => {
 
     test(`Should successfully get all package by username and merge ip list`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([null, [new UserModel()]]);
       const outputFetchModel1 = new PackageModel();
       outputFetchModel1.id = testObj.identifierGenerator.generateId();
@@ -158,11 +185,17 @@ suite(`PackageService`, () => {
       outputFileModel1.ipList = [{ ip: '192.168.1.3', port: 8080 }];
       testObj.packageFileRepository.getAllByUsername.resolves([null, [outputFileModel1]]);
 
-      const [error, result] = await testObj.packageService.getAllByUsername(inputUsername);
+      const [error, result] = await testObj.packageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.userService.getAll.should.have.callCount(1);
       testObj.packageRepository.getAllByUsername.should.have.callCount(1);
-      testObj.packageRepository.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      testObj.packageRepository.getAllByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+      );
       testObj.packageFileRepository.getAllByUsername.should.have.callCount(1);
       testObj.packageFileRepository.getAllByUsername.should.have.calledWith(
         sinon.match(inputUsername),

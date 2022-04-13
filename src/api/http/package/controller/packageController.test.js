@@ -206,6 +206,90 @@ suite(`PackageController`, () => {
       expect(result[1].insertDate).to.have.match(testObj.dateRegex);
       expect(result[1].expireDate).to.have.match(testObj.expireRegex);
     });
+
+    test(`Should successfully get all package with username with filter`, async () => {
+      testObj.req.params = { username: 'user1' };
+      testObj.req.query = { type: 'isp' };
+      const outputModel1 = new PackageModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.userId = testObj.identifierGenerator.generateId();
+      outputModel1.username = 'user1';
+      outputModel1.password = 'pass1';
+      outputModel1.countIp = 2;
+      outputModel1.type = 'isp';
+      outputModel1.country = 'GB';
+      outputModel1.ipList = [
+        { ip: '192.168.1.2', port: 8080 },
+        { ip: '192.168.1.3', port: 8080 },
+      ];
+      outputModel1.status = PackageModel.STATUS_ENABLE;
+      outputModel1.expireDate = new Date();
+      outputModel1.insertDate = new Date();
+      const outputModel2 = new PackageModel();
+      outputModel2.id = testObj.identifierGenerator.generateId();
+      outputModel2.userId = testObj.identifierGenerator.generateId();
+      outputModel2.username = 'user1';
+      outputModel2.password = 'pass1';
+      outputModel2.countIp = 1;
+      outputModel2.type = 'isp';
+      outputModel2.country = 'GB';
+      outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
+      outputModel2.status = PackageModel.STATUS_ENABLE;
+      outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
+      outputModel2.insertDate = new Date();
+      testObj.findClusterPackageService.getAllByUsername.resolves([
+        null,
+        [outputModel1, outputModel2],
+      ]);
+
+      const [error, result] = await testObj.packageController.getAllByUsername();
+
+      testObj.findClusterPackageService.getAllByUsername.should.have.callCount(1);
+      testObj.findClusterPackageService.getAllByUsername.should.have.calledWith(
+        sinon.match(testObj.req.params.username),
+        sinon.match.has('type', testObj.req.query.type),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(2);
+      expect(result[0]).to.be.a('object');
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: 'pass1',
+        countIp: 2,
+        type: 'isp',
+        country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
+      });
+      expect(result[0].ipList[0]).to.have.include({
+        ip: '192.168.1.2',
+        port: 8080,
+      });
+      expect(result[0].ipList[1]).to.have.include({
+        ip: '192.168.1.3',
+        port: 8080,
+      });
+      expect(result[0].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[0].expireDate).to.have.match(testObj.expireRegex);
+      expect(result[1]).to.be.a('object');
+      expect(result[1]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: 'pass1',
+        countIp: 1,
+        type: 'isp',
+        country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
+      });
+      expect(result[1].ipList[0]).to.have.include({
+        ip: '192.168.1.4',
+        port: 8080,
+      });
+      expect(result[1].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[1].expireDate).to.have.match(testObj.expireRegex);
+    });
   });
 
   suite(`Get all package by username in self instance`, () => {
@@ -224,6 +308,7 @@ suite(`PackageController`, () => {
 
     test(`Should successfully get all package with username in self instance`, async () => {
       testObj.req.params = { username: 'user1' };
+      testObj.req.query = { type: 'isp' };
       const outputModel1 = new PackageModel();
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.userId = testObj.identifierGenerator.generateId();
@@ -257,6 +342,7 @@ suite(`PackageController`, () => {
       testObj.packageService.getAllByUsername.should.have.callCount(1);
       testObj.packageService.getAllByUsername.should.have.calledWith(
         sinon.match(testObj.req.params.username),
+        sinon.match.has('type', testObj.req.query.type),
       );
       expect(error).to.be.a('null');
       expect(result).to.be.length(2);

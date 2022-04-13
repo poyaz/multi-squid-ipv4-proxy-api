@@ -459,6 +459,7 @@ suite(`ProxyServerApiRepository`, () => {
   suite(`Get all package by username for each instance`, () => {
     test(`Should error get all package by username for each instance`, async () => {
       const inputUsername = 'user1';
+      const filterModel = new PackageModel();
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -468,6 +469,7 @@ suite(`ProxyServerApiRepository`, () => {
 
       const [error] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
         inputUsername,
+        filterModel,
         inputServerModel,
       );
 
@@ -479,6 +481,7 @@ suite(`ProxyServerApiRepository`, () => {
 
     test(`Should successfully get all package by username for each instance`, async () => {
       const inputUsername = 'user1';
+      const filterModel = new PackageModel();
       const inputServerModel = new ServerModel();
       inputServerModel.name = 'server-2';
       inputServerModel.hostIpAddress = '10.10.10.2';
@@ -514,11 +517,174 @@ suite(`ProxyServerApiRepository`, () => {
 
       const [error, result] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
         inputUsername,
+        filterModel,
         inputServerModel,
       );
 
       axiosGetStub.should.have.callCount(1);
-      axiosGetStub.should.have.calledWith(sinon.match.string);
+      axiosGetStub.should.have.calledWith(sinon.match.string, sinon.match.has('params', {}));
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.equal(2);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[1]).to.be.an.instanceof(PackageModel);
+    });
+
+    test(`Should successfully get all package by username for each instance (with type filter)`, async () => {
+      const inputUsername = 'user1';
+      const filterModel = new PackageModel();
+      filterModel.type = 'isp';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const outputObj = {
+        status: 'success',
+        data: [
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            password: 'my_password',
+            countIp: 25,
+            type: 'isp',
+            country: 'GB',
+            expireDate: '2021-10-25',
+            ipList: [],
+            isEnable: true,
+          },
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            password: 'my_password',
+            countIp: 10,
+            type: 'isp',
+            country: 'GB',
+            expireDate: '2021-08-25',
+            ipList: [],
+            isEnable: true,
+          },
+        ],
+      };
+      axiosGetStub.resolves({ data: outputObj });
+
+      const [error, result] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
+        inputUsername,
+        filterModel,
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.hasNested('params.type', filterModel.type),
+      );
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.equal(2);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[1]).to.be.an.instanceof(PackageModel);
+    });
+
+    test(`Should successfully get all package by username for each instance (with type country)`, async () => {
+      const inputUsername = 'user1';
+      const filterModel = new PackageModel();
+      filterModel.country = 'GB';
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const outputObj = {
+        status: 'success',
+        data: [
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            password: 'my_password',
+            countIp: 25,
+            type: 'isp',
+            country: 'GB',
+            expireDate: '2021-10-25',
+            ipList: [],
+            isEnable: true,
+          },
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            password: 'my_password',
+            countIp: 10,
+            type: 'isp',
+            country: 'GB',
+            expireDate: '2021-08-25',
+            ipList: [],
+            isEnable: true,
+          },
+        ],
+      };
+      axiosGetStub.resolves({ data: outputObj });
+
+      const [error, result] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
+        inputUsername,
+        filterModel,
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.hasNested('params.country', filterModel.country),
+      );
+      expect(error).to.be.a('null');
+      expect(result.length).to.be.equal(2);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[1]).to.be.an.instanceof(PackageModel);
+    });
+
+    test(`Should successfully get all package by username for each instance (with type status)`, async () => {
+      const inputUsername = 'user1';
+      const filterModel = new PackageModel();
+      filterModel.status = PackageModel.STATUS_ENABLE;
+      const inputServerModel = new ServerModel();
+      inputServerModel.name = 'server-2';
+      inputServerModel.hostIpAddress = '10.10.10.2';
+      inputServerModel.hostApiPort = 8080;
+      const outputObj = {
+        status: 'success',
+        data: [
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            password: 'my_password',
+            countIp: 25,
+            type: 'isp',
+            country: 'GB',
+            expireDate: '2021-10-25',
+            ipList: [],
+            isEnable: true,
+          },
+          {
+            id: testObj.identifierGenerator.generateId(),
+            username: 'my_username',
+            password: 'my_password',
+            countIp: 10,
+            type: 'isp',
+            country: 'GB',
+            expireDate: '2021-08-25',
+            ipList: [],
+            isEnable: true,
+          },
+        ],
+      };
+      axiosGetStub.resolves({ data: outputObj });
+
+      const [error, result] = await testObj.proxyServerApiRepository.getAllPackageByUsername(
+        inputUsername,
+        filterModel,
+        inputServerModel,
+      );
+
+      axiosGetStub.should.have.callCount(1);
+      axiosGetStub.should.have.calledWith(
+        sinon.match.string,
+        sinon.match.hasNested('params.status', filterModel.status),
+      );
       expect(error).to.be.a('null');
       expect(result.length).to.be.equal(2);
       expect(result[0]).to.be.an.instanceof(PackageModel);

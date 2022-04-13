@@ -40,9 +40,13 @@ suite(`FindClusterPackageService`, () => {
   suite(`Get all package by username`, () => {
     test(`Should error get all package when get all instance has fail`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.serverService.getAll.resolves([new UnknownException()]);
 
-      const [error] = await testObj.findClusterPackageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.findClusterPackageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.serverService.getAll.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
@@ -51,36 +55,49 @@ suite(`FindClusterPackageService`, () => {
 
     test(`Should error get all package in current instance because not found any server`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.serverService.getAll.resolves([null, []]);
       testObj.packageService.getAllByUsername.resolves([new UnknownException()]);
 
-      const [error] = await testObj.findClusterPackageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.findClusterPackageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.serverService.getAll.should.have.callCount(1);
       testObj.packageService.getAllByUsername.should.have.callCount(1);
-      testObj.packageService.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      testObj.packageService.getAllByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
     test(`Should successful get all package in current instance because not found any server`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       testObj.serverService.getAll.resolves([null, []]);
       testObj.packageService.getAllByUsername.resolves([null, []]);
 
       const [error, result] = await testObj.findClusterPackageService.getAllByUsername(
         inputUsername,
+        inputFilterModel,
       );
 
       testObj.serverService.getAll.should.have.callCount(1);
       testObj.packageService.getAllByUsername.should.have.callCount(1);
-      testObj.packageService.getAllByUsername.should.have.calledWith(sinon.match(inputUsername));
+      testObj.packageService.getAllByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+      );
       expect(error).to.be.a('null');
       expect(result).to.be.length(0);
     });
 
     test(`Should error get all package in all instance when send request has been fail`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       const outputServerModel1 = new ServerModel();
       outputServerModel1.name = 'server-1';
       outputServerModel1.hostIpAddress = '10.10.10.1';
@@ -111,16 +128,25 @@ suite(`FindClusterPackageService`, () => {
         .onCall(1)
         .resolves([new UnknownException()]);
 
-      const [error] = await testObj.findClusterPackageService.getAllByUsername(inputUsername);
+      const [error] = await testObj.findClusterPackageService.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.serverService.getAll.should.have.callCount(1);
       testObj.serverApiRepository.getAllPackageByUsername.should.have.callCount(2);
+      testObj.serverApiRepository.getAllPackageByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+        sinon.match.instanceOf(ServerModel),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
     test(`Should successful get all package in all instance`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       const outputServerModel1 = new ServerModel();
       outputServerModel1.name = 'server-1';
       outputServerModel1.hostIpAddress = '10.10.10.1';
@@ -175,10 +201,16 @@ suite(`FindClusterPackageService`, () => {
 
       const [error, result] = await testObj.findClusterPackageService.getAllByUsername(
         inputUsername,
+        inputFilterModel,
       );
 
       testObj.serverService.getAll.should.have.callCount(1);
       testObj.serverApiRepository.getAllPackageByUsername.should.have.callCount(2);
+      testObj.serverApiRepository.getAllPackageByUsername.should.have.calledWith(
+        sinon.match(inputUsername),
+        sinon.match.instanceOf(PackageModel),
+        sinon.match.instanceOf(ServerModel),
+      );
       expect(error).to.be.a('null');
       expect(result).to.be.length(1);
       expect(result[0]).to.be.an.instanceof(PackageModel);

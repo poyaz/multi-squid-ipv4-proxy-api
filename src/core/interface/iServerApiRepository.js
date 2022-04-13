@@ -30,12 +30,13 @@ class IServerApiRepository {
   /**
    *
    * @param {string} username
+   * @param {PackageModel} filterModel
    * @param {ServerModel} serverModel
    * @return {Promise<(Error|PackageModel)[]>}
    */
-  async getAllPackageByUsername(username, serverModel) {
+  async getAllPackageByUsername(username, filterModel, serverModel) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { username, serverModel };
+    error['args'] = { username, filterModel, serverModel };
     throw error;
   }
 

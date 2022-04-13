@@ -44,19 +44,23 @@ class PackageService extends IPackageService {
     this.#proxySquidRepository = proxySquidRepository;
   }
 
-  async getAllByUsername(username) {
+  async getAllByUsername(username, filterModel) {
     const [existError] = await this._getUserModelByUsername(username);
     if (existError) {
       return [existError];
     }
 
-    const [fetchError, fetchData] = await this.#packageRepository.getAllByUsername(username);
+    const [fetchError, fetchData] = await this.#packageRepository.getAllByUsername(
+      username,
+      filterModel,
+    );
     if (fetchError) {
       return [fetchError];
     }
 
     const [fetchFileError, fetchFileData] = await this.#packageFileRepository.getAllByUsername(
       username,
+      filterModel,
     );
     if (fetchFileError) {
       return [fetchFileError];

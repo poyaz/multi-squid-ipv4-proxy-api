@@ -90,7 +90,18 @@ class ProxyServerApiRepository extends IServerApiRepository {
     }
   }
 
-  async getAllPackageByUsername(username, serverModel) {
+  async getAllPackageByUsername(username, filterModel, serverModel) {
+    const params = {};
+    if (typeof filterModel.type !== 'undefined') {
+      params.type = filterModel.type;
+    }
+    if (typeof filterModel.country !== 'undefined') {
+      params.country = filterModel.country;
+    }
+    if (typeof filterModel.status !== 'undefined') {
+      params.status = filterModel.status;
+    }
+
     try {
       const response = await axios.get(
         `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/package/user/${username}`,
@@ -99,6 +110,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
             'Content-Type': 'application/json',
             Authorization: this.#apiToken,
           },
+          params,
         },
       );
 

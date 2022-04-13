@@ -17,11 +17,12 @@ class IPackageService {
   /**
    *
    * @param {string} username
+   * @param {PackageModel} filterModel
    * @return {Promise<(Error|Array<PackageModel>|[])[]>}
    */
-  async getAllByUsername(username) {
+  async getAllByUsername(username, filterModel) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { username };
+    error['args'] = { username, filterModel };
     throw error;
   }
 

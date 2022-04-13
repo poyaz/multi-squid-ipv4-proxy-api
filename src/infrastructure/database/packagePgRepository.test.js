@@ -142,10 +142,14 @@ suite(`PackagePgRepository`, () => {
   suite(`Get all package by username`, () => {
     test(`Should error fetch from database`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       const queryError = new Error('Query error');
       testObj.postgresDb.query.throws(queryError);
 
-      const [error] = await testObj.packageRepository.getAllByUsername(inputUsername);
+      const [error] = await testObj.packageRepository.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.postgresDb.query.should.have.callCount(1);
       expect(error).to.be.an.instanceof(DatabaseExecuteException);
@@ -156,6 +160,7 @@ suite(`PackagePgRepository`, () => {
 
     test(`Should successfully fetch from database and return empty list`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       const fetchQuery = {
         get rowCount() {
           return 0;
@@ -166,7 +171,10 @@ suite(`PackagePgRepository`, () => {
       };
       testObj.postgresDb.query.resolves(fetchQuery);
 
-      const [error, result] = await testObj.packageRepository.getAllByUsername(inputUsername);
+      const [error, result] = await testObj.packageRepository.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.postgresDb.query.should.have.calledWith(
@@ -179,6 +187,7 @@ suite(`PackagePgRepository`, () => {
 
     test(`Should successfully fetch from database`, async () => {
       const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
       const fetchQuery = {
         get rowCount() {
           return 1;
@@ -203,11 +212,191 @@ suite(`PackagePgRepository`, () => {
       };
       testObj.postgresDb.query.resolves(fetchQuery);
 
-      const [error, result] = await testObj.packageRepository.getAllByUsername(inputUsername);
+      const [error, result] = await testObj.packageRepository.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.postgresDb.query.should.have.calledWith(
         sinon.match.has('values', sinon.match.array.deepEquals([inputUsername])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[0]).to.be.includes({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: inputUsername,
+        password: 'pass1',
+        countIp: 1,
+        type: 'isp',
+        country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
+      });
+      expect(result[0].expireDate).to.be.an.instanceOf(Date);
+      expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].ipList).to.be.length(1);
+    });
+
+    test(`Should successfully fetch from database with filter (with type)`, async () => {
+      const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
+      inputFilterModel.type = 'isp';
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              user_id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              password: 'pass1',
+              count_ip: 1,
+              proxy_type: 'isp',
+              country_code: 'gb',
+              ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              status: PackageModel.STATUS_ENABLE,
+              expire_date: new Date(),
+              insert_date: new Date(),
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.packageRepository.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array.deepEquals([inputUsername, inputFilterModel.type]),
+        ),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[0]).to.be.includes({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: inputUsername,
+        password: 'pass1',
+        countIp: 1,
+        type: 'isp',
+        country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
+      });
+      expect(result[0].expireDate).to.be.an.instanceOf(Date);
+      expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].ipList).to.be.length(1);
+    });
+
+    test(`Should successfully fetch from database with filter (with country)`, async () => {
+      const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
+      inputFilterModel.country = 'gb';
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              user_id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              password: 'pass1',
+              count_ip: 1,
+              proxy_type: 'isp',
+              country_code: 'gb',
+              ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              status: PackageModel.STATUS_ENABLE,
+              expire_date: new Date(),
+              insert_date: new Date(),
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.packageRepository.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array.deepEquals([inputUsername, inputFilterModel.country.toUpperCase()]),
+        ),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(PackageModel);
+      expect(result[0]).to.be.includes({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: inputUsername,
+        password: 'pass1',
+        countIp: 1,
+        type: 'isp',
+        country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
+      });
+      expect(result[0].expireDate).to.be.an.instanceOf(Date);
+      expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].ipList).to.be.length(1);
+    });
+
+    test(`Should successfully fetch from database with filter (with status)`, async () => {
+      const inputUsername = 'user1';
+      const inputFilterModel = new PackageModel();
+      inputFilterModel.status = PackageModel.STATUS_ENABLE;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              user_id: testObj.identifierGenerator.generateId(),
+              username: 'user1',
+              password: 'pass1',
+              count_ip: 1,
+              proxy_type: 'isp',
+              country_code: 'gb',
+              ip_list: [{ ip: '192.168.1.3', port: 8080 }],
+              status: PackageModel.STATUS_ENABLE,
+              expire_date: new Date(),
+              insert_date: new Date(),
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.packageRepository.getAllByUsername(
+        inputUsername,
+        inputFilterModel,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array.deepEquals([inputUsername, PackageModel.STATUS_ENABLE]),
+        ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');

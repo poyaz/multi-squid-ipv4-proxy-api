@@ -84,7 +84,8 @@ class PackagePgRepository extends IPackageRepository {
     }
   }
 
-  async getAllByUsername(username) {
+  async getAllByUsername(username, filterModel) {
+    const filterConditions = [];
     const fetchQuery = {
       text: singleLine`
           SELECT DISTINCT ON (p.id, p.insert_date) p.id,
@@ -112,11 +113,29 @@ class PackagePgRepository extends IPackageRepository {
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND u.username = $1
-          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date
-          ORDER BY p.insert_date DESC
       `,
       values: [username],
     };
+
+    if (typeof filterModel.type !== 'undefined') {
+      fetchQuery.values.push(filterModel.type);
+      filterConditions.push(`ba.proxy_type = $${fetchQuery.values.length}`);
+    }
+    if (typeof filterModel.country !== 'undefined') {
+      fetchQuery.values.push(filterModel.country.toUpperCase());
+      filterConditions.push(`ba.country_code = $${fetchQuery.values.length}`);
+    }
+    if (typeof filterModel.status !== 'undefined') {
+      fetchQuery.values.push(filterModel.status);
+      filterConditions.push(`p.status = $${fetchQuery.values.length}`);
+    }
+
+    if (filterConditions.length > 0) {
+      fetchQuery.text += ` AND ${filterConditions.join(' AND ')}`;
+    }
+
+    fetchQuery.text += ` GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date`;
+    fetchQuery.text += ` ORDER BY p.insert_date DESC`;
 
     try {
       const { rowCount, rows } = await this.#db.query(fetchQuery);
