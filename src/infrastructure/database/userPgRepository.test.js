@@ -256,7 +256,7 @@ suite(`UserPgRepository`, () => {
     });
 
     test(`Should successfully get user by id and return null`, async () => {
-      const filterInput = new UserModel();
+      const inputUserId = testObj.identifierGenerator.generateId();
       const fetchQuery = {
         get rowCount() {
           return 0;
@@ -267,7 +267,7 @@ suite(`UserPgRepository`, () => {
       };
       testObj.postgresDb.query.resolves(fetchQuery);
 
-      const [error, result] = await testObj.userRepository.getUserById(filterInput);
+      const [error, result] = await testObj.userRepository.getUserById(inputUserId);
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.fillModelSpy.should.have.callCount(0);
@@ -276,7 +276,7 @@ suite(`UserPgRepository`, () => {
     });
 
     test(`Should successfully get user by id and return record`, async () => {
-      const filterInput = new UserModel();
+      const inputUserId = testObj.identifierGenerator.generateId();
       const fetchQuery = {
         get rowCount() {
           return 1;
@@ -295,7 +295,7 @@ suite(`UserPgRepository`, () => {
       };
       testObj.postgresDb.query.resolves(fetchQuery);
 
-      const [error, result] = await testObj.userRepository.getUserById(filterInput);
+      const [error, result] = await testObj.userRepository.getUserById(inputUserId);
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.fillModelSpy.should.have.callCount(1);
