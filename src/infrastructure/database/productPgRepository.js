@@ -69,6 +69,31 @@ class ProductPgRepository extends IProductRepository {
     }
   }
 
+  async getById(id) {
+    const getAllQuery = {
+      text: singleLine`
+          SELECT *
+          FROM public.product
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [id],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(getAllQuery);
+      if (rowCount === 0) {
+        return [null, null];
+      }
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new ProductModel();
     model.id = row['id'];

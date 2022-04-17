@@ -167,4 +167,79 @@ suite(`ProductPgRepository`, () => {
       });
     });
   });
+
+  suite(`Get product by id`, () => {
+    test(`Should error get product by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.getById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get product by id and return null`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.productRepository.getById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('null');
+    });
+
+    test(`Should successfully get product by id and return record`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 2;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              count: 6,
+              price: 3000,
+              expire_day: 30,
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+              delete_date: null,
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.productRepository.getById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(ProductModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        count: 6,
+        price: 3000,
+        expireDay: 30,
+        isEnable: true,
+        insertDate: 'date',
+      });
+    });
+  });
 });
