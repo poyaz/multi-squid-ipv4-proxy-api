@@ -74,6 +74,15 @@ class ProductService extends IProductService {
     return this.#productRepository.update(model);
   }
 
+  async delete(id) {
+    const [fetchError] = await this._getProductById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    return this.#productRepository.delete(id);
+  }
+
   async _getProductById(id) {
     const [fetchError, fetchData] = await this.#productRepository.getById(id);
     if (fetchError) {

@@ -398,4 +398,72 @@ suite(`ProductService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Delete product`, () => {
+    test(`Should error delete product when get product has error`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.delete(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error delete product when get product not exist`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.productService.delete(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error delete product`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.delete.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.delete(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.productRepository.delete.should.have.callCount(1);
+      testObj.productRepository.delete.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully delete product`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.delete.resolves([null]);
+
+      const [error] = await testObj.productService.delete(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.productRepository.delete.should.have.callCount(1);
+      testObj.productRepository.delete.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });
