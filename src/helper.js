@@ -226,32 +226,16 @@ function fakePackageController(req, res) {
 }
 
 function fakePackageService() {
-  const IUserService = require('~src/core/interface/iUserService');
-  const IPackageRepository = require('~src/core/interface/iPackageRepository');
-  const IProxyServerRepository = require('~src/core/interface/iProxyServerRepository');
-  const PackageService = require('~src/core/service/packageService');
+  const IProductRepository = require('~src/core/interface/iProductRepository');
+  const ProductService = require('~src/core/service/productService');
 
-  const userService = sinon.createStubInstance(IUserService);
+  const productRepository = sinon.createStubInstance(IProductRepository);
 
-  const packageRepository = sinon.createStubInstance(IPackageRepository);
-
-  const packageFileRepository = sinon.createStubInstance(IPackageRepository);
-
-  const proxySquidRepository = sinon.createStubInstance(IProxyServerRepository);
-
-  const packageService = new PackageService(
-    userService,
-    packageRepository,
-    packageFileRepository,
-    proxySquidRepository,
-  );
+  const productService = new ProductService(productRepository);
 
   return {
-    userService,
-    packageRepository,
-    packageFileRepository,
-    proxySquidRepository,
-    packageService,
+    productRepository,
+    productService,
   };
 }
 
@@ -818,6 +802,36 @@ function fakeProductController(req, res) {
   };
 }
 
+function fakeProductService() {
+  const IUserService = require('~src/core/interface/iUserService');
+  const IPackageRepository = require('~src/core/interface/iPackageRepository');
+  const IProxyServerRepository = require('~src/core/interface/iProxyServerRepository');
+  const PackageService = require('~src/core/service/packageService');
+
+  const userService = sinon.createStubInstance(IUserService);
+
+  const packageRepository = sinon.createStubInstance(IPackageRepository);
+
+  const packageFileRepository = sinon.createStubInstance(IPackageRepository);
+
+  const proxySquidRepository = sinon.createStubInstance(IProxyServerRepository);
+
+  const packageService = new PackageService(
+    userService,
+    packageRepository,
+    packageFileRepository,
+    proxySquidRepository,
+  );
+
+  return {
+    userService,
+    packageRepository,
+    packageFileRepository,
+    proxySquidRepository,
+    packageService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -862,4 +876,5 @@ module.exports = {
   fakeDiscordExternalAuthService,
   fakeFindClusterServerService,
   fakeProductController,
+  fakeProductService,
 };
