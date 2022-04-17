@@ -17,7 +17,7 @@ class IProductRepository {
   /**
    *
    * @param {string} id
-   * @return {Promise<(Error|Array<ProductModel>|[])[]>}
+   * @return {Promise<(Error|ProductModel|null)[]>}
    */
   async getById(id) {
     const error = new Error('The method has to be overridden by subclasses.');

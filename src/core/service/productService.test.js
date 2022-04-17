@@ -107,4 +107,65 @@ suite(`ProductService`, () => {
       });
     });
   });
+
+  suite(`Add product`, () => {
+    test(`Should error add new product`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.count = 10;
+      inputModel.price = 3000;
+      inputModel.expireDay = 60;
+      inputModel.isEnable = true;
+      testObj.productRepository.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.add(inputModel);
+
+      testObj.productRepository.add.should.have.callCount(1);
+      testObj.productRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('count', sinon.match.number))
+          .and(sinon.match.has('price', sinon.match.number))
+          .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully add new product`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.count = 10;
+      inputModel.price = 3000;
+      inputModel.expireDay = 60;
+      inputModel.isEnable = true;
+      const outputModel = new ProductModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.count = 10;
+      outputModel.price = 3000;
+      outputModel.expireDay = 60;
+      outputModel.isEnable = true;
+      outputModel.insertDate = new Date();
+      testObj.productRepository.add.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.productService.add(inputModel);
+
+      testObj.productRepository.add.should.have.callCount(1);
+      testObj.productRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('count', sinon.match.number))
+          .and(sinon.match.has('price', sinon.match.number))
+          .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(ProductModel);
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+      });
+    });
+  });
 });

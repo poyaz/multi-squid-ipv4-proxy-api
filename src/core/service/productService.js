@@ -33,6 +33,10 @@ class ProductService extends IProductService {
 
     return this.#productRepository.getAll(filterModel);
   }
+
+  async add(model) {
+    return this.#productRepository.add(model);
+  }
 }
 
 module.exports = ProductService;
