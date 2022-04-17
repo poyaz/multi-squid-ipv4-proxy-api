@@ -62,6 +62,26 @@ class ExpressApi extends IRunner {
   }
 
   _route() {
+    /**
+     * @todo this is for test (should delete)
+     */
+    router.get('/store.html', async (req, res, next) => {
+      res.end(`
+        <html>
+          <script
+              id="fsc-api"
+              src="https://d1f8f9xcsvx3ha.cloudfront.net/sbl/0.7.9/fastspring-builder.min.js"
+              type="text/javascript"
+              data-storefront="fastspringexamples.test.onfastspring.com/popup-fastspringexamples"
+          >
+          </script>
+          <body>
+              <button data-fsc-item-path-value="phot-io-main-app" data-fsc-action='Add, Checkout'> Buy </button>
+          </body>
+      </html>
+      `);
+    });
+
     router.use(async (req, res, next) => {
       try {
         const accessMiddleware = this._dependency.accessMiddlewareFactory.create(req, res);
@@ -81,6 +101,7 @@ class ExpressApi extends IRunner {
     this._serverRoute();
     this._oauthRoute();
     this._logRoute();
+    this._orderRoute();
   }
 
   _jobRoute() {
@@ -145,6 +166,13 @@ class ExpressApi extends IRunner {
         }
       },
     );
+
+    /**
+     * @todo this API for get status of order with this format /v1/user/:userId/order?serial=...
+     */
+    router.get(`/v1/user/:userId/order`, this._middlewareRoleAccess(['user']), async () => {
+
+    });
 
     router.post(
       '/v1/user',
@@ -828,6 +856,22 @@ class ExpressApi extends IRunner {
 
       res.status(204).end();
       next(null);
+    });
+  }
+
+  /**
+   *
+   * @todo get order data
+   */
+  _orderRoute() {
+    router.post('/v1/order', this._middlewareRoleAccess(['admin']), async () => {
+
+    });
+
+    router.post('/v1/order/:orderId/package', this._middlewareRoleAccess(['user']), async () => {});
+
+    router.post('/v1/order/process/service/:paymentService', async () => {
+
     });
   }
 

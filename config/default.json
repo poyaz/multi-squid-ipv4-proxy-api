@@ -71,6 +71,16 @@
         "address": "",
         "key": ""
       }
+    },
+    "payment": {
+      "enable": "false",
+      "serviceName": "",
+      "service": {
+        "fastspring": {
+          "username": "",
+          "password": ""
+        }
+      }
     }
   }
 }
