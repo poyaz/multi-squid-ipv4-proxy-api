@@ -1,0 +1,137 @@
+/**
+ * Created by pooya on 4/17/22.
+ */
+
+const chai = require('chai');
+const sinon = require('sinon');
+const dirtyChai = require('dirty-chai');
+const sinonChai = require('sinon-chai');
+const chaiAsPromised = require('chai-as-promised');
+const { createRequest, createResponse } = require('node-mocks-http');
+
+const helper = require('~src/helper');
+
+const ProductModel = require('~src/core/model/productModel');
+const UnknownException = require('~src/core/exception/unknownException');
+
+chai.should();
+chai.use(dirtyChai);
+chai.use(sinonChai);
+chai.use(chaiAsPromised);
+
+const expect = chai.expect;
+const testObj = {};
+
+suite(`ProductController`, () => {
+  setup(() => {
+    testObj.req = new createRequest();
+    testObj.res = new createResponse();
+
+    const { productService, dateTime, productController } = helper.fakeProductController(
+      testObj.req,
+      testObj.res,
+    );
+
+    testObj.productService = productService;
+    testObj.dateTime = dateTime;
+    testObj.productController = productController;
+    testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+    testObj.dateRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/;
+    testObj.token = /.+/;
+  });
+
+  suite(`Get all product`, () => {
+    test(`Should error get all products`, async () => {
+      testObj.productService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.getAllProduct();
+
+      testObj.productService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all users`, async () => {
+      const outputModel1 = new ProductModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.count = 10;
+      outputModel1.price = 3000;
+      outputModel1.expireDay = 60;
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      testObj.productService.getAll.resolves([null, [outputModel1]]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.productController.getAllProduct();
+
+      testObj.productService.getAll.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+        insertDate: 'date',
+      });
+    });
+  });
+
+  suite(`Get all enable product`, () => {
+    test(`Should error get all products`, async () => {
+      testObj.productService.getAllEnable.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.getAllEnableProduct();
+
+      testObj.productService.getAllEnable.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all users`, async () => {
+      const outputModel1 = new ProductModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.count = 10;
+      outputModel1.price = 3000;
+      outputModel1.expireDay = 60;
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      testObj.productService.getAllEnable.resolves([null, [outputModel1]]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.productController.getAllEnableProduct();
+
+      testObj.productService.getAllEnable.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        insertDate: 'date',
+      });
+      expect(result[0].isEnable).to.be.a('undefined');
+    });
+  });
+
+  suite(`Add product`, () => {
+    test(`Should error add new user`, async () => {
+      testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
+      testObj.productService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.addProduct();
+
+      testObj.productService.add.should.have.callCount(1);
+      testObj.productService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('count', sinon.match.number))
+          .and(sinon.match.has('price', sinon.match.number))
+          .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+  });
+});
