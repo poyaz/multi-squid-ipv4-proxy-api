@@ -5,12 +5,12 @@
 class IProductRepository {
   /**
    *
-   * @param {ProductModel} filterNode
+   * @param {ProductModel} filterModel
    * @return {Promise<(Error|Array<ProductModel>|[])[]>}
    */
-  async getAll(filterNode) {
+  async getAll(filterModel) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { filterNode };
+    error['args'] = { filterModel };
     throw error;
   }
 

@@ -832,6 +832,23 @@ function fakeProductService() {
   };
 }
 
+function fakeProductPgRepository() {
+  const IDateTime = require('~src/core/interface/iDateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const ProductPgRepository = require('~src/infrastructure/database/productPgRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const dateTime = sinon.createStubInstance(IDateTime);
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const productRepository = new ProductPgRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, dateTime, identifierGenerator, productRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -877,4 +894,5 @@ module.exports = {
   fakeFindClusterServerService,
   fakeProductController,
   fakeProductService,
+  fakeProductPgRepository,
 };
