@@ -94,6 +94,30 @@ class ProductPgRepository extends IProductRepository {
     }
   }
 
+  async add(model) {
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.product (id, count, price, expire_day, is_enable, insert_date)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING *
+      `,
+      values: [id, model.count, model.price, model.expireDay, model.isEnable, now],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new ProductModel();
     model.id = row['id'];

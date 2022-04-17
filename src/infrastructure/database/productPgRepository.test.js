@@ -87,7 +87,7 @@ suite(`ProductPgRepository`, () => {
       const filterInput = new ProductModel();
       const fetchQuery = {
         get rowCount() {
-          return 2;
+          return 1;
         },
         get rows() {
           return [
@@ -233,6 +233,89 @@ suite(`ProductPgRepository`, () => {
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.instanceOf(ProductModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        count: 6,
+        price: 3000,
+        expireDay: 30,
+        isEnable: true,
+        insertDate: 'date',
+      });
+    });
+  });
+
+  suite(`Add new product`, () => {
+    test(`Should error add new product in database`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.count = 6;
+      inputModel.price = 3000;
+      inputModel.expireDay = 30;
+      inputModel.isEnable = true;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully add new product in database`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.count = 6;
+      inputModel.price = 3000;
+      inputModel.expireDay = 30;
+      inputModel.isEnable = true;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              count: 6,
+              price: 3000,
+              expire_day: 30,
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+              delete_date: null,
+            },
+          ];
+        },
+      };
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .startsWith([
+              testObj.identifierGenerator.generateId(),
+              inputModel.count,
+              inputModel.price,
+              inputModel.expireDay,
+              inputModel.isEnable,
+            ])
+            .and(sinon.match.has('length', 6)),
+        ),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(ProductModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         count: 6,
         price: 3000,
