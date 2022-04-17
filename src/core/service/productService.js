@@ -4,6 +4,7 @@
 
 const IProductService = require('~src/core/interface/iProductService');
 const ProductModel = require('~src/core/model/productModel');
+const NotFoundException = require('~src/core/exception/notFoundException');
 
 class ProductService extends IProductService {
   /**
@@ -36,6 +37,22 @@ class ProductService extends IProductService {
 
   async add(model) {
     return this.#productRepository.add(model);
+  }
+
+  async disableById(id) {
+    const [fetchError, fetchData] = await this.#productRepository.getById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (!fetchData) {
+      return [new NotFoundException()];
+    }
+
+    const disableProductModel = new ProductModel();
+    disableProductModel.id = id;
+    disableProductModel.isEnable = false;
+
+    return this.#productRepository.update(disableProductModel);
   }
 }
 
