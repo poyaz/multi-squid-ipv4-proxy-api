@@ -1,0 +1,110 @@
+/**
+ * Created by pooya on 4/17/22.
+ */
+
+const chai = require('chai');
+const sinon = require('sinon');
+const dirtyChai = require('dirty-chai');
+const sinonChai = require('sinon-chai');
+
+const helper = require('~src/helper');
+
+const ProductModel = require('~src/core/model/productModel');
+const PackageModel = require('~src/core/model/packageModel');
+const UnknownException = require('~src/core/exception/unknownException');
+const NotFoundException = require('~src/core/exception/notFoundException');
+
+chai.should();
+chai.use(dirtyChai);
+chai.use(sinonChai);
+
+const expect = chai.expect;
+const testObj = {};
+
+suite(`ProductService`, () => {
+  setup(() => {
+    const { productRepository, productService } = helper.fakePackageService();
+
+    testObj.productRepository = productRepository;
+    testObj.productService = productService;
+    testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+  });
+
+  suite(`Get all product`, () => {
+    test(`Should error get all products`, async () => {
+      testObj.productRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.getAll();
+
+      testObj.productRepository.getAll.should.have.callCount(1);
+      testObj.productRepository.getAll.should.have.calledWith(sinon.match.instanceOf(ProductModel));
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all users`, async () => {
+      const outputModel1 = new ProductModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.count = 10;
+      outputModel1.price = 3000;
+      outputModel1.expireDay = 60;
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      testObj.productRepository.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.productService.getAll();
+
+      testObj.productRepository.getAll.should.have.callCount(1);
+      testObj.productRepository.getAll.should.have.calledWith(sinon.match.instanceOf(ProductModel));
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+      });
+    });
+  });
+
+  suite(`Get all enable product`, () => {
+    test(`Should error get all enable products`, async () => {
+      testObj.productRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.getAllEnable();
+
+      testObj.productRepository.getAll.should.have.callCount(1);
+      testObj.productRepository.getAll.should.have.calledWith(
+        sinon.match.instanceOf(ProductModel).and(sinon.match.has('isEnable', true)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all enable users`, async () => {
+      const outputModel1 = new ProductModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.count = 10;
+      outputModel1.price = 3000;
+      outputModel1.expireDay = 60;
+      outputModel1.isEnable = true;
+      outputModel1.insertDate = new Date();
+      testObj.productRepository.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.productService.getAllEnable();
+
+      testObj.productRepository.getAll.should.have.callCount(1);
+      testObj.productRepository.getAll.should.have.calledWith(
+        sinon.match.instanceOf(ProductModel).and(sinon.match.has('isEnable', true)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+      });
+    });
+  });
+});
