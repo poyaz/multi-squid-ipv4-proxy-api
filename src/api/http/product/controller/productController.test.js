@@ -184,7 +184,7 @@ suite(`ProductController`, () => {
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
-    test(`Should error disable product`, async () => {
+    test(`Should successfully disable product`, async () => {
       testObj.req.params = { id: testObj.identifierGenerator.generateId() };
       testObj.productService.disableById.resolves([null]);
 
@@ -212,7 +212,7 @@ suite(`ProductController`, () => {
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
-    test(`Should error enable product`, async () => {
+    test(`Should successfully enable product`, async () => {
       testObj.req.params = { id: testObj.identifierGenerator.generateId() };
       testObj.productService.enableById.resolves([null]);
 
@@ -247,7 +247,7 @@ suite(`ProductController`, () => {
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
-    test(`Should error update product`, async () => {
+    test(`Should successfully update product`, async () => {
       testObj.req.params = { id: testObj.identifierGenerator.generateId() };
       testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
       testObj.productService.update.resolves([null]);
@@ -282,7 +282,7 @@ suite(`ProductController`, () => {
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
-    test(`Should error delete product`, async () => {
+    test(`Should successfully delete product`, async () => {
       testObj.req.params = { id: testObj.identifierGenerator.generateId() };
       testObj.productService.delete.resolves([null]);
 
