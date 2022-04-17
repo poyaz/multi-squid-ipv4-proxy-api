@@ -116,7 +116,7 @@ suite(`ProductController`, () => {
   });
 
   suite(`Add product`, () => {
-    test(`Should error add new user`, async () => {
+    test(`Should error add new product`, async () => {
       testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
       testObj.productService.add.resolves([new UnknownException()]);
 
@@ -132,6 +132,41 @@ suite(`ProductController`, () => {
           .and(sinon.match.has('isEnable', sinon.match.bool)),
       );
       expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully add new product`, async () => {
+      testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
+      const outputModel = new ProductModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.count = 10;
+      outputModel.price = 3000;
+      outputModel.expireDay = 60;
+      outputModel.isEnable = true;
+      outputModel.insertDate = new Date();
+      testObj.productService.add.resolves([null, outputModel]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.productController.addProduct();
+
+      testObj.productService.add.should.have.callCount(1);
+      testObj.productService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('count', sinon.match.number))
+          .and(sinon.match.has('price', sinon.match.number))
+          .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+        insertDate: 'date',
+      });
     });
   });
 });

@@ -4,6 +4,8 @@
 
 const GetAllProductOutputModel = require('./model/getAllProductOutputModel');
 const GetAllEnableProductOutputModel = require('./model/getAllEnableProductOutputModel');
+const AddProductInputModel = require('./model/addProductInputModel');
+const AddProductOutputModel = require('./model/addProductOutputModel');
 
 class ProductController {
   #req;
@@ -56,7 +58,20 @@ class ProductController {
   }
 
   async addProduct() {
+    const { body } = this.#req;
 
+    const addProductInputModel = new AddProductInputModel();
+    const model = addProductInputModel.getModel(body);
+
+    const [error, data] = await this.#productService.add(model);
+    if (error) {
+      return [error];
+    }
+
+    const addProductOutputModel = new AddProductOutputModel(this.#dateTime);
+    const result = addProductOutputModel.getOutput(data);
+
+    return [null, result];
   }
 }
 
