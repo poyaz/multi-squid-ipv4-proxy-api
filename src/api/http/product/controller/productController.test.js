@@ -169,4 +169,60 @@ suite(`ProductController`, () => {
       });
     });
   });
+
+  suite(`Disable product`, () => {
+    test(`Should error disable product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.productService.disableById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.disableProduct();
+
+      testObj.productService.disableById.should.have.callCount(1);
+      testObj.productService.disableById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error disable product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.productService.disableById.resolves([null]);
+
+      const [error] = await testObj.productController.disableProduct();
+
+      testObj.productService.disableById.should.have.callCount(1);
+      testObj.productService.disableById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Enable product`, () => {
+    test(`Should error enable product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.productService.enableById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.enableProduct();
+
+      testObj.productService.enableById.should.have.callCount(1);
+      testObj.productService.enableById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error enable product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.productService.enableById.resolves([null]);
+
+      const [error] = await testObj.productController.enableProduct();
+
+      testObj.productService.enableById.should.have.callCount(1);
+      testObj.productService.enableById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

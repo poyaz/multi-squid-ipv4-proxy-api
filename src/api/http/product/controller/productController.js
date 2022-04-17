@@ -73,6 +73,28 @@ class ProductController {
 
     return [null, result];
   }
+
+  async disableProduct() {
+    const { id } = this.#req.params;
+
+    const [error] = await this.#productService.disableById(id);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
+
+  async enableProduct() {
+    const { id } = this.#req.params;
+
+    const [error] = await this.#productService.enableById(id);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = ProductController;
