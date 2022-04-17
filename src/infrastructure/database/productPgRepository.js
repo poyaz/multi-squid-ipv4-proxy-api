@@ -70,7 +70,7 @@ class ProductPgRepository extends IProductRepository {
   }
 
   async getById(id) {
-    const getAllQuery = {
+    const getByIdQuery = {
       text: singleLine`
           SELECT *
           FROM public.product
@@ -81,7 +81,7 @@ class ProductPgRepository extends IProductRepository {
     };
 
     try {
-      const { rowCount, rows } = await this.#db.query(getAllQuery);
+      const { rowCount, rows } = await this.#db.query(getByIdQuery);
       if (rowCount === 0) {
         return [null, null];
       }
@@ -165,6 +165,27 @@ class ProductPgRepository extends IProductRepository {
 
     try {
       await this.#db.query(updateQuery);
+
+      return [null];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
+  async delete(id) {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+    const deleteQuery = {
+      text: singleLine`
+          UPDATE public.product
+          SET delete_date = $2
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [id, now],
+    };
+
+    try {
+      await this.#db.query(deleteQuery);
 
       return [null];
     } catch (error) {

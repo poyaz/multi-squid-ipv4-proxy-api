@@ -378,4 +378,30 @@ suite(`ProductPgRepository`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`delete product`, () => {
+    test(`Should error delete product when execute query`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.delete(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully delete product`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.productRepository.delete(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
 });
