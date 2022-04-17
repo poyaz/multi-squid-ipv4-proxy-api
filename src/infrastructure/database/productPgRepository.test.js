@@ -325,4 +325,57 @@ suite(`ProductPgRepository`, () => {
       });
     });
   });
+
+  suite(`Update product`, () => {
+    test(`Should error update product when model id not found`, async () => {
+      const inputModel = new ProductModel();
+
+      const [error] = await testObj.productRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update product when model property not set`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.productRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update product when execute query`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.isEnable = true;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully update product`, async () => {
+      const inputModel = new ProductModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.isEnable = true;
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.productRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
 });
