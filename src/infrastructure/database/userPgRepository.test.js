@@ -428,7 +428,12 @@ suite(`UserPgRepository`, () => {
         sinon.match.has(
           'values',
           sinon.match.array
-            .startsWith([testObj.identifierGenerator.generateId(), inputModel.username, inputModel.password, true])
+            .startsWith([
+              testObj.identifierGenerator.generateId(),
+              inputModel.username,
+              inputModel.password,
+              true,
+            ])
             .and(sinon.match.has('length', 5)),
         ),
       );
