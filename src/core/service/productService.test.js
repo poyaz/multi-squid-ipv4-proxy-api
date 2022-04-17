@@ -242,4 +242,78 @@ suite(`ProductService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Enable product`, () => {
+    test(`Should error enable product when get product has error`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.enableById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error enable product when get product not exist`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.productService.enableById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error enable product`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.enableById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.productRepository.update.should.have.callCount(1);
+      testObj.productRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('isEnable', true)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error enable product`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.update.resolves([null]);
+
+      const [error] = await testObj.productService.enableById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.productRepository.update.should.have.callCount(1);
+      testObj.productRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('isEnable', true)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

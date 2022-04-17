@@ -40,6 +40,32 @@ class ProductService extends IProductService {
   }
 
   async disableById(id) {
+    const [fetchError] = await this._getProductById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const disableProductModel = new ProductModel();
+    disableProductModel.id = id;
+    disableProductModel.isEnable = false;
+
+    return this.#productRepository.update(disableProductModel);
+  }
+
+  async enableById(id) {
+    const [fetchError] = await this._getProductById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const disableProductModel = new ProductModel();
+    disableProductModel.id = id;
+    disableProductModel.isEnable = true;
+
+    return this.#productRepository.update(disableProductModel);
+  }
+
+  async _getProductById(id) {
     const [fetchError, fetchData] = await this.#productRepository.getById(id);
     if (fetchError) {
       return [fetchError];
@@ -48,11 +74,7 @@ class ProductService extends IProductService {
       return [new NotFoundException()];
     }
 
-    const disableProductModel = new ProductModel();
-    disableProductModel.id = id;
-    disableProductModel.isEnable = false;
-
-    return this.#productRepository.update(disableProductModel);
+    return [null, fetchData];
   }
 }
 
