@@ -225,4 +225,46 @@ suite(`ProductController`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Update product`, () => {
+    test(`Should error update product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
+      testObj.productService.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.updateProduct();
+
+      testObj.productService.update.should.have.callCount(1);
+      testObj.productService.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('count', sinon.match.number))
+          .and(sinon.match.has('price', sinon.match.number))
+          .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error update product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
+      testObj.productService.update.resolves([null]);
+
+      const [error] = await testObj.productController.updateProduct();
+
+      testObj.productService.update.should.have.callCount(1);
+      testObj.productService.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(ProductModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('count', sinon.match.number))
+          .and(sinon.match.has('price', sinon.match.number))
+          .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

@@ -6,6 +6,7 @@ const GetAllProductOutputModel = require('./model/getAllProductOutputModel');
 const GetAllEnableProductOutputModel = require('./model/getAllEnableProductOutputModel');
 const AddProductInputModel = require('./model/addProductInputModel');
 const AddProductOutputModel = require('./model/addProductOutputModel');
+const UpdateProductInputModel = require('./model/updateProductInputModel');
 
 class ProductController {
   #req;
@@ -89,6 +90,21 @@ class ProductController {
     const { id } = this.#req.params;
 
     const [error] = await this.#productService.enableById(id);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
+
+  async updateProduct() {
+    const { id } = this.#req.params;
+    const { body } = this.#req;
+
+    const updateProductInputModel = new UpdateProductInputModel(id);
+    const model = updateProductInputModel.getModel(body);
+
+    const [error] = await this.#productService.update(model);
     if (error) {
       return [error];
     }
