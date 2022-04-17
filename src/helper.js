@@ -800,6 +800,24 @@ function fakeFindClusterServerService(currentInstanceIp) {
   };
 }
 
+function fakeProductController(req, res) {
+  const IProductService = require('~src/core/interface/iProductService');
+  const IDateTime = require('~src/core/interface/iDateTime');
+  const ProductController = require('~src/api/http/product/controller/productController');
+
+  const productService = sinon.createStubInstance(IProductService);
+
+  const dateTime = sinon.createStubInstance(IDateTime);
+
+  const productController = new ProductController(req, res, productService, dateTime);
+
+  return {
+    productService,
+    dateTime,
+    productController,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -843,4 +861,5 @@ module.exports = {
   fakeOauthController,
   fakeDiscordExternalAuthService,
   fakeFindClusterServerService,
+  fakeProductController,
 };
