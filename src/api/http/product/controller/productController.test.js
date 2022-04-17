@@ -267,4 +267,32 @@ suite(`ProductController`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Delete product`, () => {
+    test(`Should error delete product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.productService.delete.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.deleteProduct();
+
+      testObj.productService.delete.should.have.callCount(1);
+      testObj.productService.delete.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error delete product`, async () => {
+      testObj.req.params = { id: testObj.identifierGenerator.generateId() };
+      testObj.productService.delete.resolves([null]);
+
+      const [error] = await testObj.productController.deleteProduct();
+
+      testObj.productService.delete.should.have.callCount(1);
+      testObj.productService.delete.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

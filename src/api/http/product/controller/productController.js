@@ -111,6 +111,17 @@ class ProductController {
 
     return [null];
   }
+
+  async deleteProduct() {
+    const { id } = this.#req.params;
+
+    const [error] = await this.#productService.delete(id);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = ProductController;
