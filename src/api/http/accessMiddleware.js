@@ -23,6 +23,9 @@ class AccessMiddleware extends IHttpMiddleware {
     if (this.#req.url.match(/^\/v[0-9]+\/oauth\/.+(\/callback)?/)) {
       return;
     }
+    if (this.#req.method === 'GET' && this.#req.url.match(/^\/v[0-9]+\/product\/list$/)) {
+      return;
+    }
     if (
       this.#req.method === 'POST' &&
       (this.#req.url.match(/^\/v[0-9]+\/user$/) || this.#req.url.match(/^\/v[0-9]+\/user\/login$/))
