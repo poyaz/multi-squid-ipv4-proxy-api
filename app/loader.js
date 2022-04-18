@@ -21,6 +21,7 @@ const IdentifierGenerator = require('~src/infrastructure/system/identifierGenera
 
 const JobRepository = require('~src/infrastructure/database/jobRepository');
 const PackagePgRepository = require('~src/infrastructure/database/packagePgRepository');
+const ProductPgRepository = require('~src/infrastructure/database/productPgRepository');
 const ProxyServerRepository = require('~src/infrastructure/database/proxyServerRepository');
 const ServerRepository = require('~src/infrastructure/database/serverRepository');
 const UrlAccessPgRepository = require('~src/infrastructure/database/urlAccessPgRepository');
@@ -40,6 +41,7 @@ const FindClusterServerService = require('~src/core/service/findClusterServerSer
 const FindClusterUserService = require('~src/core/service/findClusterUserService');
 const JobService = require('~src/core/service/jobService');
 const PackageService = require('~src/core/service/packageService');
+const ProductService = require('~src/core/service/productService');
 const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
 const ProxyServerRegenerateJobService = require('~src/core/service/proxyServerRegenerateJobService');
 const ProxyServerService = require('~src/core/service/proxyServerService');
@@ -71,6 +73,10 @@ const UserControllerFactory = require('~src/api/http/user/controller/userControl
 const AddServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/addServerValidationMiddlewareFactory');
 const UpdateServerValidationMiddlewareFactory = require('~src/api/http/server/middleware/updateServerValidationMiddlewareFactory');
 const ServerControllerFactory = require('~src/api/http/server/controller/serverControllerFactory');
+
+const AddProductValidationMiddlewareFactory = require('~src/api/http/product/middleware/addProductValidationMiddlewareFactory');
+const UpdateProductValidationMiddlewareFactory = require('~src/api/http/product/middleware/updateProductValidationMiddlewareFactory');
+const ProductControllerFactory = require('~src/api/http/product/controller/productControllerFactory');
 
 const PackageCronjob = require('~src/api/cronjob/packageCronjob');
 const ReloadCronjob = require('~src/api/cronjob/reloadCronjob');
@@ -152,6 +158,7 @@ class Loader {
 
     const jobRepository = new JobRepository(pgDb, dateTime, identifierGenerator);
     const packagePgRepository = new PackagePgRepository(pgDb, dateTime, identifierGenerator);
+    const productPgRepository = new ProductPgRepository(pgDb, dateTime, identifierGenerator);
     const proxyServerRepository = new ProxyServerRepository(pgDb, dateTime, identifierGenerator);
     const serverRepository = new ServerRepository(pgDb, dateTime, identifierGenerator);
     const urlAccessPgRepository = new UrlAccessPgRepository(pgDb, dateTime, identifierGenerator);
@@ -175,6 +182,7 @@ class Loader {
       packageFileRepository,
       squidServerRepository,
     );
+    const productService = new ProductService(productPgRepository);
     const urlAccessService = new UrlAccessService(
       userService,
       urlAccessPgRepository,
@@ -249,6 +257,12 @@ class Loader {
       dateTime,
     );
 
+    const productMiddleware = {
+      addProductValidation: new AddProductValidationMiddlewareFactory(),
+      updateProductValidation: new UpdateProductValidationMiddlewareFactory(),
+    };
+    const productControllerFactory = new ProductControllerFactory(productService, dateTime);
+
     const proxyMiddleware = {
       deleteProxyIpValidation: new DeleteProxyIpValidatorMiddlewareFactory(),
       generateProxyValidation: new GenerateProxyValidatorMiddlewareFactory(),
@@ -310,6 +324,12 @@ class Loader {
       createPackageValidationMiddlewareFactory: packageMiddlewares.createPackageValidation,
       renewPackageValidatorMiddlewareFactory: packageMiddlewares.renewPackageValidator,
       packageControllerFactory,
+    };
+
+    this._dependency.productHttpApi = {
+      addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
+      updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
+      productControllerFactory,
     };
 
     this._dependency.proxyHttpApi = {
