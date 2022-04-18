@@ -102,6 +102,7 @@ class ExpressApi extends IRunner {
     this._oauthRoute();
     this._logRoute();
     this._orderRoute();
+    this._productRoute();
   }
 
   _jobRoute() {
@@ -872,7 +873,141 @@ class ExpressApi extends IRunner {
 
     router.post('/v1/order/process/service/:paymentService', async () => {
 
+    router.get('/v1/product', this._middlewareRoleAccess(['admin']), async (req, res, next) => {
+      try {
+        const serverController = productHttpApi.productControllerFactory.create(req, res);
+        const response = await serverController.getAllProduct();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
     });
+
+    router.get('/v1/product/list', async (req, res, next) => {
+      try {
+        const serverController = productHttpApi.productControllerFactory.create(req, res);
+        const response = await serverController.getAllEnableProduct();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
+
+    router.post(
+      '/v1/product',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const middleware = productHttpApi.addProductValidationMiddlewareFactory.create(req, res);
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.addProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.put(
+      '/v1/product/:id/disable',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.disableProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.put(
+      '/v1/product/:id/enable',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.enableProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.put(
+      '/v1/product/:id',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const middleware = productHttpApi.updateProductValidationMiddlewareFactory.create(
+            req,
+            res,
+          );
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.updateProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.delete(
+      '/v1/product/:id',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.deleteProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
   }
 
   _middlewareRoleAccess(roles) {
