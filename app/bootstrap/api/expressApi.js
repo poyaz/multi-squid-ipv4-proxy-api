@@ -871,7 +871,11 @@ class ExpressApi extends IRunner {
 
     router.post('/v1/order/:orderId/package', this._middlewareRoleAccess(['user']), async () => {});
 
-    router.post('/v1/order/process/service/:paymentService', async () => {
+    router.post('/v1/order/process/service/:paymentService', async () => {});
+  }
+
+  _productRoute() {
+    const productHttpApi = this._dependency.productHttpApi;
 
     router.get('/v1/product', this._middlewareRoleAccess(['admin']), async (req, res, next) => {
       try {
