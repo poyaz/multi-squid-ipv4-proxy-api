@@ -23,11 +23,13 @@ class UpdateProductValidationMiddleware extends IHttpMiddleware {
     const { body } = this.#req;
 
     const schema = Joi.object({
-      count: Joi.number().min(1).required(),
-      price: Joi.number().min(1).required(),
-      expireDay: Joi.number().min(1).required(),
-      isEnable: Joi.boolean().required(),
-    });
+      count: Joi.number().min(1).optional(),
+      price: Joi.number().min(1).optional(),
+      expireDay: Joi.number().min(1).optional(),
+      isEnable: Joi.boolean().optional(),
+    })
+      .or('count', 'price', 'expireDay', 'isEnable')
+      .required();
 
     const result = schema.validate(body);
     if (result.error) {
