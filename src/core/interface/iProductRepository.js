@@ -49,12 +49,35 @@ class IProductRepository {
 
   /**
    *
+   * @param {ExternalStoreModel} model
+   * @return {Promise<(Error)[]>}
+   */
+  async updateExternalStore(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} id
    * @return {Promise<(Error)[]>}
    */
   async delete(id) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { id };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {string} productId
+   * @param {string} externalStoreId
+   * @return {Promise<(Error)[]>}
+   */
+  async deleteExternalStore(productId, externalStoreId) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { productId, externalStoreId };
     throw error;
   }
 }

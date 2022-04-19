@@ -74,6 +74,18 @@ class ProductService extends IProductService {
     return this.#productRepository.update(model);
   }
 
+  async updateExternalStore(model) {
+    const [fetchError, fetchData] = await this._getProductById(model.productId);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (fetchData.externalStore.length === 0) {
+      return [new NotFoundException()];
+    }
+
+    return this.#productRepository.updateExternalStore(model);
+  }
+
   async delete(id) {
     const [fetchError] = await this._getProductById(id);
     if (fetchError) {

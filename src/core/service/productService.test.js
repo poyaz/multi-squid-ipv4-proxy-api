@@ -10,7 +10,7 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const ProductModel = require('~src/core/model/productModel');
-const PackageModel = require('~src/core/model/packageModel');
+const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
 
@@ -28,6 +28,7 @@ suite(`ProductService`, () => {
     testObj.productRepository = productRepository;
     testObj.productService = productService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+    testObj.identifierGenerator1 = helper.fakeIdentifierGenerator('id-1');
   });
 
   suite(`Get all product`, () => {
@@ -394,6 +395,115 @@ suite(`ProductService`, () => {
           .instanceOf(ProductModel)
           .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
           .and(sinon.match.has('count', 6)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Update external store product`, () => {
+    test(`Should error update external store product when get product has error`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'productSerial';
+      testObj.productRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.updateExternalStore(inputModel);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error update external store product when get product not exist`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'productSerial';
+      testObj.productRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.productService.updateExternalStore(inputModel);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error update external store product when get external store not exist`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'productSerial';
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+
+      const [error] = await testObj.productService.updateExternalStore(inputModel);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error update external store product`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'productSerial';
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [{ id: testObj.identifierGenerator.generateId() }];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.updateExternalStore.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.updateExternalStore(inputModel);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      testObj.productRepository.updateExternalStore.should.have.callCount(1);
+      testObj.productRepository.updateExternalStore.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('productId', testObj.identifierGenerator1.generateId()))
+          .and(sinon.match.has('serial', 'productSerial')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully update product`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'productSerial';
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [{ id: testObj.identifierGenerator.generateId() }];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.updateExternalStore.resolves([null]);
+
+      const [error] = await testObj.productService.updateExternalStore(inputModel);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      testObj.productRepository.updateExternalStore.should.have.callCount(1);
+      testObj.productRepository.updateExternalStore.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('productId', testObj.identifierGenerator1.generateId()))
+          .and(sinon.match.has('serial', 'productSerial')),
       );
       expect(error).to.be.a('null');
     });
