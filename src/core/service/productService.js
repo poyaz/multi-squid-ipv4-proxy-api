@@ -79,7 +79,9 @@ class ProductService extends IProductService {
     if (fetchError) {
       return [fetchError];
     }
-    if (fetchData.externalStore.length === 0) {
+
+    const findIndex = fetchData.externalStore.findIndex((v) => v.id === model.id);
+    if (findIndex === -1) {
       return [new NotFoundException()];
     }
 
@@ -100,6 +102,7 @@ class ProductService extends IProductService {
     if (fetchError) {
       return [fetchError];
     }
+
     const findIndex = fetchData.externalStore.findIndex((v) => v.id === externalStoreId);
     if (findIndex === -1) {
       return [new NotFoundException()];

@@ -433,7 +433,7 @@ suite(`ProductService`, () => {
       expect(error).to.be.an.instanceof(NotFoundException);
     });
 
-    test(`Should error update external store product when get external store not exist`, async () => {
+    test(`Should error update external store product when get external store empty`, async () => {
       const inputModel = new ExternalStoreModel();
       inputModel.id = testObj.identifierGenerator.generateId();
       inputModel.productId = testObj.identifierGenerator1.generateId();
@@ -441,6 +441,25 @@ suite(`ProductService`, () => {
       const outputFetchModel = new ProductModel();
       outputFetchModel.id = testObj.identifierGenerator1.generateId();
       outputFetchModel.externalStore = [];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+
+      const [error] = await testObj.productService.updateExternalStore(inputModel);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error update external store product when get external store not exist`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'productSerial';
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [{ id: testObj.identifierGenerator1.generateId() }];
       testObj.productRepository.getById.resolves([null, outputFetchModel]);
 
       const [error] = await testObj.productService.updateExternalStore(inputModel);
