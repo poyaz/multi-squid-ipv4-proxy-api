@@ -27,6 +27,12 @@ class BaseProductOutputModel {
     obj.count = model.count;
     obj.price = model.price;
     obj.expireDay = model.expireDay;
+    obj.externalStore = model.externalStore.map((v) => ({
+      id: v.id,
+      type: v.type,
+      serial: v.serial,
+      insertDate: this._gregorianWithTimezoneString(model.insertDate),
+    }));
     obj.isEnable = model.isEnable;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
     obj.updateDate = this._gregorianWithTimezoneString(model.updateDate);

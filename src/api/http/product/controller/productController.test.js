@@ -12,6 +12,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const helper = require('~src/helper');
 
 const ProductModel = require('~src/core/model/productModel');
+const ExtenalStoreModel = require('~src/core/model/extenalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
 
 chai.should();
@@ -57,6 +58,12 @@ suite(`ProductController`, () => {
       outputModel1.count = 10;
       outputModel1.price = 3000;
       outputModel1.expireDay = 60;
+      const outputExternalStoreModel1 = new ExtenalStoreModel();
+      outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
+      outputExternalStoreModel1.type = ExtenalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.serial = 'productSerial';
+      outputExternalStoreModel1.insertDate = new Date();
+      outputModel1.externalStore = [outputExternalStoreModel1];
       outputModel1.isEnable = true;
       outputModel1.insertDate = new Date();
       testObj.productService.getAll.resolves([null, [outputModel1]]);
@@ -73,6 +80,13 @@ suite(`ProductController`, () => {
         price: 3000,
         expireDay: 60,
         isEnable: true,
+        insertDate: 'date',
+      });
+      expect(result[0].externalStore).to.be.length(1);
+      expect(result[0].externalStore[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        type: 'fastspring',
+        serial: 'productSerial',
         insertDate: 'date',
       });
     });
@@ -94,6 +108,12 @@ suite(`ProductController`, () => {
       outputModel1.count = 10;
       outputModel1.price = 3000;
       outputModel1.expireDay = 60;
+      const outputExternalStoreModel1 = new ExtenalStoreModel();
+      outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
+      outputExternalStoreModel1.type = ExtenalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.serial = 'productSerial';
+      outputExternalStoreModel1.insertDate = new Date();
+      outputModel1.externalStore = [outputExternalStoreModel1];
       outputModel1.isEnable = true;
       outputModel1.insertDate = new Date();
       testObj.productService.getAllEnable.resolves([null, [outputModel1]]);
@@ -112,6 +132,13 @@ suite(`ProductController`, () => {
         insertDate: 'date',
       });
       expect(result[0].isEnable).to.be.a('undefined');
+      expect(result[0].externalStore).to.be.length(1);
+      expect(result[0].externalStore[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        type: 'fastspring',
+        serial: 'productSerial',
+        insertDate: 'date',
+      });
     });
   });
 
@@ -142,6 +169,12 @@ suite(`ProductController`, () => {
       outputModel.price = 3000;
       outputModel.expireDay = 60;
       outputModel.isEnable = true;
+      const outputExternalStoreModel1 = new ExtenalStoreModel();
+      outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
+      outputExternalStoreModel1.type = ExtenalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.serial = 'productSerial';
+      outputExternalStoreModel1.insertDate = new Date();
+      outputModel.externalStore = [outputExternalStoreModel1];
       outputModel.insertDate = new Date();
       testObj.productService.add.resolves([null, outputModel]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -165,6 +198,13 @@ suite(`ProductController`, () => {
         price: 3000,
         expireDay: 60,
         isEnable: true,
+        insertDate: 'date',
+      });
+      expect(result.externalStore).to.be.length(1);
+      expect(result.externalStore[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        type: 'fastspring',
+        serial: 'productSerial',
         insertDate: 'date',
       });
     });
