@@ -10,6 +10,7 @@ const sinonChai = require('sinon-chai');
 const helper = require('~src/helper');
 
 const ProductModel = require('~src/core/model/productModel');
+const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
@@ -40,6 +41,7 @@ suite(`ProductPgRepository`, () => {
     testObj.productRepository = productRepository;
 
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+    testObj.identifierGenerator1 = helper.fakeIdentifierGenerator('id-1');
 
     testObj.fillModelSpy = sinon.spy(testObj.productRepository, '_fillModel');
   });
@@ -87,7 +89,7 @@ suite(`ProductPgRepository`, () => {
       const filterInput = new ProductModel();
       const fetchQuery = {
         get rowCount() {
-          return 1;
+          return 2;
         },
         get rows() {
           return [
@@ -97,6 +99,38 @@ suite(`ProductPgRepository`, () => {
               price: 3000,
               expire_day: 30,
               is_enable: true,
+              external_store_id: testObj.identifierGenerator1.generateId(),
+              external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              external_store_serial: 'productSerial1',
+              external_store_insert_date: '2021-08-23 13:37:50',
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+              delete_date: null,
+            },
+            {
+              id: testObj.identifierGenerator.generateId(),
+              count: 6,
+              price: 3000,
+              expire_day: 30,
+              is_enable: true,
+              external_store_id: testObj.identifierGenerator1.generateId(),
+              external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              external_store_serial: 'productSerial2',
+              external_store_insert_date: '2021-08-23 13:37:50',
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+              delete_date: null,
+            },
+            {
+              id: testObj.identifierGenerator1.generateId(),
+              count: 2,
+              price: 1000,
+              expire_day: 30,
+              is_enable: true,
+              external_store_id: null,
+              external_store_type: null,
+              external_store_serial: null,
+              external_store_insert_date: null,
               insert_date: '2021-08-23 13:37:50',
               update_date: null,
               delete_date: null,
@@ -110,9 +144,9 @@ suite(`ProductPgRepository`, () => {
       const [error, result] = await testObj.productRepository.getAll(filterInput);
 
       testObj.postgresDb.query.should.have.callCount(1);
-      testObj.fillModelSpy.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(3);
       expect(error).to.be.a('null');
-      expect(result).to.be.length(1);
+      expect(result).to.be.length(2);
       expect(result[0]).to.be.instanceOf(ProductModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         count: 6,
@@ -121,6 +155,30 @@ suite(`ProductPgRepository`, () => {
         isEnable: true,
         insertDate: 'date',
       });
+      expect(result[0].externalStore).to.be.length(2);
+      expect(result[0].externalStore[0]).to.be.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial1',
+        insertDate: 'date',
+      });
+      expect(result[0].externalStore[1]).to.be.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial2',
+        insertDate: 'date',
+      });
+      expect(result[1]).to.be.instanceOf(ProductModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        count: 2,
+        price: 1000,
+        expireDay: 30,
+        isEnable: true,
+        insertDate: 'date',
+      });
+      expect(result[1].externalStore).to.be.length(0);
     });
 
     test(`Should successfully get all with filter (with isEnable)`, async () => {
@@ -138,6 +196,10 @@ suite(`ProductPgRepository`, () => {
               price: 3000,
               expire_day: 30,
               is_enable: false,
+              external_store_id: testObj.identifierGenerator1.generateId(),
+              external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              external_store_serial: 'productSerial1',
+              external_store_insert_date: '2021-08-23 13:37:50',
               insert_date: '2021-08-23 13:37:50',
               update_date: null,
               delete_date: null,
@@ -163,6 +225,14 @@ suite(`ProductPgRepository`, () => {
         price: 3000,
         expireDay: 30,
         isEnable: false,
+        insertDate: 'date',
+      });
+      expect(result[0].externalStore).to.be.length(1);
+      expect(result[0].externalStore[0]).to.be.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial1',
         insertDate: 'date',
       });
     });
@@ -216,6 +286,10 @@ suite(`ProductPgRepository`, () => {
               count: 6,
               price: 3000,
               expire_day: 30,
+              external_store_id: testObj.identifierGenerator1.generateId(),
+              external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              external_store_serial: 'productSerial1',
+              external_store_insert_date: '2021-08-23 13:37:50',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
               update_date: null,
@@ -238,6 +312,14 @@ suite(`ProductPgRepository`, () => {
         price: 3000,
         expireDay: 30,
         isEnable: true,
+        insertDate: 'date',
+      });
+      expect(result.externalStore).to.be.length(1);
+      expect(result.externalStore[0]).to.be.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial1',
         insertDate: 'date',
       });
     });

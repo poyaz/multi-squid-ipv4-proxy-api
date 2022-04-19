@@ -6,6 +6,7 @@ const { singleLine } = require('~src/utility');
 const IProductRepository = require('~src/core/interface/iProductRepository');
 
 const ProductModel = require('~src/core/model/productModel');
+const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
@@ -39,9 +40,15 @@ class ProductPgRepository extends IProductRepository {
     const filterConditions = [];
     const getAllQuery = {
       text: singleLine`
-          SELECT *
-          FROM public.product
-          WHERE delete_date ISNULL
+          SELECT p.*,
+                 es.id          AS external_store_id,
+                 es.type        AS external_store_type,
+                 es.serial      AS external_store_serial,
+                 es.insert_date AS external_store_insert_date
+          FROM public.product p
+                   LEFT JOIN public.external_store es
+                             ON p.id = es.product_id AND es.delete_date ISNULL
+          WHERE p.delete_date ISNULL
       `,
       values: [],
     };
@@ -61,7 +68,8 @@ class ProductPgRepository extends IProductRepository {
         return [null, []];
       }
 
-      const result = rows.map((v) => this._fillModel(v));
+      const result = [];
+      rows.map((v) => this._fillModel(result, v));
 
       return [null, result];
     } catch (error) {
@@ -72,10 +80,16 @@ class ProductPgRepository extends IProductRepository {
   async getById(id) {
     const getByIdQuery = {
       text: singleLine`
-          SELECT *
-          FROM public.product
-          WHERE delete_date ISNULL
-            AND id = $1
+          SELECT p.*,
+                 es.id          AS external_store_id,
+                 es.type        AS external_store_type,
+                 es.serial      AS external_store_serial,
+                 es.insert_date AS external_store_insert_date
+          FROM public.product p
+                   LEFT JOIN public.external_store es
+                             ON p.id = es.product_id AND es.delete_date ISNULL
+          WHERE p.delete_date ISNULL
+            AND p.id = $1
       `,
       values: [id],
     };
@@ -86,9 +100,10 @@ class ProductPgRepository extends IProductRepository {
         return [null, null];
       }
 
-      const result = this._fillModel(rows[0]);
+      const result = [];
+      this._fillModel(result, rows[0]);
 
-      return [null, result];
+      return [null, result[0]];
     } catch (error) {
       return [new DatabaseExecuteException(error)];
     }
@@ -110,9 +125,10 @@ class ProductPgRepository extends IProductRepository {
     try {
       const { rows } = await this.#db.query(addQuery);
 
-      const result = this._fillModel(rows[0]);
+      const result = [];
+      this._fillModel(result, rows[0]);
 
-      return [null, result];
+      return [null, result[0]];
     } catch (error) {
       return [new DatabaseExecuteException(error)];
     }
@@ -193,7 +209,13 @@ class ProductPgRepository extends IProductRepository {
     }
   }
 
-  _fillModel(row) {
+  _fillModel(result, row) {
+    const find = result.find((v) => v.id === row['id']);
+    if (find) {
+      this._fillExternalStoreModel(find, row);
+      return;
+    }
+
     const model = new ProductModel();
     model.id = row['id'];
     model.count = row['count'];
@@ -205,7 +227,26 @@ class ProductPgRepository extends IProductRepository {
       ? this.#dateTime.gregorianDateWithTimezone(row['update_date'])
       : null;
 
-    return model;
+    this._fillExternalStoreModel(model, row);
+
+    result.push(model);
+  }
+
+  _fillExternalStoreModel(productModel, row) {
+    if (!row['external_store_id']) {
+      return;
+    }
+
+    const externalStoreModel = new ExternalStoreModel();
+    externalStoreModel.id = row['external_store_id'];
+    externalStoreModel.productId = row['id'];
+    externalStoreModel.type = row['external_store_type'];
+    externalStoreModel.serial = row['external_store_serial'];
+    externalStoreModel.insertDate = this.#dateTime.gregorianDateWithTimezone(
+      row['external_store_insert_date'],
+    );
+
+    productModel.externalStore.push(externalStoreModel);
   }
 }
 
