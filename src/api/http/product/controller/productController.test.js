@@ -60,7 +60,7 @@ suite(`ProductController`, () => {
       outputModel1.expireDay = 60;
       const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
-      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
@@ -110,7 +110,7 @@ suite(`ProductController`, () => {
       outputModel1.expireDay = 60;
       const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
-      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
@@ -151,7 +151,7 @@ suite(`ProductController`, () => {
         isEnable: true,
         externalStore: [
           {
-            type: ExternalStoreModel.EXTERNAL_STORE_TYPE,
+            type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING,
             serial: 'productSerial',
           },
         ],
@@ -168,7 +168,7 @@ suite(`ProductController`, () => {
           .and(sinon.match.has('price', sinon.match.number))
           .and(sinon.match.has('expireDay', sinon.match.number))
           .and(
-            sinon.match.hasNested('externalStore[0].type', ExternalStoreModel.EXTERNAL_STORE_TYPE),
+            sinon.match.hasNested('externalStore[0].type', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING),
           )
           .and(sinon.match.hasNested('externalStore[0].serial', sinon.match.string))
           .and(sinon.match.has('isEnable', sinon.match.bool)),
@@ -184,7 +184,7 @@ suite(`ProductController`, () => {
         isEnable: true,
         externalStore: [
           {
-            type: ExternalStoreModel.EXTERNAL_STORE_TYPE,
+            type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING,
             serial: 'productSerial',
           },
         ],
@@ -196,7 +196,7 @@ suite(`ProductController`, () => {
       outputModel.expireDay = 60;
       const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
-      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel.externalStore = [outputExternalStoreModel1];
@@ -215,7 +215,7 @@ suite(`ProductController`, () => {
           .and(sinon.match.has('price', sinon.match.number))
           .and(sinon.match.has('expireDay', sinon.match.number))
           .and(
-            sinon.match.hasNested('externalStore[0].type', ExternalStoreModel.EXTERNAL_STORE_TYPE),
+            sinon.match.hasNested('externalStore[0].type', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING),
           )
           .and(sinon.match.hasNested('externalStore[0].serial', sinon.match.string))
           .and(sinon.match.has('isEnable', sinon.match.bool)),
@@ -344,7 +344,7 @@ suite(`ProductController`, () => {
         productId: testObj.identifierGenerator.generateId(),
         externalStoreId: testObj.identifierGenerator.generateId(),
       };
-      testObj.req.body = { type: ExternalStoreModel.EXTERNAL_STORE_TYPE, serial: 'productSerial' };
+      testObj.req.body = { type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING, serial: 'productSerial' };
       testObj.productService.updateExternalStore.resolves([new UnknownException()]);
 
       const [error] = await testObj.productController.updateExternalStoreProduct();
@@ -366,7 +366,7 @@ suite(`ProductController`, () => {
         productId: testObj.identifierGenerator.generateId(),
         externalStoreId: testObj.identifierGenerator.generateId(),
       };
-      testObj.req.body = { type: ExternalStoreModel.EXTERNAL_STORE_TYPE, serial: 'productSerial' };
+      testObj.req.body = { type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING_FASTSPRING, serial: 'productSerial' };
       testObj.productService.updateExternalStore.resolves([null]);
 
       const [error] = await testObj.productController.updateExternalStoreProduct();

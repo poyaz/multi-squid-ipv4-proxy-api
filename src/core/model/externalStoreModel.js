@@ -10,7 +10,7 @@
  * @property {Date} insertDate
  */
 class ExternalStoreModel {
-  static EXTERNAL_STORE_TYPE = 'fastspring';
+  static EXTERNAL_STORE_TYPE_FASTSPRING = 'fastspring';
 
   id = undefined;
   productId = undefined;
