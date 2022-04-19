@@ -7,6 +7,7 @@
  * @property {number} count
  * @property {number} price
  * @property {number} expireDay
+ * @property {Array<ExternalStoreModel>} externalStore
  * @property {boolean} isEnable
  * @property {Date} insertDate
  * @property {Date} updateDate
@@ -17,6 +18,7 @@ class ProductModel {
   count = undefined;
   price = undefined;
   expireDay = undefined;
+  externalStore = [];
   isEnable = undefined;
   insertDate = undefined;
   updateDate = undefined;
