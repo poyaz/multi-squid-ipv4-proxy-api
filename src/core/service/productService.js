@@ -95,6 +95,19 @@ class ProductService extends IProductService {
     return this.#productRepository.delete(id);
   }
 
+  async deleteExternalStore(productId, externalStoreId) {
+    const [fetchError, fetchData] = await this._getProductById(productId);
+    if (fetchError) {
+      return [fetchError];
+    }
+    const findIndex = fetchData.externalStore.findIndex((v) => v.id === externalStoreId);
+    if (findIndex === -1) {
+      return [new NotFoundException()];
+    }
+
+    return this.#productRepository.deleteExternalStore(productId, externalStoreId);
+  }
+
   async _getProductById(id) {
     const [fetchError, fetchData] = await this.#productRepository.getById(id);
     if (fetchError) {

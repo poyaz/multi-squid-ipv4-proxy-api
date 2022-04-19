@@ -576,4 +576,132 @@ suite(`ProductService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Delete external store product`, () => {
+    test(`Should error delete external store product when get product has error`, async () => {
+      const inputProductId = testObj.identifierGenerator1.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error delete external store product when get product not exist`, async () => {
+      const inputProductId = testObj.identifierGenerator1.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.productService.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error delete external store product when get external store empty`, async () => {
+      const inputProductId = testObj.identifierGenerator1.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+
+      const [error] = await testObj.productService.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error delete external store product when get external store not exist`, async () => {
+      const inputProductId = testObj.identifierGenerator1.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [{ id: testObj.identifierGenerator1.generateId() }];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+
+      const [error] = await testObj.productService.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(NotFoundException);
+    });
+
+    test(`Should error delete external store product`, async () => {
+      const inputProductId = testObj.identifierGenerator1.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [{ id: testObj.identifierGenerator.generateId() }];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.deleteExternalStore.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      testObj.productRepository.deleteExternalStore.should.have.callCount(1);
+      testObj.productRepository.deleteExternalStore.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully delete external store product`, async () => {
+      const inputProductId = testObj.identifierGenerator1.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = new ProductModel();
+      outputFetchModel.id = testObj.identifierGenerator1.generateId();
+      outputFetchModel.externalStore = [{ id: testObj.identifierGenerator.generateId() }];
+      testObj.productRepository.getById.resolves([null, outputFetchModel]);
+      testObj.productRepository.deleteExternalStore.resolves([null]);
+
+      const [error] = await testObj.productService.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      testObj.productRepository.deleteExternalStore.should.have.callCount(1);
+      testObj.productRepository.deleteExternalStore.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });
