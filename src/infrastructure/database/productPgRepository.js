@@ -233,6 +233,52 @@ class ProductPgRepository extends IProductRepository {
     }
   }
 
+  async updateExternalStore(model) {
+    if (typeof model.id === 'undefined') {
+      return [new ModelIdNotExistException()];
+    }
+
+    const columns = [];
+    /**
+     * @type {Array<*>}
+     */
+    const params = [model.id];
+
+    if (typeof model.type !== 'undefined') {
+      params.push(model.type);
+      columns.push(`type = $${params.length}`);
+    }
+    if (typeof model.serial !== 'undefined') {
+      params.push(model.serial);
+      columns.push(`serial = $${params.length}`);
+    }
+
+    if (columns.length === 0) {
+      return [new DatabaseMinParamUpdateException()];
+    }
+
+    params.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
+    columns.push(`update_date = $${params.length}`);
+
+    const updateQuery = {
+      text: singleLine`
+          UPDATE public.external_store
+          SET ${columns.join(', ')}
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [...params],
+    };
+
+    try {
+      await this.#db.query(updateQuery);
+
+      return [null];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async delete(id) {
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
     const deleteQuery = {

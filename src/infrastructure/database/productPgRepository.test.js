@@ -622,6 +622,59 @@ suite(`ProductPgRepository`, () => {
     });
   });
 
+  suite(`Update external store product`, () => {
+    test(`Should error update external store product when model id not found`, async () => {
+      const inputModel = new ExternalStoreModel();
+
+      const [error] = await testObj.productRepository.updateExternalStore(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update external store product when model property not set`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.productRepository.updateExternalStore(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update external store product when execute query`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.serial = 'productSerial';
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.updateExternalStore(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully external store product product`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.serial = 'productSerial';
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.productRepository.updateExternalStore(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
   suite(`delete product`, () => {
     test(`Should error delete product when execute query`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
