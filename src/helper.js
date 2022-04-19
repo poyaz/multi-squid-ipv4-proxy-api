@@ -837,8 +837,14 @@ function fakeProductPgRepository() {
   const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
   const ProductPgRepository = require('~src/infrastructure/database/productPgRepository');
 
+  const postgresDbClient = {
+    query: sinon.stub(),
+    release: sinon.stub(),
+  };
+
   const postgresDb = {};
   postgresDb.query = sinon.stub();
+  postgresDb.connect = sinon.stub().resolves(postgresDbClient);
 
   const dateTime = sinon.createStubInstance(IDateTime);
 
@@ -846,7 +852,7 @@ function fakeProductPgRepository() {
 
   const productRepository = new ProductPgRepository(postgresDb, dateTime, identifierGenerator);
 
-  return { postgresDb, dateTime, identifierGenerator, productRepository };
+  return { postgresDb, postgresDbClient, dateTime, identifierGenerator, productRepository };
 }
 
 module.exports = {

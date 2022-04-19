@@ -13,6 +13,8 @@ const ProductModel = require('~src/core/model/productModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
+const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
+const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 chai.should();
@@ -30,6 +32,7 @@ suite(`ProductPgRepository`, () => {
   setup(() => {
     const {
       postgresDb,
+      postgresDbClient,
       dateTime,
       identifierGenerator,
       productRepository,
@@ -37,6 +40,7 @@ suite(`ProductPgRepository`, () => {
 
     testObj.dateTime = dateTime;
     testObj.postgresDb = postgresDb;
+    testObj.postgresDbClient = postgresDbClient;
     testObj.identifierGeneratorSystem = identifierGenerator;
     testObj.productRepository = productRepository;
 
@@ -326,34 +330,103 @@ suite(`ProductPgRepository`, () => {
   });
 
   suite(`Add new product`, () => {
-    test(`Should error add new product in database`, async () => {
+    setup(() => {
       const inputModel = new ProductModel();
       inputModel.count = 6;
       inputModel.price = 3000;
       inputModel.expireDay = 30;
+      const inputExternalStoreModel = new ExternalStoreModel();
+      inputExternalStoreModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputExternalStoreModel.serial = 'productSerial';
+      inputModel.externalStore.push(inputExternalStoreModel);
       inputModel.isEnable = true;
       testObj.identifierGeneratorSystem.generateId.returns(
         testObj.identifierGenerator.generateId(),
       );
-      const queryError = new Error('Query error');
-      testObj.postgresDb.query.throws(queryError);
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add new product when create database client`, async () => {
+      const inputModel = testObj.inputModel;
+      const connectionError = new Error('Connection error');
+      testObj.postgresDb.connect.throws(connectionError);
 
       const [error] = await testObj.productRepository.add(inputModel);
 
-      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.connect.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseConnectionException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', connectionError);
+    });
+
+    test(`Should error add new product when create start transaction`, async () => {
+      const inputModel = testObj.inputModel;
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(0).throws(queryError);
+
+      const [error] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(1);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.release.should.have.callCount(1);
       expect(error).to.be.an.instanceof(DatabaseExecuteException);
       expect(error).to.have.property('httpCode', 400);
       expect(error).to.have.property('isOperation', false);
       expect(error).to.have.property('errorInfo', queryError);
     });
 
+    test(`Should error add new product in database when execute other query`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      testObj.postgresDbClient.query.onCall(2).resolves();
+
+      const [error] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should error add new product in database when execute other query and rollback`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      const rollbackError = new Error('Rollback error');
+      testObj.postgresDbClient.query.onCall(2).throws(rollbackError);
+
+      const [error] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseRollbackException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+      expect(error).to.have.property('rollbackErrorInfo', rollbackError);
+    });
+
     test(`Should successfully add new product in database`, async () => {
-      const inputModel = new ProductModel();
-      inputModel.count = 6;
-      inputModel.price = 3000;
-      inputModel.expireDay = 30;
-      inputModel.isEnable = true;
-      const fetchQuery = {
+      const inputModel = testObj.inputModel;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const fetchProductQuery = {
         get rowCount() {
           return 1;
         },
@@ -372,29 +445,47 @@ suite(`ProductPgRepository`, () => {
           ];
         },
       };
-      testObj.identifierGeneratorSystem.generateId.returns(
-        testObj.identifierGenerator.generateId(),
-      );
-      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.postgresDbClient.query.onCall(1).resolves(fetchProductQuery);
+      const fetchExternalStoreQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              external_store_id: testObj.identifierGenerator.generateId(),
+              external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              external_store_serial: 'productSerial',
+              external_store_insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDbClient.query.onCall(2).resolves(fetchExternalStoreQuery);
+      testObj.postgresDbClient.query.onCall(3).resolves();
       testObj.dateTime.gregorianDateWithTimezone.returns('date');
 
       const [error, result] = await testObj.productRepository.add(inputModel);
 
-      testObj.postgresDb.query.should.have.callCount(1);
-      testObj.postgresDb.query.should.have.calledWith(
-        sinon.match.has(
-          'values',
-          sinon.match.array
-            .startsWith([
-              testObj.identifierGenerator.generateId(),
-              inputModel.count,
-              inputModel.price,
-              inputModel.expireDay,
-              inputModel.isEnable,
-            ])
-            .and(sinon.match.has('length', 6)),
-        ),
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(4);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      const sinonMatch1 = sinon.match.has(
+        'values',
+        sinon.match.array
+          .startsWith([
+            testObj.identifierGenerator.generateId(),
+            inputModel.count,
+            inputModel.price,
+            inputModel.expireDay,
+            inputModel.isEnable,
+          ])
+          .and(sinon.match.has('length', 6)),
       );
+      testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
+      const sinonMatch2 = sinon.match.has('values', sinon.match.has('length', 3));
+      testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
+      testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.have.instanceOf(ProductModel).and.includes({
@@ -405,6 +496,76 @@ suite(`ProductPgRepository`, () => {
         isEnable: true,
         insertDate: 'date',
       });
+      expect(result.externalStore).to.be.length(1);
+      expect(result.externalStore[0]).to.be.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial',
+        insertDate: 'date',
+      });
+    });
+
+    test(`Should successfully add new product in database without add in another table`, async () => {
+      const inputModel = testObj.inputModel;
+      inputModel.externalStore = [];
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const fetchProductQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              count: 6,
+              price: 3000,
+              expire_day: 30,
+              is_enable: true,
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+              delete_date: null,
+            },
+          ];
+        },
+      };
+      testObj.postgresDbClient.query.onCall(1).resolves(fetchProductQuery);
+      testObj.postgresDbClient.query.onCall(2).resolves();
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      const sinonMatch1 = sinon.match.has(
+        'values',
+        sinon.match.array
+          .startsWith([
+            testObj.identifierGenerator.generateId(),
+            inputModel.count,
+            inputModel.price,
+            inputModel.expireDay,
+            inputModel.isEnable,
+          ])
+          .and(sinon.match.has('length', 6)),
+      );
+      testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('END');
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(ProductModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        count: 6,
+        price: 3000,
+        expireDay: 30,
+        isEnable: true,
+        insertDate: 'date',
+      });
+      expect(result.externalStore).to.be.length(0);
     });
   });
 

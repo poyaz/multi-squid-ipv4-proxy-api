@@ -9,6 +9,8 @@ const ProductModel = require('~src/core/model/productModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
+const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
+const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 class ProductPgRepository extends IProductRepository {
@@ -110,10 +112,15 @@ class ProductPgRepository extends IProductRepository {
   }
 
   async add(model) {
+    const [errorClient, client] = await this._getDatabaseClient();
+    if (errorClient) {
+      return [errorClient];
+    }
+
     const id = this.#identifierGenerator.generateId();
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
 
-    const addQuery = {
+    const addProductQuery = {
       text: singleLine`
           INSERT INTO public.product (id, count, price, expire_day, is_enable, insert_date)
           VALUES ($1, $2, $3, $4, $5, $6)
@@ -122,15 +129,53 @@ class ProductPgRepository extends IProductRepository {
       values: [id, model.count, model.price, model.expireDay, model.isEnable, now],
     };
 
+    const addExternalStoreRecordList = model.externalStore.map((v) => ({
+      id: this.#identifierGenerator.generateId(),
+      type: v.type,
+      serial: v.serial,
+    }));
+    const addExternalStoreQuery = {
+      text: singleLine`
+          INSERT INTO public.external_store (id, product_id, type, serial, insert_date)
+          SELECT id,
+                 $1,
+                 type,
+                 serial,
+                 $2
+          FROM json_to_recordset($3) as (id uuid, type varchar(50), serial varchar(200))
+          ON CONFLICT (type, serial)
+          WHERE delete_date ISNULL
+              DO
+          UPDATE
+          SET update_date = EXCLUDED.insert_date
+          RETURNING id AS external_store_id, type AS external_store_type, serial AS external_store_serial, insert_date AS external_store_insert_date
+      `,
+      values: [id, now, JSON.stringify(addExternalStoreRecordList)],
+    };
+
+    const transaction = { isStart: false };
     try {
-      const { rows } = await this.#db.query(addQuery);
+      await client.query(`BEGIN`);
+      transaction.isStart = true;
+
+      const { rows: productRows } = await client.query(addProductQuery);
+
+      if (model.externalStore.length > 0) {
+        const { rows: externalStoreRows } = await client.query(addExternalStoreQuery);
+
+        productRows[0] = { ...productRows[0], ...externalStoreRows[0] };
+      }
+
+      await client.query('END');
 
       const result = [];
-      this._fillModel(result, rows[0]);
+      this._fillModel(result, productRows[0]);
 
       return [null, result[0]];
-    } catch (error) {
-      return [new DatabaseExecuteException(error)];
+    } catch (executeError) {
+      return [await this._rollbackOnError(client, executeError, transaction.isStart)];
+    } finally {
+      client.release();
     }
   }
 
@@ -206,6 +251,43 @@ class ProductPgRepository extends IProductRepository {
       return [null];
     } catch (error) {
       return [new DatabaseExecuteException(error)];
+    }
+  }
+
+  /**
+   *
+   * @return {Promise<(Error|Object)[]>}
+   * @private
+   */
+  async _getDatabaseClient() {
+    try {
+      const client = await this.#db.connect();
+
+      return [null, client];
+    } catch (error) {
+      return [new DatabaseConnectionException(error)];
+    }
+  }
+
+  /**
+   *
+   * @param client
+   * @param queryError
+   * @param hasTransactionStart
+   * @return {Promise<DatabaseExecuteException|DatabaseRollbackException>}
+   * @private
+   */
+  async _rollbackOnError(client, queryError, hasTransactionStart) {
+    if (!hasTransactionStart) {
+      return new DatabaseExecuteException(queryError);
+    }
+
+    try {
+      await client.query('ROLLBACK');
+
+      return new DatabaseExecuteException(queryError);
+    } catch (rollbackError) {
+      return new DatabaseRollbackException(queryError, rollbackError);
     }
   }
 
