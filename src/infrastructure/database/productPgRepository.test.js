@@ -700,4 +700,38 @@ suite(`ProductPgRepository`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`delete external store product`, () => {
+    test(`Should error delete external store product when execute query`, async () => {
+      const inputProductId = testObj.identifierGenerator.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully delete external store product`, async () => {
+      const inputProductId = testObj.identifierGenerator.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.productRepository.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
 });

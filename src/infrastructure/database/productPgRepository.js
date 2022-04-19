@@ -234,7 +234,7 @@ class ProductPgRepository extends IProductRepository {
   }
 
   async updateExternalStore(model) {
-    if (typeof model.id === 'undefined') {
+    if (typeof model.id === 'undefined' && typeof model.productId === 'undefined') {
       return [new ModelIdNotExistException()];
     }
 
@@ -242,7 +242,7 @@ class ProductPgRepository extends IProductRepository {
     /**
      * @type {Array<*>}
      */
-    const params = [model.id];
+    const params = [model.id, model.productId];
 
     if (typeof model.type !== 'undefined') {
       params.push(model.type);
@@ -266,6 +266,7 @@ class ProductPgRepository extends IProductRepository {
           SET ${columns.join(', ')}
           WHERE delete_date ISNULL
             AND id = $1
+            AND product_id = $2
       `,
       values: [...params],
     };
@@ -289,6 +290,28 @@ class ProductPgRepository extends IProductRepository {
             AND id = $1
       `,
       values: [id, now],
+    };
+
+    try {
+      await this.#db.query(deleteQuery);
+
+      return [null];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
+  async deleteExternalStore(productId, externalStoreId) {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+    const deleteQuery = {
+      text: singleLine`
+          UPDATE public.external_store
+          SET delete_date = $3
+          WHERE delete_date ISNULL
+            AND id = $1
+            AND product_id = $2
+      `,
+      values: [externalStoreId, productId, now],
     };
 
     try {
