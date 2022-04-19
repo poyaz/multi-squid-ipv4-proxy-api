@@ -70,6 +70,19 @@
         "address": "OAUTH_HTML_PAGE_ADDRESS",
         "key": "OAUTH_HTML_PAGE_KEY_NAME"
       }
+    },
+    "payment": {
+      "enable": "PAYMENT_ENABLE",
+      "service": {
+        "fastspring": {
+          "auth": {
+            "username": "PAYMENT_SERVICE_FASTSPRING_USERNAME",
+            "password": "PAYMENT_SERVICE_FASTSPRING_PASSWORD"
+          },
+          "storePopupAddress": "PAYMENT_SERVICE_FASTSPRING_STORE_POPUP_ADDRESS",
+          "apiAddress": "PAYMENT_SERVICE_FASTSPRING_API_ADDRESS"
+        }
+      }
     }
   }
 }

@@ -74,11 +74,14 @@
     },
     "payment": {
       "enable": "false",
-      "serviceName": "",
       "service": {
         "fastspring": {
-          "username": "",
-          "password": ""
+          "auth": {
+            "username": "",
+            "password": ""
+          },
+          "storePopupAddress": "",
+          "apiAddress": ""
         }
       }
     }
