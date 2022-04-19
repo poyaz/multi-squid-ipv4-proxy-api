@@ -381,4 +381,40 @@ suite(`ProductController`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Delete external store product`, () => {
+    test(`Should error delete external store product`, async () => {
+      testObj.req.params = {
+        productId: testObj.identifierGenerator.generateId(),
+        externalStoreId: testObj.identifierGenerator.generateId(),
+      };
+      testObj.productService.deleteExternalStore.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.deleteExternalStoreProduct();
+
+      testObj.productService.deleteExternalStore.should.have.callCount(1);
+      testObj.productService.deleteExternalStore.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully delete external store product`, async () => {
+      testObj.req.params = {
+        productId: testObj.identifierGenerator.generateId(),
+        externalStoreId: testObj.identifierGenerator.generateId(),
+      };
+      testObj.productService.deleteExternalStore.resolves([null]);
+
+      const [error] = await testObj.productController.deleteExternalStoreProduct();
+
+      testObj.productService.deleteExternalStore.should.have.callCount(1);
+      testObj.productService.deleteExternalStore.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
 });

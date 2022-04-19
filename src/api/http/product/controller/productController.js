@@ -141,6 +141,17 @@ class ProductController {
 
     return [null];
   }
+
+  async deleteExternalStoreProduct() {
+    const { productId, externalStoreId } = this.#req.params;
+
+    const [error] = await this.#productService.deleteExternalStore(productId, externalStoreId);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = ProductController;

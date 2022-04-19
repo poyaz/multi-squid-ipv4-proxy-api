@@ -88,6 +88,18 @@ class IProductService {
     error['args'] = { id };
     throw error;
   }
+
+  /**
+   *
+   * @param {string} productId
+   * @param {string} externalStoreId
+   * @return {Promise<(Error)[]>}
+   */
+  async deleteExternalStore(productId, externalStoreId) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { productId, externalStoreId };
+    throw error;
+  }
 }
 
 module.exports = IProductService;
