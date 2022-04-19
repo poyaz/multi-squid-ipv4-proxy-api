@@ -144,7 +144,18 @@ suite(`ProductController`, () => {
 
   suite(`Add product`, () => {
     test(`Should error add new product`, async () => {
-      testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
+      testObj.req.body = {
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+        externalStore: [
+          {
+            type: ExternalStoreModel.EXTERNAL_STORE_TYPE,
+            serial: 'productSerial',
+          },
+        ],
+      };
       testObj.productService.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.productController.addProduct();
@@ -156,25 +167,40 @@ suite(`ProductController`, () => {
           .and(sinon.match.has('count', sinon.match.number))
           .and(sinon.match.has('price', sinon.match.number))
           .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(
+            sinon.match.hasNested('externalStore[0].type', ExternalStoreModel.EXTERNAL_STORE_TYPE),
+          )
+          .and(sinon.match.hasNested('externalStore[0].serial', sinon.match.string))
           .and(sinon.match.has('isEnable', sinon.match.bool)),
       );
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
     test(`Should successfully add new product`, async () => {
-      testObj.req.body = { count: 10, price: 3000, expireDay: 60, isEnable: true };
+      testObj.req.body = {
+        count: 10,
+        price: 3000,
+        expireDay: 60,
+        isEnable: true,
+        externalStore: [
+          {
+            type: ExternalStoreModel.EXTERNAL_STORE_TYPE,
+            serial: 'productSerial',
+          },
+        ],
+      };
       const outputModel = new ProductModel();
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.count = 10;
       outputModel.price = 3000;
       outputModel.expireDay = 60;
-      outputModel.isEnable = true;
       const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
       outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel.externalStore = [outputExternalStoreModel1];
+      outputModel.isEnable = true;
       outputModel.insertDate = new Date();
       testObj.productService.add.resolves([null, outputModel]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -188,6 +214,10 @@ suite(`ProductController`, () => {
           .and(sinon.match.has('count', sinon.match.number))
           .and(sinon.match.has('price', sinon.match.number))
           .and(sinon.match.has('expireDay', sinon.match.number))
+          .and(
+            sinon.match.hasNested('externalStore[0].type', ExternalStoreModel.EXTERNAL_STORE_TYPE),
+          )
+          .and(sinon.match.hasNested('externalStore[0].serial', sinon.match.string))
           .and(sinon.match.has('isEnable', sinon.match.bool)),
       );
       expect(error).to.be.a('null');

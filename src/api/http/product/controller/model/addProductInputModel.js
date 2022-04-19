@@ -15,6 +15,10 @@ class AddProductInputModel {
     model.count = body.count;
     model.price = body.price;
     model.expireDay = body.expireDay;
+    model.externalStore = body.externalStore.map((v) => ({
+      type: v.type,
+      serial: v.serial,
+    }));
     model.isEnable = body.isEnable;
 
     return model;
