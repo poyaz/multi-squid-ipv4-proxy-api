@@ -12,7 +12,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const helper = require('~src/helper');
 
 const ProductModel = require('~src/core/model/productModel');
-const ExtenalStoreModel = require('~src/core/model/extenalStoreModel');
+const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
 
 chai.should();
@@ -58,9 +58,9 @@ suite(`ProductController`, () => {
       outputModel1.count = 10;
       outputModel1.price = 3000;
       outputModel1.expireDay = 60;
-      const outputExternalStoreModel1 = new ExtenalStoreModel();
+      const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
-      outputExternalStoreModel1.type = ExtenalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
@@ -108,9 +108,9 @@ suite(`ProductController`, () => {
       outputModel1.count = 10;
       outputModel1.price = 3000;
       outputModel1.expireDay = 60;
-      const outputExternalStoreModel1 = new ExtenalStoreModel();
+      const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
-      outputExternalStoreModel1.type = ExtenalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
@@ -169,9 +169,9 @@ suite(`ProductController`, () => {
       outputModel.price = 3000;
       outputModel.expireDay = 60;
       outputModel.isEnable = true;
-      const outputExternalStoreModel1 = new ExtenalStoreModel();
+      const outputExternalStoreModel1 = new ExternalStoreModel();
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
-      outputExternalStoreModel1.type = ExtenalStoreModel.EXTERNAL_STORE_TYPE;
+      outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE;
       outputExternalStoreModel1.serial = 'productSerial';
       outputExternalStoreModel1.insertDate = new Date();
       outputModel.externalStore = [outputExternalStoreModel1];
@@ -303,6 +303,52 @@ suite(`ProductController`, () => {
           .and(sinon.match.has('price', sinon.match.number))
           .and(sinon.match.has('expireDay', sinon.match.number))
           .and(sinon.match.has('isEnable', sinon.match.bool)),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Update external store product`, () => {
+    test(`Should error update external store product`, async () => {
+      testObj.req.params = {
+        productId: testObj.identifierGenerator.generateId(),
+        externalStoreId: testObj.identifierGenerator.generateId(),
+      };
+      testObj.req.body = { type: ExternalStoreModel.EXTERNAL_STORE_TYPE, serial: 'productSerial' };
+      testObj.productService.updateExternalStore.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.updateExternalStoreProduct();
+
+      testObj.productService.updateExternalStore.should.have.callCount(1);
+      testObj.productService.updateExternalStore.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('productId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('type', sinon.match.string))
+          .and(sinon.match.has('serial', sinon.match.string)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully update external store product`, async () => {
+      testObj.req.params = {
+        productId: testObj.identifierGenerator.generateId(),
+        externalStoreId: testObj.identifierGenerator.generateId(),
+      };
+      testObj.req.body = { type: ExternalStoreModel.EXTERNAL_STORE_TYPE, serial: 'productSerial' };
+      testObj.productService.updateExternalStore.resolves([null]);
+
+      const [error] = await testObj.productController.updateExternalStoreProduct();
+
+      testObj.productService.updateExternalStore.should.have.callCount(1);
+      testObj.productService.updateExternalStore.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('productId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('type', sinon.match.string))
+          .and(sinon.match.has('serial', sinon.match.string)),
       );
       expect(error).to.be.a('null');
     });
