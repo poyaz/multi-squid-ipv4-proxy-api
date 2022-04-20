@@ -272,6 +272,10 @@ class ProductPgRepository extends IProductRepository {
 
       return [null];
     } catch (error) {
+      if (error.message.match(/duplicate key value .+ "external_store_serial"/)) {
+        return [new AlreadyExistException('The record of external store already exist.')];
+      }
+
       return [new DatabaseExecuteException(error)];
     }
   }

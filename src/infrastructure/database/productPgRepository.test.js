@@ -687,6 +687,26 @@ suite(`ProductPgRepository`, () => {
       expect(error).to.have.property('errorInfo', queryError);
     });
 
+    test(`Should error update external store product external store record already exist`, async () => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.serial = 'productSerial';
+      const queryError = new Error(
+        'duplicate key value violates unique constraint "external_store_serial"',
+      );
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.updateExternalStore(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(AlreadyExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.deep.property('additionalInfo', [
+        { message: 'The record of external store already exist.' },
+      ]);
+    });
+
     test(`Should successfully external store product product`, async () => {
       const inputModel = new ExternalStoreModel();
       inputModel.id = testObj.identifierGenerator.generateId();
