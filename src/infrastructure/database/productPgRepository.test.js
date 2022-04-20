@@ -721,27 +721,96 @@ suite(`ProductPgRepository`, () => {
   });
 
   suite(`delete product`, () => {
-    test(`Should error delete product when execute query`, async () => {
+    test(`Should error delete product when create database client`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
-      const queryError = new Error('Query error');
-      testObj.postgresDb.query.throws(queryError);
+      const connectionError = new Error('Connection error');
+      testObj.postgresDb.connect.throws(connectionError);
 
       const [error] = await testObj.productRepository.delete(inputId);
 
-      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.connect.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseConnectionException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', connectionError);
+    });
+
+    test(`Should error delete product when create start transaction`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(0).throws(queryError);
+
+      const [error] = await testObj.productRepository.delete(inputId);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(1);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.release.should.have.callCount(1);
       expect(error).to.be.an.instanceof(DatabaseExecuteException);
       expect(error).to.have.property('httpCode', 400);
       expect(error).to.have.property('isOperation', false);
       expect(error).to.have.property('errorInfo', queryError);
     });
 
-    test(`Should successfully delete product`, async () => {
+    test(`Should error delete product in database when execute other query`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
-      testObj.postgresDb.query.resolves();
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      testObj.postgresDbClient.query.onCall(2).resolves();
 
       const [error] = await testObj.productRepository.delete(inputId);
 
-      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should error delete product in database when execute other query and rollback`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      const rollbackError = new Error('Rollback error');
+      testObj.postgresDbClient.query.onCall(2).throws(rollbackError);
+
+      const [error] = await testObj.productRepository.delete(inputId);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseRollbackException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+      expect(error).to.have.property('rollbackErrorInfo', rollbackError);
+    });
+
+    test(`Should successfully delete product in database`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      testObj.postgresDbClient.query.onCall(1).resolves();
+      testObj.postgresDbClient.query.onCall(2).resolves();
+      testObj.postgresDbClient.query.onCall(3).resolves();
+
+      const [error] = await testObj.productRepository.delete(inputId);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(4);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      const sinonMatch1 = sinon.match.has('text', sinon.match(/product/));
+      testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
+      const sinonMatch2 = sinon.match.has('text', sinon.match(/external_store/));
+      testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
+      testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
       expect(error).to.be.a('null');
     });
   });

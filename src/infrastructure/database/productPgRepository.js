@@ -281,6 +281,11 @@ class ProductPgRepository extends IProductRepository {
   }
 
   async delete(id) {
+    const [errorClient, client] = await this._getDatabaseClient();
+    if (errorClient) {
+      return [errorClient];
+    }
+
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
     const deleteQuery = {
       text: singleLine`
@@ -291,13 +296,30 @@ class ProductPgRepository extends IProductRepository {
       `,
       values: [id, now],
     };
+    const deleteExternalStoreQuery = {
+      text: singleLine`
+          UPDATE public.external_store
+          SET delete_date = $2
+          WHERE delete_date ISNULL
+            AND product_id = $1
+      `,
+      values: [id, now],
+    };
 
+    const transaction = { isStart: false };
     try {
-      await this.#db.query(deleteQuery);
+      await client.query(`BEGIN`);
+      transaction.isStart = true;
+
+      await Promise.all([client.query(deleteQuery), client.query(deleteExternalStoreQuery)]);
+
+      await client.query('END');
 
       return [null];
-    } catch (error) {
-      return [new DatabaseExecuteException(error)];
+    } catch (executeError) {
+      return [await this._rollbackOnError(client, executeError, transaction.isStart)];
+    } finally {
+      client.release();
     }
   }
 
