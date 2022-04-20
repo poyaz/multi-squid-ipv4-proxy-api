@@ -474,7 +474,7 @@ This API use for create new user
 * Method: `POST`
 * URL: `api/v1/user`
 * Body: `{"username": "<your-username>", "password": "<your-password>"}`
-* Authorized type: `anonymest`
+* Authorized type: `anonymous`
 
 ### Body format
 
@@ -529,7 +529,7 @@ The output of this API is a token, and you can this token in below API list:
 * Method: `POST`
 * URL: `api/v1/user/login`
 * Body: `{"username": "<your-username>", "password": "<your-password>"}`
-* Authorized type: `anonymest`
+* Authorized type: `anonymous`
 
 ### Body format
 
@@ -735,7 +735,7 @@ Squid ACL check request domain block for user or not
 
 * Method: `GET`
 * URL: `api/v1/user/:username/domain/:domain/status`
-* Authorized type: `anonymest`
+* Authorized type: `anonymous`
 
 ```bash
 curl \
@@ -1020,6 +1020,364 @@ curl \
 }
 ```
 
+## Get all product
+
+Get list of all product (enable and disable a product)
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/product`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+      // Total proxy has been created
+      "count": 2,
+      // Price of product
+      "price": 1000,
+      // Expire day of proxy can user use it
+      "expireDay": 30,
+      // External store for link between product and store for payment
+      "externalStore": [
+        {
+          "id": "015428c2-4c13-4a58-be35-3f6bb2f2e615",
+          // Service type (store name)
+          "type": "fastspring",
+          // Serial or ID of product in external store
+          "serial": "at-datacenter-proxies-100",
+          "insertDate": "2022-04-20 12:16:45"
+        }
+      ],
+      "isEnable": true,
+      "insertDate": "2022-04-20 12:16:45",
+      "updateDate": null,
+      "deleteDate": null
+    }
+  ]
+}
+```
+
+## Get all enable product
+
+Get all enable product for anonymous
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/product/list`
+* Authorized type: `anonymous`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  '<your-hostname-or-ip>/api/v1/product/list'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    '<your-hostname-or-ip>/api/v1/product/list'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+      // Total proxy has been created
+      "count": 2,
+      // Price of product
+      "price": 1000,
+      // Expire day of proxy can user use it
+      "expireDay": 30,
+      // External store for link between product and store for payment
+      "externalStore": [
+        {
+          "id": "015428c2-4c13-4a58-be35-3f6bb2f2e615",
+          // Service type (store name)
+          "type": "fastspring",
+          // Serial or ID of product in external store
+          "serial": "at-datacenter-proxies-100",
+          "insertDate": "2022-04-20 12:16:45"
+        }
+      ],
+      "isEnable": true,
+      "insertDate": "2022-04-20 12:16:45",
+      "updateDate": null,
+      "deleteDate": null
+    }
+  ]
+}
+```
+
+## Create new product
+
+Create new product
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/product`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product' \
+  -d '{"count": <proxy-count-generated>, "price": <price-package>, "expireDay": <expire-day>, "externalStore": [{"type": "<store-name-or-type>", "serial": "<product-id-or-serial>"}], "isEnable": <enable-or-disable-product>}'
+```
+
+### Body format
+
+* `count` number
+* `price` number
+* `expireDay` number
+* `externalStore` Array of object with store information - this field has optional
+* `externalStore.type` String store name or type
+* `externalStore.serial` String store product id or serial
+* `isEnable` Boolean
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product' \
+  -d '{"count": 2, "price": 1000, "expireDay": 30, "isEnable": true, "externalStore": [{"type": "fastspring", "serial": "at-datacenter-proxies-100"}]}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "id": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+    // Total proxy has been created
+    "count": 2,
+    // Price of product
+    "price": 1000,
+    // Expire day of proxy can user use it
+    "expireDay": 30,
+    // External store for link between product and store for payment
+    "externalStore": [
+      {
+        "id": "015428c2-4c13-4a58-be35-3f6bb2f2e615",
+        // Service type (store name)
+        "type": "fastspring",
+        // Serial or ID of product in external store
+        "serial": "at-datacenter-proxies-100",
+        "insertDate": "2022-04-20 12:16:45"
+      }
+    ],
+    "isEnable": true,
+    "insertDate": "2022-04-20 12:16:45",
+    "updateDate": null,
+    "deleteDate": null
+  }
+}
+```
+
+## Update exist product
+
+Update information of product with product id
+
+### Information:
+
+* Method: `PUT`
+* URL: `api/v1/product/:id`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X PUT \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product/:id' \
+  -d '{"count": <proxy-count-generated>, "price": <price-package>, "expireDay": <expire-day>, "isEnable": <enable-or-disable-product>}'
+```
+
+### Body format
+
+At least one of below key should fill
+
+* `count` number
+* `price` number
+* `expireDay` number
+* `isEnable` Boolean
+
+### Example:
+
+```bash
+curl \
+    -X PUT \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product/751c4a35-ed2a-489d-870f-b09dc7b0f8a5' \
+  -d '{"count": 2}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
+## Update exist external store product
+
+Update information of external store product with product id and external store product id
+
+### Information:
+
+* Method: `PUT`
+* URL: `api/v1/product/:productId/external-store/:externalStoreId`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X PUT \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product/:productId/external-store/:externalStoreId' \
+  -d '{"type": "<store-name-or-type>", "serial": "<product-id-or-serial>"}'
+```
+
+### Body format
+
+At least one of below key should fill
+
+* `type` String store name or type
+* `serial` String store product id or serial
+
+### Example:
+
+```bash
+curl \
+    -X PUT \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product/751c4a35-ed2a-489d-870f-b09dc7b0f8a5/external-store/1debff31-bf6d-4614-9c1e-e4a416ed58ac' \
+  -d '{"serial": "at-datacenter-proxies-200"}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
+## Remove product
+
+Remove product with product id (Also delete external store if exist)
+
+### Information:
+
+* Method: `DELETE`
+* URL: `api/v1/product/:id`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X DELETE \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product/:id'
+```
+
+### Example:
+
+```bash
+curl \
+    -X DELETE \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product/751c4a35-ed2a-489d-870f-b09dc7b0f8a5'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
+## Remove external store product
+
+Remove external store product with product id and external store product id
+
+### Information:
+
+* Method: `DELETE`
+* URL: `api/v1/product/:productId/external-store/:externalStoreId`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X DELETE \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product/:productId/external-store/:externalStoreId'
+```
+
+### Example:
+
+```bash
+curl \
+    -X DELETE \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product/751c4a35-ed2a-489d-870f-b09dc7b0f8a5/external-store/1debff31-bf6d-4614-9c1e-e4a416ed58ac'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success"
+}
+```
+
 ## Get all servers
 
 Get list of servers cluster
@@ -1275,7 +1633,7 @@ Get list of external oauth configuration
 
 * Method: `GET`
 * URL: `api/v1/oauth`
-* Authorized type: `anonymest`
+* Authorized type: `anonymous`
 
 ```bash
 curl \
@@ -1321,7 +1679,7 @@ If authenticate successfully execute after that username has been created and ne
 
 * Method: `POST`
 * URL: `api/v1/oauth/:platfrom`
-* Authorized type: `anonymest`
+* Authorized type: `anonymous`
 
 ```bash
 curl \
