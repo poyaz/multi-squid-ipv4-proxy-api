@@ -996,6 +996,37 @@ class ExpressApi extends IRunner {
       },
     );
 
+    router.put(
+      '/v1/product/:productId/external-store/:externalStoreId',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const middleware = productHttpApi.updateExternalStoreValidationMiddlewareFactory.create(
+            req,
+            res,
+          );
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.updateExternalStoreProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
     router.delete(
       '/v1/product/:id',
       this._middlewareRoleAccess(['admin']),
@@ -1003,6 +1034,23 @@ class ExpressApi extends IRunner {
         try {
           const serverController = productHttpApi.productControllerFactory.create(req, res);
           const response = await serverController.deleteProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.delete(
+      '/v1/product/:productId/external-store/:externalStoreId',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.deleteExternalStoreProduct();
 
           this._sendResponse(req, res, response);
 
