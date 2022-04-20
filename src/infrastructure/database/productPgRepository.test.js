@@ -11,6 +11,7 @@ const helper = require('~src/helper');
 
 const ProductModel = require('~src/core/model/productModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
+const AlreadyExistException = require('~src/core/exception/alreadyExistException');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
 const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
@@ -396,6 +397,30 @@ suite(`ProductPgRepository`, () => {
       expect(error).to.have.property('httpCode', 400);
       expect(error).to.have.property('isOperation', false);
       expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should error add new product in database when external store record already exist`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error(
+        'duplicate key value violates unique constraint "external_store_serial"',
+      );
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      testObj.postgresDbClient.query.onCall(2).resolves();
+
+      const [error] = await testObj.productRepository.add(inputModel);
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(AlreadyExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.deep.property('additionalInfo', [
+        { message: 'The record of external store already exist.' },
+      ]);
     });
 
     test(`Should error add new product in database when execute other query and rollback`, async () => {

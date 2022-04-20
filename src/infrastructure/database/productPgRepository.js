@@ -7,6 +7,7 @@ const IProductRepository = require('~src/core/interface/iProductRepository');
 
 const ProductModel = require('~src/core/model/productModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
+const AlreadyExistException = require('~src/core/exception/alreadyExistException');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
 const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
@@ -143,11 +144,6 @@ class ProductPgRepository extends IProductRepository {
                  serial,
                  $2
           FROM json_to_recordset($3) as (id uuid, type varchar(50), serial varchar(200))
-          ON CONFLICT (type, serial)
-          WHERE delete_date ISNULL
-              DO
-          UPDATE
-          SET update_date = EXCLUDED.insert_date
           RETURNING id AS external_store_id, type AS external_store_type, serial AS external_store_serial, insert_date AS external_store_insert_date
       `,
       values: [id, now, JSON.stringify(addExternalStoreRecordList)],
@@ -343,7 +339,7 @@ class ProductPgRepository extends IProductRepository {
    * @param client
    * @param queryError
    * @param hasTransactionStart
-   * @return {Promise<DatabaseExecuteException|DatabaseRollbackException>}
+   * @return {Promise<DatabaseExecuteException|DatabaseRollbackException|AlreadyExistException>}
    * @private
    */
   async _rollbackOnError(client, queryError, hasTransactionStart) {
@@ -353,6 +349,10 @@ class ProductPgRepository extends IProductRepository {
 
     try {
       await client.query('ROLLBACK');
+
+      if (queryError.message.match(/duplicate key value .+ "external_store_serial"/)) {
+        return new AlreadyExistException('The record of external store already exist.');
+      }
 
       return new DatabaseExecuteException(queryError);
     } catch (rollbackError) {
