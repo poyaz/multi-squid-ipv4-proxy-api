@@ -76,6 +76,7 @@ const ServerControllerFactory = require('~src/api/http/server/controller/serverC
 
 const AddProductValidationMiddlewareFactory = require('~src/api/http/product/middleware/addProductValidationMiddlewareFactory');
 const UpdateProductValidationMiddlewareFactory = require('~src/api/http/product/middleware/updateProductValidationMiddlewareFactory');
+const UpdateExternalStoreValidationMiddlewareFactory = require('~src/api/http/product/middleware/updateExternalStoreValidationMiddlewareFactory');
 const ProductControllerFactory = require('~src/api/http/product/controller/productControllerFactory');
 
 const PackageCronjob = require('~src/api/cronjob/packageCronjob');
@@ -260,6 +261,7 @@ class Loader {
     const productMiddleware = {
       addProductValidation: new AddProductValidationMiddlewareFactory(),
       updateProductValidation: new UpdateProductValidationMiddlewareFactory(),
+      updateExternalStoreValidation: new UpdateExternalStoreValidationMiddlewareFactory(),
     };
     const productControllerFactory = new ProductControllerFactory(productService, dateTime);
 
@@ -329,6 +331,8 @@ class Loader {
     this._dependency.productHttpApi = {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
+      updateExternalStoreValidationMiddlewareFactory:
+        productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 
