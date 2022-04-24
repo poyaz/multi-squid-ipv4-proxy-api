@@ -3,8 +3,10 @@
  */
 
 const OrderModel = require('~src/core/model/orderModel');
-const GetAllOrderOutputModel = require('~src/api/http/order/controller/model/getAllOrderOutputModel');
-const GetAllSubscriptionOfOrderOutputModel = require('~src/api/http/order/controller/model/getAllSubscriptionOfOrderOutputModel');
+const GetAllOrderOutputModel = require('./model/getAllOrderOutputModel');
+const GetAllSubscriptionOfOrderOutputModel = require('./model/getAllSubscriptionOfOrderOutputModel');
+const AddOrderInputModel = require('./model/addOrderInputModel');
+const AddOrderOutputModel = require('./model/addOrderOutputModel');
 
 class OrderController {
   #req;
@@ -75,6 +77,24 @@ class OrderController {
       this.#dateTime,
     );
     const result = getAllSubscriptionOfOrderOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async addOrder() {
+    const { userId } = this.#req.params;
+    const body = this.#req.body;
+
+    const addOrderInputModel = new AddOrderInputModel(userId);
+    const model = addOrderInputModel.getModel(body);
+
+    const [error, data] = await this.#orderService.add(model);
+    if (error) {
+      return [error];
+    }
+
+    const addOrderOutputModel = new AddOrderOutputModel(this.#dateTime);
+    const result = addOrderOutputModel.getOutput(data);
 
     return [null, result];
   }

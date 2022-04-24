@@ -85,32 +85,9 @@ class IOrderService {
    * @param {OrderModel} model
    * @return {Promise<(Error)[]>}
    */
-  async update(model) {
+  async verify(model) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { model };
-    throw error;
-  }
-
-  /**
-   *
-   * @param {string} id
-   * @return {Promise<(Error)[]>}
-   */
-  async delete(id) {
-    const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { id };
-    throw error;
-  }
-
-  /**
-   *
-   * @param {string} orderId
-   * @param {string} subscriptionId
-   * @return {Promise<(Error)[]>}
-   */
-  async deleteSubscription(orderId, subscriptionId) {
-    const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { orderId, subscriptionId };
     throw error;
   }
 }

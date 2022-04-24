@@ -32,6 +32,11 @@ class BaseOrderOutputModel {
     obj.status = model.status;
     obj.lastSubscriptionStatus =
       typeof model.lastSubscriptionStatus === 'undefined' ? null : model.lastSubscriptionStatus;
+    obj.prePackageOrderInfo = {
+      count: model.prePackageOrderInfo.count,
+      proxyType: model.prePackageOrderInfo.proxyType,
+      countryCode: model.prePackageOrderInfo.countryCode.toUpperCase(),
+    };
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
     obj.updateDate = this._gregorianWithTimezoneString(model.updateDate);
 

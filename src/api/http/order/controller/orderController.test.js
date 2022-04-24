@@ -62,6 +62,7 @@ suite(`OrderController`, () => {
       outputModel1.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel1.status = OrderModel.STATUS_SUCCESS;
       outputModel1.lastSubscriptionStatus = null;
+      outputModel1.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
       outputModel1.insertDate = new Date();
       testObj.orderService.getAll.resolves([null, [outputModel1]]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -81,6 +82,11 @@ suite(`OrderController`, () => {
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: null,
         insertDate: 'date',
+      });
+      expect(result[0].prePackageOrderInfo).to.have.include({
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
       });
       expect(result[0].orderBodyData).to.be.a('undefined');
     });
@@ -112,6 +118,7 @@ suite(`OrderController`, () => {
       outputModel1.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel1.status = OrderModel.STATUS_SUCCESS;
       outputModel1.lastSubscriptionStatus = null;
+      outputModel1.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
       outputModel1.insertDate = new Date();
       testObj.orderService.getAll.resolves([null, [outputModel1]]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -136,6 +143,11 @@ suite(`OrderController`, () => {
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: null,
         insertDate: 'date',
+      });
+      expect(result[0].prePackageOrderInfo).to.have.include({
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
       });
       expect(result[0].orderBodyData).to.be.a('undefined');
     });
@@ -173,6 +185,90 @@ suite(`OrderController`, () => {
         insertDate: 'date',
       });
       expect(result[0].subscriptionBodyData).to.be.a('undefined');
+    });
+  });
+
+  suite(`Add new order`, () => {
+    test(`Should error add new order`, async () => {
+      testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
+      testObj.req.body = {
+        serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        prePackageOrderInfo: {
+          count: 3,
+          proxyType: 'isp',
+          countryCode: 'US',
+        },
+      };
+      testObj.orderService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderController.addOrder();
+
+      testObj.orderService.add.should.have.callCount(1);
+      testObj.orderService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(OrderModel)
+          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('serviceName', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING))
+          .and(sinon.match.hasNested('prePackageOrderInfo.count', 3))
+          .and(sinon.match.hasNested('prePackageOrderInfo.proxyType', 'isp'))
+          .and(sinon.match.hasNested('prePackageOrderInfo.countryCode', 'US')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully add new order`, async () => {
+      testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
+      testObj.req.body = {
+        serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        prePackageOrderInfo: {
+          count: 3,
+          proxyType: 'isp',
+          countryCode: 'US',
+        },
+      };
+      const outputModel = new OrderModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.userId = testObj.identifierGenerator.generateId();
+      outputModel.productId = testObj.identifierGenerator.generateId();
+      outputModel.orderSerial = 'orderSerial';
+      outputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputModel.status = OrderModel.STATUS_SUCCESS;
+      outputModel.lastSubscriptionStatus = null;
+      outputModel.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
+      outputModel.insertDate = new Date();
+      testObj.orderService.add.resolves([null, outputModel]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.orderController.addOrder();
+
+      testObj.orderService.add.should.have.callCount(1);
+      testObj.orderService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(OrderModel)
+          .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('serviceName', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING))
+          .and(sinon.match.hasNested('prePackageOrderInfo.count', 3))
+          .and(sinon.match.hasNested('prePackageOrderInfo.proxyType', 'isp'))
+          .and(sinon.match.hasNested('prePackageOrderInfo.countryCode', 'US')),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        packageId: null,
+        orderSerial: 'orderSerial',
+        serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        status: OrderModel.STATUS_SUCCESS,
+        lastSubscriptionStatus: null,
+        insertDate: 'date',
+      });
+      expect(result.prePackageOrderInfo).to.have.include({
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
+      });
+      expect(result.orderBodyData).to.be.a('undefined');
     });
   });
 });

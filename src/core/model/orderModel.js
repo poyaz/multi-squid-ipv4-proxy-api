@@ -11,6 +11,7 @@
  * @property {string} serviceName
  * @property {string} status
  * @property {string} lastSubscriptionStatus
+ * @property {Object<{count: number, proxyType: string, countryCode: string}>} prePackageOrderInfo
  * @property {string} body
  * @property {Date} insertDate
  * @property {Date} updateDate
@@ -27,6 +28,7 @@ class OrderModel {
   serviceName = undefined;
   status = undefined;
   lastSubscriptionStatus = undefined;
+  prePackageOrderInfo = undefined;
   orderBodyData = undefined;
   insertDate = undefined;
   updateDate = undefined;
