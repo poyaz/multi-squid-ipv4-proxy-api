@@ -6,9 +6,9 @@ class IOrderService {
   /**
    *
    * @param {string} orderSerial
-   * @return {Promise<(Error|string)[]>}
+   * @return {Promise<(Error|OrderModel)[]>}
    */
-  getOrderIdByOrderSerial(orderSerial) {
+  getByOrderSerial(orderSerial) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { orderSerial };
     throw error;
