@@ -5,6 +5,7 @@
 /**
  * @property {string} id
  * @property {string} userId
+ * @property {string} productId
  * @property {string} packageId
  * @property {string} orderSerial
  * @property {string} serviceName
@@ -20,6 +21,7 @@ class OrderModel {
 
   id = undefined;
   userId = undefined;
+  productId = undefined;
   packageId = undefined;
   orderSerial = undefined;
   serviceName = undefined;

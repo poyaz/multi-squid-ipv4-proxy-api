@@ -855,6 +855,24 @@ function fakeProductPgRepository() {
   return { postgresDb, postgresDbClient, dateTime, identifierGenerator, productRepository };
 }
 
+function fakeOrderController(req, res) {
+  const IOrderService = require('~src/core/interface/iOrderService');
+  const IDateTime = require('~src/core/interface/iDateTime');
+  const OrderController = require('~src/api/http/order/controller/orderController');
+
+  const orderService = sinon.createStubInstance(IOrderService);
+
+  const dateTime = sinon.createStubInstance(IDateTime);
+
+  const orderController = new OrderController(req, res, orderService, dateTime);
+
+  return {
+    orderService,
+    dateTime,
+    orderController,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -901,4 +919,5 @@ module.exports = {
   fakeProductController,
   fakeProductService,
   fakeProductPgRepository,
+  fakeOrderController,
 };
