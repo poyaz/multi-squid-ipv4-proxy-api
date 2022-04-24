@@ -1,0 +1,24 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Service" type="docker-deploy" factoryName="docker-compose.yml" server-name="Local Docker">
+    <deployment type="docker-compose.yml">
+      <settings>
+        <option name="secondarySourceFiles">
+          <list>
+            <option value="docker/docker-compose.local.yml" />
+          </list>
+        </option>
+        <option name="services">
+          <list>
+            <option value="docker-proxy" />
+            <option value="postgres" />
+            <option value="fake-ip-1" />
+            <option value="fake-ip-2" />
+            <option value="fake-ip-3" />
+          </list>
+        </option>
+        <option name="sourceFilePath" value="docker-compose.yml" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

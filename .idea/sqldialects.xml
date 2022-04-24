@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/jobRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/packagePgRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/productPgRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/proxyServerRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/serverRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/urlAccessPgRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/userPgRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210823130635-init-users-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210826091600-init-ip-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210826092210-init-packages-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210826092410-init-map-bind-address-package-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210826102715-init-uuid-extension.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210828162830-init-access-url-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20210830085150-init-jobs-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220213125935-init-servers-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220404094335-init-log-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220410103950-alter-password-column-to-user.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220412091835-alter-proxy-and-location-type.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220413091940-alter-status-column-to-product.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220417094850-init-product-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220419101620-init-external-store-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220420125900-init-orders-table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220420134925-init-subscription-table.sql" dialect="PostgreSQL" />
+  </component>
+  <component name="SqlResolveMappings">
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/jobRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/packagePgRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/proxyServerRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/urlAccessPgRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/userPgRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
+    <file url="PROJECT" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
+  </component>
+</project>
