@@ -140,4 +140,39 @@ suite(`OrderController`, () => {
       expect(result[0].orderBodyData).to.be.a('undefined');
     });
   });
+
+  suite(`Get all subscriptions of order`, () => {
+    test(`Should error get all subscriptions of order`, async () => {
+      testObj.orderService.getAllSubscriptionByOrderId.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderController.getAllSubscriptionOfOrder();
+
+      testObj.orderService.getAllSubscriptionByOrderId.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully get all subscriptions of order`, async () => {
+      const outputModel1 = new SubscriptionModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.orderId = testObj.identifierGenerator.generateId();
+      outputModel1.status = SubscriptionModel.STATUS_ACTIVATED;
+      outputModel1.lastSubscriptionStatus = null;
+      outputModel1.insertDate = new Date();
+      testObj.orderService.getAllSubscriptionByOrderId.resolves([null, [outputModel1]]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.orderController.getAllSubscriptionOfOrder();
+
+      testObj.orderService.getAllSubscriptionByOrderId.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        orderId: testObj.identifierGenerator.generateId(),
+        status: SubscriptionModel.STATUS_ACTIVATED,
+        insertDate: 'date',
+      });
+      expect(result[0].subscriptionBodyData).to.be.a('undefined');
+    });
+  });
 });

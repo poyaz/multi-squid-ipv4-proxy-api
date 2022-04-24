@@ -4,6 +4,7 @@
 
 const OrderModel = require('~src/core/model/orderModel');
 const GetAllOrderOutputModel = require('~src/api/http/order/controller/model/getAllOrderOutputModel');
+const GetAllSubscriptionOfOrderOutputModel = require('~src/api/http/order/controller/model/getAllSubscriptionOfOrderOutputModel');
 
 class OrderController {
   #req;
@@ -58,6 +59,22 @@ class OrderController {
 
     const getAllOrderOutputModel = new GetAllOrderOutputModel(this.#dateTime);
     const result = getAllOrderOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async getAllSubscriptionOfOrder() {
+    const { orderId } = this.#req.params;
+
+    const [error, data] = await this.#orderService.getAllSubscriptionByOrderId(orderId);
+    if (error) {
+      return [error];
+    }
+
+    const getAllSubscriptionOfOrderOutputModel = new GetAllSubscriptionOfOrderOutputModel(
+      this.#dateTime,
+    );
+    const result = getAllSubscriptionOfOrderOutputModel.getOutput(data);
 
     return [null, result];
   }

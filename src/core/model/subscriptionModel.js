@@ -5,9 +5,8 @@
 /**
  * @property {string} id
  * @property {string} orderId
- * @property {string} flag
- * @property {boolean} isEnable
- * @property {string} body
+ * @property {string} status
+ * @property {string} subscriptionBodyData
  * @property {Date} insertDate
  * @property {Date} updateDate
  */
@@ -22,8 +21,7 @@ class SubscriptionModel {
   id = undefined;
   orderId = undefined;
   status = undefined;
-  isEnable = undefined;
-  body = undefined;
+  subscriptionBodyData = undefined;
   insertDate = undefined;
   updateDate = undefined;
 }
