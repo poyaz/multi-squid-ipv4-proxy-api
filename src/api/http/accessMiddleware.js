@@ -32,6 +32,9 @@ class AccessMiddleware extends IHttpMiddleware {
     ) {
       return;
     }
+    if (this.#req.method === 'POST' && this.#req.url.match(/^\/v[0-9]+\/order\/process\/service/)) {
+      return;
+    }
 
     if (!Object.hasOwnProperty.call(this.#req.headers, 'authorization')) {
       throw new UnauthorizedException();
