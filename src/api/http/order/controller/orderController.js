@@ -7,6 +7,8 @@ const GetAllOrderOutputModel = require('./model/getAllOrderOutputModel');
 const GetAllSubscriptionOfOrderOutputModel = require('./model/getAllSubscriptionOfOrderOutputModel');
 const AddOrderInputModel = require('./model/addOrderInputModel');
 const AddOrderOutputModel = require('./model/addOrderOutputModel');
+const VerifyOrderPackageInputModel = require('./model/verifyOrderPackageInputModel');
+const VerifyOrderPackageOutputModel = require('./model/verifyOrderPackageOutputModel');
 
 class OrderController {
   #req;
@@ -95,6 +97,24 @@ class OrderController {
 
     const addOrderOutputModel = new AddOrderOutputModel(this.#dateTime);
     const result = addOrderOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async verifyOrderPackage() {
+    const { orderId } = this.#req.params;
+    const body = this.#req.body;
+
+    const verifyOrderPackageInputModel = new VerifyOrderPackageInputModel(orderId);
+    const model = verifyOrderPackageInputModel.getModel(body);
+
+    const [error, data] = await this.#orderService.verifyOrderPackage(model);
+    if (error) {
+      return [error];
+    }
+
+    const verifyOrderPackageOutputModel = new VerifyOrderPackageOutputModel(this.#dateTime);
+    const result = verifyOrderPackageOutputModel.getOutput(data);
 
     return [null, result];
   }

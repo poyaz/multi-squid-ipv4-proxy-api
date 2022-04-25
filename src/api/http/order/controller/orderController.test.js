@@ -12,6 +12,7 @@ const { createRequest, createResponse } = require('node-mocks-http');
 const helper = require('~src/helper');
 
 const OrderModel = require('~src/core/model/orderModel');
+const PackageModel = require('~src/core/model/packageModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
@@ -269,6 +270,71 @@ suite(`OrderController`, () => {
         countryCode: 'US',
       });
       expect(result.orderBodyData).to.be.a('undefined');
+    });
+  });
+
+  suite(`Verify order`, () => {
+    test(`Should error verify order`, async () => {
+      testObj.req.params = { orderId: testObj.identifierGenerator.generateId() };
+      testObj.req.body = { orderSerial: 'orderSerial' };
+      testObj.orderService.verifyOrderPackage.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderController.verifyOrderPackage();
+
+      testObj.orderService.verifyOrderPackage.should.have.callCount(1);
+      testObj.orderService.verifyOrderPackage.should.have.calledWith(
+        sinon.match
+          .instanceOf(OrderModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('orderSerial', 'orderSerial')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully verify order`, async () => {
+      testObj.req.params = { orderId: testObj.identifierGenerator.generateId() };
+      testObj.req.body = { orderSerial: 'orderSerial' };
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.id = testObj.identifierGenerator.generateId();
+      outputPackageModel.userId = testObj.identifierGenerator.generateId();
+      outputPackageModel.username = 'user1';
+      outputPackageModel.password = 'pass1';
+      outputPackageModel.countIp = 1;
+      outputPackageModel.type = 'isp';
+      outputPackageModel.country = 'GB';
+      outputPackageModel.ipList = [{ ip: '192.168.1.4', port: 8080 }];
+      outputPackageModel.status = PackageModel.STATUS_ENABLE;
+      outputPackageModel.insertDate = new Date();
+      testObj.orderService.verifyOrderPackage.resolves([null, outputPackageModel]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.orderController.verifyOrderPackage();
+
+      testObj.orderService.verifyOrderPackage.should.have.callCount(1);
+      testObj.orderService.verifyOrderPackage.should.have.calledWith(
+        sinon.match
+          .instanceOf(OrderModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('orderSerial', 'orderSerial')),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator.generateId(),
+        username: 'user1',
+        password: 'pass1',
+        countIp: 1,
+        type: 'isp',
+        country: 'GB',
+        status: PackageModel.STATUS_ENABLE,
+        insertDate: 'date',
+      });
+      expect(result.ipList[0]).to.have.include({
+        ip: '192.168.1.4',
+        port: 8080,
+      });
+      expect(result.expireDate).to.be.a('null');
     });
   });
 });

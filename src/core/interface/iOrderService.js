@@ -83,9 +83,9 @@ class IOrderService {
   /**
    *
    * @param {OrderModel} model
-   * @return {Promise<(Error)[]>}
+   * @return {Promise<(Error|PackageModel|[])[]>}
    */
-  async verify(model) {
+  async verifyOrderPackage(model) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { model };
     throw error;
