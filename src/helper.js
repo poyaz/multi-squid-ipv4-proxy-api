@@ -873,6 +873,24 @@ function fakeOrderController(req, res) {
   };
 }
 
+function fakeOrderService() {
+  const IPackageService = require('~src/core/interface/iPackageService');
+  const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const OrderService = require('~src/core/service/orderService');
+
+  const packageService = sinon.createStubInstance(IPackageService);
+
+  const orderRepository = sinon.createStubInstance(IOrderRepository);
+
+  const orderService = new OrderService(packageService, orderRepository);
+
+  return {
+    packageService,
+    orderRepository,
+    orderService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -920,4 +938,5 @@ module.exports = {
   fakeProductService,
   fakeProductPgRepository,
   fakeOrderController,
+  fakeOrderService,
 };
