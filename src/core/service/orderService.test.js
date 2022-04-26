@@ -239,4 +239,44 @@ suite(`OrderService`, () => {
       expect(result[0]).to.be.an.instanceof(OrderModel);
     });
   });
+
+  suite(`Add new order`, () => {
+    setup(() => {
+      const inputModel = new OrderModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputModel.prePackageOrderInfo = {
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
+      };
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add new order`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.orderRepository.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.add(inputModel);
+
+      testObj.orderRepository.add.should.have.callCount(1);
+      testObj.orderRepository.add.should.have.calledWith(sinon.match.instanceOf(OrderModel));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully add new order`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputModel = testObj.outputOrderModel;
+      testObj.orderRepository.add.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.orderService.add(inputModel);
+
+      testObj.orderRepository.add.should.have.callCount(1);
+      testObj.orderRepository.add.should.have.calledWith(sinon.match.instanceOf(OrderModel));
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(OrderModel);
+    });
+  });
 });

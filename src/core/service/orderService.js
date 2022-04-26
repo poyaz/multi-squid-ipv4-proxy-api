@@ -74,6 +74,10 @@ class OrderService extends IOrderService {
   async getAll(filterModel) {
     return this.#orderRepository.getAll(filterModel);
   }
+
+  async add(model) {
+    return this.#orderRepository.add(model);
+  }
 }
 
 module.exports = OrderService;
