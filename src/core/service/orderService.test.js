@@ -279,4 +279,43 @@ suite(`OrderService`, () => {
       expect(result).to.be.an.instanceof(OrderModel);
     });
   });
+
+  suite(`Add new subscription order`, () => {
+    setup(() => {
+      const inputModel = new SubscriptionModel();
+      inputModel.orderId = testObj.identifierGenerator.generateId();
+      inputModel.status = SubscriptionModel.STATUS_ACTIVATED;
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add new subscription order`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.orderRepository.addSubscription.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.addSubscription(inputModel);
+
+      testObj.orderRepository.addSubscription.should.have.callCount(1);
+      testObj.orderRepository.addSubscription.should.have.calledWith(
+        sinon.match.instanceOf(SubscriptionModel),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully add new subscription order`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputModel = testObj.outputSubscriptionModel;
+      testObj.orderRepository.addSubscription.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.orderService.addSubscription(inputModel);
+
+      testObj.orderRepository.addSubscription.should.have.callCount(1);
+      testObj.orderRepository.addSubscription.should.have.calledWith(
+        sinon.match.instanceOf(SubscriptionModel),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(SubscriptionModel);
+    });
+  });
 });
