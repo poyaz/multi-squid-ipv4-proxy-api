@@ -8,7 +8,7 @@ class IOrderService {
    * @param {string} orderSerial
    * @return {Promise<(Error|OrderModel)[]>}
    */
-  getByOrderSerial(orderSerial) {
+  async getByOrderSerial(orderSerial) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { orderSerial };
     throw error;
@@ -19,7 +19,7 @@ class IOrderService {
    * @param {string} orderId
    * @return {Promise<(Error|OrderModel)[]>}
    */
-  getById(orderId) {
+  async getById(orderId) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { orderId };
     throw error;
@@ -30,7 +30,7 @@ class IOrderService {
    * @param {string} subscriptionId
    * @return {Promise<(Error|SubscriptionModel)[]>}
    */
-  getSubscriptionById(subscriptionId) {
+  async getSubscriptionById(subscriptionId) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { subscriptionId };
     throw error;
@@ -41,7 +41,7 @@ class IOrderService {
    * @param {string} orderId
    * @return {Promise<(Error|Array<SubscriptionModel>|[])[]>}
    */
-  getAllSubscriptionByOrderId(orderId) {
+  async getAllSubscriptionByOrderId(orderId) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { orderId };
     throw error;
@@ -52,7 +52,7 @@ class IOrderService {
    * @param {OrderModel} filterModel
    * @return {Promise<(Error|Array<OrderModel>|[])[]>}
    */
-  getAll(filterModel) {
+  async getAll(filterModel) {
     const error = new Error('The method has to be overridden by subclasses.');
     error['args'] = { filterModel };
     throw error;
