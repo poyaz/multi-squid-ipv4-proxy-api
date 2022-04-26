@@ -70,6 +70,10 @@ class OrderService extends IOrderService {
   async getAllSubscriptionByOrderId(orderId) {
     return this.#orderRepository.getAllSubscriptionByOrderId(orderId);
   }
+
+  async getAll(filterModel) {
+    return this.#orderRepository.getAll(filterModel);
+  }
 }
 
 module.exports = OrderService;

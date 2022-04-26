@@ -211,4 +211,32 @@ suite(`OrderService`, () => {
       expect(result[0]).to.be.an.instanceof(SubscriptionModel);
     });
   });
+
+  suite(`Get all order`, () => {
+    test(`Should error all order`, async () => {
+      const inputFilterModel = new OrderModel();
+      testObj.orderRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.getAll(inputFilterModel);
+
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(sinon.match.instanceOf(OrderModel));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully all order`, async () => {
+      const inputFilterModel = new OrderModel();
+      const outputModel1 = testObj.outputOrderModel;
+      testObj.orderRepository.getAll.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.orderService.getAll(inputFilterModel);
+
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(sinon.match.instanceOf(OrderModel));
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(OrderModel);
+    });
+  });
 });
