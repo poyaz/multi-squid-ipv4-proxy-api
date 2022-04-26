@@ -42,6 +42,18 @@ class OrderService extends IOrderService {
 
     return [null, result[0]];
   }
+
+  async getById(orderId) {
+    const [error, result] = await this.#orderRepository.getById(orderId);
+    if (error) {
+      return [error];
+    }
+    if (!result) {
+      return [new NotFoundException()];
+    }
+
+    return [null, result];
+  }
 }
 
 module.exports = OrderService;
