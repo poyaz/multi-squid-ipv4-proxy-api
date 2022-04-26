@@ -11,6 +11,7 @@ const helper = require('~src/helper');
 
 const OrderModel = require('~src/core/model/orderModel');
 const PackageModel = require('~src/core/model/packageModel');
+const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
@@ -34,18 +35,26 @@ suite(`OrderService`, () => {
     testObj.orderService = orderService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
-    const outputModel = new OrderModel();
-    outputModel.id = testObj.identifierGenerator.generateId();
-    outputModel.userId = testObj.identifierGenerator.generateId();
-    outputModel.productId = testObj.identifierGenerator.generateId();
-    outputModel.orderSerial = 'orderSerial';
-    outputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
-    outputModel.status = OrderModel.STATUS_SUCCESS;
-    outputModel.lastSubscriptionStatus = null;
-    outputModel.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
-    outputModel.insertDate = new Date();
+    const outputOrderModel = new OrderModel();
+    outputOrderModel.id = testObj.identifierGenerator.generateId();
+    outputOrderModel.userId = testObj.identifierGenerator.generateId();
+    outputOrderModel.productId = testObj.identifierGenerator.generateId();
+    outputOrderModel.orderSerial = 'orderSerial';
+    outputOrderModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+    outputOrderModel.status = OrderModel.STATUS_SUCCESS;
+    outputOrderModel.lastSubscriptionStatus = null;
+    outputOrderModel.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
+    outputOrderModel.insertDate = new Date();
 
-    testObj.outputModel = outputModel;
+    const outputSubscriptionModel = new SubscriptionModel();
+    outputSubscriptionModel.id = testObj.identifierGenerator.generateId();
+    outputSubscriptionModel.orderId = testObj.identifierGenerator.generateId();
+    outputSubscriptionModel.status = SubscriptionModel.STATUS_ACTIVATED;
+    outputSubscriptionModel.lastSubscriptionStatus = null;
+    outputSubscriptionModel.insertDate = new Date();
+
+    testObj.outputOrderModel = outputOrderModel;
+    testObj.outputSubscriptionModel = outputSubscriptionModel;
   });
 
   suite(`Get order info by orderSerial`, () => {
@@ -79,7 +88,7 @@ suite(`OrderService`, () => {
 
     test(`Should successfully get order info by orderSerial`, async () => {
       const inputOrderSerial = 'orderSerial';
-      const outputModel1 = testObj.outputModel;
+      const outputModel1 = testObj.outputOrderModel;
       testObj.orderRepository.getAll.resolves([null, [outputModel1]]);
 
       const [error, result] = await testObj.orderService.getByOrderSerial(inputOrderSerial);
@@ -120,7 +129,7 @@ suite(`OrderService`, () => {
 
     test(`Should successfully get order by id`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
-      const outputModel = testObj.outputModel;
+      const outputModel = testObj.outputOrderModel;
       testObj.orderRepository.getById.resolves([null, outputModel]);
 
       const [error, result] = await testObj.orderService.getById(inputId);
@@ -129,6 +138,45 @@ suite(`OrderService`, () => {
       testObj.orderRepository.getById.should.have.calledWith(sinon.match(inputId));
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(OrderModel);
+    });
+  });
+
+  suite(`Get subscription order by id`, () => {
+    test(`Should error get subscription order by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getSubscriptionById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.getSubscriptionById(inputId);
+
+      testObj.orderRepository.getSubscriptionById.should.have.callCount(1);
+      testObj.orderRepository.getSubscriptionById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error get subscription order by id when can't found record`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getSubscriptionById.resolves([null, null]);
+
+      const [error] = await testObj.orderService.getSubscriptionById(inputId);
+
+      testObj.orderRepository.getSubscriptionById.should.have.callCount(1);
+      testObj.orderRepository.getSubscriptionById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should successfully get subscription order by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputModel = testObj.outputSubscriptionModel;
+      testObj.orderRepository.getSubscriptionById.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.orderService.getSubscriptionById(inputId);
+
+      testObj.orderRepository.getSubscriptionById.should.have.callCount(1);
+      testObj.orderRepository.getSubscriptionById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(SubscriptionModel);
     });
   });
 });
