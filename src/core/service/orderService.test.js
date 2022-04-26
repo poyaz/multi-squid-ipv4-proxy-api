@@ -179,4 +179,36 @@ suite(`OrderService`, () => {
       expect(result).to.be.an.instanceof(SubscriptionModel);
     });
   });
+
+  suite(`Get all subscription order by order id`, () => {
+    test(`Should error all subscription order by order id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getAllSubscriptionByOrderId.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.getAllSubscriptionByOrderId(inputId);
+
+      testObj.orderRepository.getAllSubscriptionByOrderId.should.have.callCount(1);
+      testObj.orderRepository.getAllSubscriptionByOrderId.should.have.calledWith(
+        sinon.match(inputId),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully all subscription order by order id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputModel1 = testObj.outputSubscriptionModel;
+      testObj.orderRepository.getAllSubscriptionByOrderId.resolves([null, [outputModel1]]);
+
+      const [error, result] = await testObj.orderService.getAllSubscriptionByOrderId(inputId);
+
+      testObj.orderRepository.getAllSubscriptionByOrderId.should.have.callCount(1);
+      testObj.orderRepository.getAllSubscriptionByOrderId.should.have.calledWith(
+        sinon.match(inputId),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.an.instanceof(SubscriptionModel);
+    });
+  });
 });

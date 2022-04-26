@@ -66,6 +66,10 @@ class OrderService extends IOrderService {
 
     return [null, result];
   }
+
+  async getAllSubscriptionByOrderId(orderId) {
+    return this.#orderRepository.getAllSubscriptionByOrderId(orderId);
+  }
 }
 
 module.exports = OrderService;
