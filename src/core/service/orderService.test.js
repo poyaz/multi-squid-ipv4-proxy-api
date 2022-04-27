@@ -17,7 +17,7 @@ const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const ItemDisableException = require('~src/core/exception/itemDisableException');
 const DisableUserException = require('~src/core/exception/disableUserException');
-const AlreadyExpireException = require('~src/core/exception/alreadyExpireException');
+const AlreadyExistException = require('~src/core/exception/alreadyExistException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -41,6 +41,7 @@ suite(`OrderService`, () => {
     outputOrderModel.productId = testObj.identifierGenerator.generateId();
     outputOrderModel.orderSerial = 'orderSerial';
     outputOrderModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+    outputOrderModel.username = 'user1';
     outputOrderModel.status = OrderModel.STATUS_SUCCESS;
     outputOrderModel.lastSubscriptionStatus = null;
     outputOrderModel.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
@@ -316,6 +317,229 @@ suite(`OrderService`, () => {
       );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(SubscriptionModel);
+    });
+  });
+
+  suite(`Verify order package`, () => {
+    setup(() => {
+      const inputModel = new OrderModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.orderSerial = 'orderSerial';
+
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.id = testObj.identifierGenerator.generateId();
+      outputPackageModel.userId = testObj.identifierGenerator.generateId();
+      outputPackageModel.username = 'user1';
+      outputPackageModel.password = 'pass1';
+      outputPackageModel.countIp = 1;
+      outputPackageModel.type = 'isp';
+      outputPackageModel.country = 'GB';
+      outputPackageModel.ipList = [{ ip: '192.168.1.4', port: 8080 }];
+      outputPackageModel.status = PackageModel.STATUS_ENABLE;
+      outputPackageModel.insertDate = new Date();
+      testObj.packageService.getById.resolves([null, outputPackageModel]);
+
+      testObj.inputModel = inputModel;
+      testObj.outputPackageModel = outputPackageModel;
+
+      testObj.orderServiceGetById = sinon.stub(testObj.orderService, 'getById');
+      testObj.consoleError = sinon.stub(console, 'error');
+    });
+
+    teardown(() => {
+      testObj.orderServiceGetById.restore();
+      testObj.consoleError.restore();
+    });
+
+    test(`Should error verify order package when fetch order info`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.orderServiceGetById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error verify order package when fetch package info (if packageId exist)`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      testObj.packageService.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      testObj.packageService.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully verify order package when fetch package info (if packageId exist)`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      const outputPackageModel = testObj.outputPackageModel;
+      testObj.packageService.getById.resolves([null, outputPackageModel]);
+
+      const [error, result] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      testObj.packageService.getById.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(PackageModel);
+    });
+
+    test(`Should error verify order package when create package (if orderSerial already exist and status not empty)`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      outputOrderModel.status = OrderModel.STATUS_SUCCESS;
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      testObj.packageService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      expect(error).to.be.an.instanceof(AlreadyExistException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error verify order package when change order status`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      delete outputOrderModel.status;
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      testObj.orderRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      testObj.orderRepository.update.should.have.callCount(1);
+      testObj.orderRepository.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('orderSerial', 'orderSerial'))
+          .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error verify order package when create package`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      delete outputOrderModel.status;
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      testObj.orderRepository.update.resolves([null]);
+      testObj.packageService.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      testObj.orderRepository.update.should.have.callCount(1);
+      testObj.orderRepository.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('orderSerial', 'orderSerial'))
+          .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS)),
+      );
+      testObj.packageService.add.should.have.callCount(1);
+      testObj.packageService.add.should.have.calledWith(
+        sinon.match
+          .has('userId', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('username', 'user1'))
+          .and(sinon.match.has('countIp', 3))
+          .and(sinon.match.has('type', 'isp'))
+          .and(sinon.match.has('country', 'US')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully verify order package`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      delete outputOrderModel.status;
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      testObj.orderRepository.update.resolves([null]);
+      const outputPackageModel = testObj.outputPackageModel;
+      testObj.packageService.add.resolves([null, outputPackageModel]);
+
+      const [error, result] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      testObj.orderRepository.update.should.have.callCount(2);
+      const sinonMatch0 = sinon.match
+        .has('id', testObj.identifierGenerator.generateId())
+        .and(sinon.match.has('orderSerial', 'orderSerial'))
+        .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS));
+      testObj.orderRepository.update.getCall(0).should.have.calledWith(sinonMatch0);
+      testObj.packageService.add.should.have.callCount(1);
+      testObj.packageService.add.should.have.calledWith(
+        sinon.match
+          .has('userId', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('username', 'user1'))
+          .and(sinon.match.has('countIp', 3))
+          .and(sinon.match.has('type', 'isp'))
+          .and(sinon.match.has('country', 'US')),
+      );
+      const sinonMatch1 = sinon.match
+        .has('id', testObj.identifierGenerator.generateId())
+        .and(sinon.match.has('packageId', testObj.outputPackageModel.id));
+      testObj.orderRepository.update.getCall(1).should.have.calledWith(sinonMatch1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(PackageModel);
+    });
+
+    test(`Should successfully verify order package but has fail when connect package to order`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputOrderModel = testObj.outputOrderModel;
+      delete outputOrderModel.status;
+      testObj.orderServiceGetById.resolves([null, outputOrderModel]);
+      testObj.orderRepository.update
+        .onCall(0)
+        .resolves([null])
+        .onCall(1)
+        .resolves([new UnknownException()]);
+      const outputPackageModel = testObj.outputPackageModel;
+      testObj.packageService.add.resolves([null, outputPackageModel]);
+
+      const [error, result] = await testObj.orderService.verifyOrderPackage(inputModel);
+
+      testObj.orderServiceGetById.should.have.callCount(1);
+      testObj.orderServiceGetById.should.have.calledWith(sinon.match(inputModel.id));
+      testObj.orderRepository.update.should.have.callCount(2);
+      const sinonMatch0 = sinon.match
+        .has('id', testObj.identifierGenerator.generateId())
+        .and(sinon.match.has('orderSerial', 'orderSerial'))
+        .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS));
+      testObj.orderRepository.update.getCall(0).should.have.calledWith(sinonMatch0);
+      testObj.packageService.add.should.have.callCount(1);
+      testObj.packageService.add.should.have.calledWith(
+        sinon.match
+          .has('userId', testObj.identifierGenerator.generateId())
+          .and(sinon.match.has('username', 'user1'))
+          .and(sinon.match.has('countIp', 3))
+          .and(sinon.match.has('type', 'isp'))
+          .and(sinon.match.has('country', 'US')),
+      );
+      const sinonMatch1 = sinon.match
+        .has('id', testObj.identifierGenerator.generateId())
+        .and(sinon.match.has('packageId', testObj.outputPackageModel.id));
+      testObj.orderRepository.update.getCall(1).should.have.calledWith(sinonMatch1);
+      testObj.consoleError.should.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(PackageModel);
     });
   });
 });

@@ -9,6 +9,7 @@
  * @property {string} packageId
  * @property {string} orderSerial
  * @property {string} serviceName
+ * @property {string} username
  * @property {string} status
  * @property {string} lastSubscriptionStatus
  * @property {Object<{count: number, proxyType: string, countryCode: string}>} prePackageOrderInfo
@@ -26,6 +27,7 @@ class OrderModel {
   packageId = undefined;
   orderSerial = undefined;
   serviceName = undefined;
+  username = undefined;
   status = undefined;
   lastSubscriptionStatus = undefined;
   prePackageOrderInfo = undefined;

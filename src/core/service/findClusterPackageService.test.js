@@ -37,6 +37,48 @@ suite(`FindClusterPackageService`, () => {
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
   });
 
+  suite(`Get by id`, () => {
+    setup(() => {
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.id = testObj.identifierGenerator.generateId();
+      outputFetchModel.userId = testObj.identifierGenerator.generateId();
+      outputFetchModel.username = 'user1';
+      outputFetchModel.countIp = 3;
+      outputFetchModel.ipList = [
+        { ip: '192.168.1.2', port: 8080 },
+        { ip: '192.168.1.3', port: 8080 },
+        { ip: '192.168.1.4', port: 8080 },
+      ];
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+
+      testObj.outputFetchModel = outputFetchModel;
+    });
+
+    test(`Should error get package by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.packageService.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.getById(inputId);
+
+      testObj.packageService.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully get package by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputFetchModel = testObj.outputFetchModel;
+      testObj.packageService.getById.resolves([null, outputFetchModel]);
+
+      const [error, result] = await testObj.findClusterPackageService.getById(inputId);
+
+      testObj.packageService.getById.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(PackageModel);
+      expect(result.countIp).to.be.equal(3);
+    });
+  });
+
   suite(`Get all package by username`, () => {
     test(`Should error get all package when get all instance has fail`, async () => {
       const inputUsername = 'user1';

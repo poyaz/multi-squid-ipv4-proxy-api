@@ -225,7 +225,7 @@ function fakePackageController(req, res) {
   };
 }
 
-function fakePackageService() {
+function fakeProductService() {
   const IProductRepository = require('~src/core/interface/iProductRepository');
   const ProductService = require('~src/core/service/productService');
 
@@ -802,7 +802,7 @@ function fakeProductController(req, res) {
   };
 }
 
-function fakeProductService() {
+function fakePackageService() {
   const IUserService = require('~src/core/interface/iUserService');
   const IPackageRepository = require('~src/core/interface/iPackageRepository');
   const IProxyServerRepository = require('~src/core/interface/iProxyServerRepository');

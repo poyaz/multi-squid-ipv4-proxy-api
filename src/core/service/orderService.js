@@ -4,7 +4,9 @@
 
 const IOrderService = require('~src/core/interface/iOrderService');
 const OrderModel = require('~src/core/model/orderModel');
+const PackageModel = require('~src/core/model/packageModel');
 const NotFoundException = require('~src/core/exception/notFoundException');
+const AlreadyExistException = require('~src/core/exception/alreadyExistException');
 
 class OrderService extends IOrderService {
   /**
@@ -81,6 +83,58 @@ class OrderService extends IOrderService {
 
   async addSubscription(model) {
     return this.#orderRepository.addSubscription(model);
+  }
+
+  async verifyOrderPackage(model) {
+    const [fetchOrderError, fetchOrderData] = await this.getById(model.id);
+    if (fetchOrderError) {
+      return [fetchOrderError];
+    }
+
+    if (fetchOrderData.packageId) {
+      return this.#packageService.getById(fetchOrderData.packageId);
+    }
+
+    if (fetchOrderData.orderSerial === model.orderSerial && fetchOrderData.status) {
+      return [
+        new AlreadyExistException(
+          `This order status had been changed! If you don't access your package contact with administrator.`,
+        ),
+      ];
+    }
+
+    const preOrderUpdateModel = new OrderModel();
+    preOrderUpdateModel.id = model.id;
+    preOrderUpdateModel.orderSerial = model.orderSerial;
+    preOrderUpdateModel.status = OrderModel.STATUS_SUCCESS;
+
+    const [preOrderUpdateError] = await this.#orderRepository.update(preOrderUpdateModel);
+    if (preOrderUpdateError) {
+      return [preOrderUpdateError];
+    }
+
+    const addPackageModel = new PackageModel();
+    addPackageModel.userId = fetchOrderData.userId;
+    addPackageModel.username = fetchOrderData.username;
+    addPackageModel.countIp = fetchOrderData.prePackageOrderInfo.count;
+    addPackageModel.type = fetchOrderData.prePackageOrderInfo.proxyType;
+    addPackageModel.country = fetchOrderData.prePackageOrderInfo.countryCode;
+
+    const [addPackageError, addPackageData] = await this.#packageService.add(addPackageModel);
+    if (addPackageError) {
+      return [addPackageError];
+    }
+
+    const connectPackageToOrder = new OrderModel();
+    connectPackageToOrder.id = model.id;
+    connectPackageToOrder.packageId = addPackageData.id;
+
+    const [connectPackageToOrderError] = await this.#orderRepository.update(connectPackageToOrder);
+    if (connectPackageToOrderError) {
+      console.error(`Error in connect order "${model.id}" to package "${addPackageModel.id}"`);
+    }
+
+    return [null, addPackageData];
   }
 }
 

@@ -39,6 +39,10 @@ class FindClusterPackageService extends IPackageService {
     this.#currentInstanceIp = currentInstanceIp;
   }
 
+  async getById(id) {
+    return this.#packageService.getById(id);
+  }
+
   async getAllByUsername(username, filterModel) {
     const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
     if (errorAllServer) {
