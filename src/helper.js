@@ -3,6 +3,9 @@
  */
 
 const sinon = require('sinon');
+const IDateTime = require("./core/interface/iDateTime");
+const IIdentifierGenerator = require("./core/interface/iIdentifierGenerator");
+const ProductPgRepository = require("./infrastructure/database/productPgRepository");
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -891,6 +894,29 @@ function fakeOrderService() {
   };
 }
 
+function fakeOrderPgRepository() {
+  const IDateTime = require('~src/core/interface/iDateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const OrderPgRepository = require('~src/infrastructure/database/orderPgRepository');
+
+  const postgresDbClient = {
+    query: sinon.stub(),
+    release: sinon.stub(),
+  };
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+  postgresDb.connect = sinon.stub().resolves(postgresDbClient);
+
+  const dateTime = sinon.createStubInstance(IDateTime);
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const orderRepository = new OrderPgRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, postgresDbClient, dateTime, identifierGenerator, orderRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -939,4 +965,5 @@ module.exports = {
   fakeProductPgRepository,
   fakeOrderController,
   fakeOrderService,
+  fakeOrderPgRepository,
 };
