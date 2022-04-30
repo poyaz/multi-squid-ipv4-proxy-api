@@ -5,6 +5,7 @@
 /**
  * @property {string} id
  * @property {string} orderId
+ * @property {string} serial
  * @property {string} status
  * @property {string} subscriptionBodyData
  * @property {Date} insertDate
@@ -20,6 +21,7 @@ class SubscriptionModel {
 
   id = undefined;
   orderId = undefined;
+  serial = undefined;
   status = undefined;
   subscriptionBodyData = undefined;
   insertDate = undefined;

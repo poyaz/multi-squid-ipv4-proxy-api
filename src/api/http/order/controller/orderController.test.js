@@ -168,6 +168,7 @@ suite(`OrderController`, () => {
       const outputModel1 = new SubscriptionModel();
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.orderId = testObj.identifierGenerator.generateId();
+      outputModel1.serial = 'serial';
       outputModel1.status = SubscriptionModel.STATUS_ACTIVATED;
       outputModel1.lastSubscriptionStatus = null;
       outputModel1.insertDate = new Date();
@@ -182,6 +183,7 @@ suite(`OrderController`, () => {
       expect(result[0]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         orderId: testObj.identifierGenerator.generateId(),
+        serial: 'serial',
         status: SubscriptionModel.STATUS_ACTIVATED,
         insertDate: 'date',
       });

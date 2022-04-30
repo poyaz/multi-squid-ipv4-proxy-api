@@ -25,6 +25,7 @@ class BaseSubscriptionOutputModel {
     const obj = {};
     obj.id = model.id;
     obj.orderId = model.orderId;
+    obj.serial = model.serial;
     obj.status = model.status;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
     obj.updateDate = this._gregorianWithTimezoneString(model.updateDate);
