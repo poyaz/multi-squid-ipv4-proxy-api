@@ -52,10 +52,12 @@ suite(`OrderPgRepository`, () => {
     testObj.identifierGenerator3 = helper.fakeIdentifierGenerator('id-3');
 
     testObj.fillModelSpy = sinon.spy(testObj.orderRepository, '_fillModel');
+    testObj.fillSubscriptionModelSpy = sinon.spy(testObj.orderRepository, '_fillSubscriptionModel');
   });
 
   teardown(() => {
     testObj.fillModelSpy.restore();
+    testObj.fillSubscriptionModelSpy.restore();
   });
 
   suite(`Get order by id`, () => {
@@ -73,7 +75,7 @@ suite(`OrderPgRepository`, () => {
       expect(error).to.have.property('errorInfo', queryError);
     });
 
-    test(`Should successfully get by id and return null`, async () => {
+    test(`Should successfully get order by id and return null`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const fetchQuery = {
         get rowCount() {
@@ -93,7 +95,7 @@ suite(`OrderPgRepository`, () => {
       expect(result).to.be.a('null');
     });
 
-    test(`Should successfully get by id and return null`, async () => {
+    test(`Should successfully get order by id and return null`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const fetchQuery = {
         get rowCount() {
@@ -235,6 +237,77 @@ suite(`OrderPgRepository`, () => {
         count: 3,
         proxyType: 'isp',
         countryCode: 'GB',
+      });
+    });
+  });
+
+  suite(`Get subscription order by id`, () => {
+    test(`Should error get subscription order by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.orderRepository.getSubscriptionById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get subscription order by id and return null`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.orderRepository.getSubscriptionById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillSubscriptionModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('null');
+    });
+
+    test(`Should successfully get subscription order by id and return null`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              order_id: testObj.identifierGenerator1.generateId(),
+              status: SubscriptionModel.STATUS_ACTIVATED,
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.orderRepository.getSubscriptionById(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillSubscriptionModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(SubscriptionModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        orderId: testObj.identifierGenerator1.generateId(),
+        status: SubscriptionModel.STATUS_ACTIVATED,
+        insertDate: 'date',
+        updateDate: null,
       });
     });
   });

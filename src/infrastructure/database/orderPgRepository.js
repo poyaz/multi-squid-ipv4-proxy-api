@@ -134,6 +134,31 @@ class OrderPgRepository extends IOrderRepository {
     }
   }
 
+  async getSubscriptionById(subscriptionId) {
+    const getByIdQuery = {
+      text: singleLine`
+          SELECT s.*
+          FROM public.subscription s
+          WHERE s.delete_date ISNULL
+            AND s.id = $1
+      `,
+      values: [subscriptionId],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(getByIdQuery);
+      if (rowCount === 0) {
+        return [null, null];
+      }
+
+      const result = this._fillSubscriptionModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new OrderModel();
     model.id = row['id'];
@@ -150,6 +175,19 @@ class OrderPgRepository extends IOrderRepository {
       proxyType: row['package_proxy_type'],
       countryCode: row['package_country_code'],
     };
+    model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
+    model.updateDate = row['update_date']
+      ? this.#dateTime.gregorianDateWithTimezone(row['update_date'])
+      : null;
+
+    return model;
+  }
+
+  _fillSubscriptionModel(row) {
+    const model = new SubscriptionModel();
+    model.id = row['id'];
+    model.orderId = row['order_id'];
+    model.status = row['status'];
     model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
     model.updateDate = row['update_date']
       ? this.#dateTime.gregorianDateWithTimezone(row['update_date'])
