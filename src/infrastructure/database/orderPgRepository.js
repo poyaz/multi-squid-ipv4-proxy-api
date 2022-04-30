@@ -223,6 +223,30 @@ class OrderPgRepository extends IOrderRepository {
     }
   }
 
+  async addSubscription(model) {
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.subscription (id, order_id, serial, status, body, insert_date)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING *
+      `,
+      values: [id, model.orderId, model.serial, model.status, model.subscriptionBodyData, now],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = this._fillSubscriptionModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new OrderModel();
     model.id = row['id'];

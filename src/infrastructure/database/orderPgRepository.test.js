@@ -402,6 +402,7 @@ suite(`OrderPgRepository`, () => {
 
       testObj.inputModel = inputModel;
     });
+
     test(`Should error add new order in database`, async () => {
       const inputModel = testObj.inputModel;
       testObj.identifierGeneratorSystem.generateId.returns(
@@ -495,6 +496,89 @@ suite(`OrderPgRepository`, () => {
         count: 3,
         proxyType: 'isp',
         countryCode: 'GB',
+      });
+    });
+  });
+
+  suite(`Add new order subscription`, () => {
+    setup(() => {
+      const inputModel = new SubscriptionModel();
+      inputModel.orderId = testObj.identifierGenerator1.generateId();
+      inputModel.serial = 'serial';
+      inputModel.status = SubscriptionModel.STATUS_ACTIVATED;
+      inputModel.subscriptionBodyData = '{}';
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add new order subscription in database`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.orderRepository.addSubscription(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully add new order subscription in database`, async () => {
+      const inputModel = testObj.inputModel;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              order_id: testObj.identifierGenerator1.generateId(),
+              status: SubscriptionModel.STATUS_ACTIVATED,
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+            },
+          ];
+        },
+      };
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.dateTime.gregorianCurrentDateWithTimezoneString.returns('date');
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.orderRepository.addSubscription(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .deepEquals([
+              testObj.identifierGenerator.generateId(),
+              testObj.identifierGenerator1.generateId(),
+              'serial',
+              SubscriptionModel.STATUS_ACTIVATED,
+              '{}',
+              'date',
+            ])
+            .and(sinon.match.has('length', 6)),
+        ),
+      );
+      testObj.fillSubscriptionModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(SubscriptionModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        orderId: testObj.identifierGenerator1.generateId(),
+        status: SubscriptionModel.STATUS_ACTIVATED,
+        insertDate: 'date',
+        updateDate: null,
       });
     });
   });
