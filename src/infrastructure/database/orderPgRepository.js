@@ -204,7 +204,7 @@ class OrderPgRepository extends IOrderRepository {
         model.orderBodyData,
         model.prePackageOrderInfo.count,
         model.prePackageOrderInfo.proxyType,
-        model.prePackageOrderInfo.countryCode,
+        model.prePackageOrderInfo.countryCode.toUpperCase(),
         now,
       ],
     };
@@ -266,6 +266,10 @@ class OrderPgRepository extends IOrderRepository {
     if (typeof model.status !== 'undefined') {
       params.push(model.status);
       columns.push(`status = $${params.length}`);
+    }
+    if (typeof model.orderBodyData !== 'undefined') {
+      params.push(model.orderBodyData);
+      columns.push(`body = $${params.length}`);
     }
 
     if (columns.length === 0) {
