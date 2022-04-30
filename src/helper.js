@@ -3,9 +3,6 @@
  */
 
 const sinon = require('sinon');
-const IDateTime = require("./core/interface/iDateTime");
-const IIdentifierGenerator = require("./core/interface/iIdentifierGenerator");
-const ProductPgRepository = require("./infrastructure/database/productPgRepository");
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -917,6 +914,22 @@ function fakeOrderPgRepository() {
   return { postgresDb, postgresDbClient, dateTime, identifierGenerator, orderRepository };
 }
 
+function fakeOrderFastspringApiRepository() {
+  const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
+
+  const orderRepository = sinon.createStubInstance(IOrderRepository);
+
+  const orderFastspringApiRepository = new OrderFastspringApiRepository(
+    orderRepository,
+    'username',
+    'password',
+    'https://example.com',
+  );
+
+  return { orderRepository, orderFastspringApiRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -966,4 +979,5 @@ module.exports = {
   fakeOrderController,
   fakeOrderService,
   fakeOrderPgRepository,
+  fakeOrderFastspringApiRepository,
 };
