@@ -383,4 +383,119 @@ suite(`OrderPgRepository`, () => {
       });
     });
   });
+
+  suite(`Add new order`, () => {
+    setup(() => {
+      const inputModel = new OrderModel();
+      inputModel.userId = testObj.identifierGenerator1.generateId();
+      inputModel.productId = testObj.identifierGenerator2.generateId();
+      inputModel.packageId = testObj.identifierGenerator3.generateId();
+      inputModel.orderSerial = 'orderSerial';
+      inputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputModel.status = OrderModel.STATUS_SUCCESS;
+      inputModel.prePackageOrderInfo = {
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'GB',
+      };
+      inputModel.orderBodyData = '{}';
+
+      testObj.inputModel = inputModel;
+    });
+    test(`Should error add new order in database`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.orderRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully add new order in database`, async () => {
+      const inputModel = testObj.inputModel;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              user_id: testObj.identifierGenerator1.generateId(),
+              username: 'user',
+              product_id: testObj.identifierGenerator2.generateId(),
+              package_id: testObj.identifierGenerator3.generateId(),
+              serial: 'orderSerial',
+              service_name: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              status: OrderModel.STATUS_SUCCESS,
+              last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
+              package_count: 3,
+              package_proxy_type: 'isp',
+              package_country_code: 'GB',
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+            },
+          ];
+        },
+      };
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.dateTime.gregorianCurrentDateWithTimezoneString.returns('date');
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.orderRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .deepEquals([
+              testObj.identifierGenerator.generateId(),
+              testObj.identifierGenerator1.generateId(),
+              testObj.identifierGenerator2.generateId(),
+              testObj.identifierGenerator3.generateId(),
+              'orderSerial',
+              ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              OrderModel.STATUS_SUCCESS,
+              '{}',
+              3,
+              'isp',
+              'GB',
+              'date',
+            ])
+            .and(sinon.match.has('length', 12)),
+        ),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(OrderModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator1.generateId(),
+        productId: testObj.identifierGenerator2.generateId(),
+        packageId: testObj.identifierGenerator3.generateId(),
+        username: 'user',
+        orderSerial: 'orderSerial',
+        serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        status: OrderModel.STATUS_SUCCESS,
+        lastSubscriptionStatus: SubscriptionModel.STATUS_ACTIVATED,
+        insertDate: 'date',
+      });
+      expect(result.prePackageOrderInfo).to.be.includes({
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'GB',
+      });
+    });
+  });
 });

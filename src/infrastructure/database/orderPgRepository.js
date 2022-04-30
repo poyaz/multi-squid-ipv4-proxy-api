@@ -184,6 +184,45 @@ class OrderPgRepository extends IOrderRepository {
     }
   }
 
+  async add(model) {
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.orders (id, user_id, product_id, package_id, serial, service_name,
+                                     status, body, package_count, package_proxy_type,
+                                     package_country_code, insert_date)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          RETURNING *
+      `,
+      values: [
+        id,
+        model.userId,
+        model.productId,
+        model.packageId,
+        model.orderSerial,
+        model.serviceName,
+        model.status,
+        model.orderBodyData,
+        model.prePackageOrderInfo.count,
+        model.prePackageOrderInfo.proxyType,
+        model.prePackageOrderInfo.countryCode,
+        now,
+      ],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new OrderModel();
     model.id = row['id'];
