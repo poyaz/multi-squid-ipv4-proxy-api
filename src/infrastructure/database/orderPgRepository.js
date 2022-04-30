@@ -3,11 +3,8 @@ const IOrderRepository = require('~src/core/interface/iOrderRepository');
 
 const OrderModel = require('~src/core/model/orderModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
-const AlreadyExistException = require('~src/core/exception/alreadyExistException');
 const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
-const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
-const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 class OrderPgRepository extends IOrderRepository {
