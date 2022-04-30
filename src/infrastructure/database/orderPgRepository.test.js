@@ -165,7 +165,7 @@ suite(`OrderPgRepository`, () => {
       expect(error).to.have.property('errorInfo', queryError);
     });
 
-    test(`Should successfully get by id and return empty data`, async () => {
+    test(`Should successfully get all order and return empty data`, async () => {
       const inputFilter = new OrderModel();
       const fetchQuery = {
         get rowCount() {
@@ -185,7 +185,7 @@ suite(`OrderPgRepository`, () => {
       expect(result).to.be.length(0);
     });
 
-    test(`Should successfully get by id and return null`, async () => {
+    test(`Should successfully get all order and return null`, async () => {
       const inputFilter = new OrderModel();
       const fetchQuery = {
         get rowCount() {
@@ -303,6 +303,78 @@ suite(`OrderPgRepository`, () => {
       testObj.fillSubscriptionModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.instanceOf(SubscriptionModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        orderId: testObj.identifierGenerator1.generateId(),
+        status: SubscriptionModel.STATUS_ACTIVATED,
+        insertDate: 'date',
+        updateDate: null,
+      });
+    });
+  });
+
+  suite(`Get all subscription order by order id`, () => {
+    test(`Should error get all subscription order by order id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.orderRepository.getAllSubscriptionByOrderId(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get all subscription order by order id and return empty data`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.orderRepository.getAllSubscriptionByOrderId(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillSubscriptionModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should successfully get all subscription order by order id and return null`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              order_id: testObj.identifierGenerator1.generateId(),
+              status: SubscriptionModel.STATUS_ACTIVATED,
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.orderRepository.getAllSubscriptionByOrderId(inputId);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillSubscriptionModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.instanceOf(SubscriptionModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         orderId: testObj.identifierGenerator1.generateId(),
         status: SubscriptionModel.STATUS_ACTIVATED,

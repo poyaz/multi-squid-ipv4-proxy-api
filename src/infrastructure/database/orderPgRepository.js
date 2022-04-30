@@ -159,6 +159,31 @@ class OrderPgRepository extends IOrderRepository {
     }
   }
 
+  async getAllSubscriptionByOrderId(orderId) {
+    const getByIdQuery = {
+      text: singleLine`
+          SELECT s.*
+          FROM public.subscription s
+          WHERE s.delete_date ISNULL
+            AND s.order_id = $1
+      `,
+      values: [orderId],
+    };
+
+    try {
+      const { rowCount, rows } = await this.#db.query(getByIdQuery);
+      if (rowCount === 0) {
+        return [null, []];
+      }
+
+      const result = rows.map((v) => this._fillSubscriptionModel(v));
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   _fillModel(row) {
     const model = new OrderModel();
     model.id = row['id'];
