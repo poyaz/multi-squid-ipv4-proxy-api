@@ -1,4 +1,4 @@
-const {singleLine} = require('~src/utility');
+const { singleLine } = require('~src/utility');
 const IOrderRepository = require('~src/core/interface/iOrderRepository');
 
 const OrderModel = require('~src/core/model/orderModel');
@@ -57,7 +57,7 @@ class OrderPgRepository extends IOrderRepository {
                  o.package_country_code,
                  o.insert_date,
                  o.update_date
-          FROM public.order o
+          FROM public.orders o
                    INNER JOIN public.users u ON o.user_id = u.id
           WHERE o.delete_date ISNULL
             AND u.delete_date ISNULL
@@ -67,12 +67,66 @@ class OrderPgRepository extends IOrderRepository {
     };
 
     try {
-      const {rowCount, rows} = await this.#db.query(getByIdQuery);
+      const { rowCount, rows } = await this.#db.query(getByIdQuery);
       if (rowCount === 0) {
         return [null, null];
       }
 
       const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
+  async getAll(filterModel) {
+    const filterConditions = [];
+    const getAllQuery = {
+      text: singleLine`
+          SELECT o.id,
+                 o.user_id,
+                 u.username,
+                 o.product_id,
+                 o.package_id,
+                 o.serial,
+                 o.service_name,
+                 o.status,
+                 (SELECT status
+                  FROM public.subscription s
+                  WHERE o.id = s.order_id
+                    AND s.delete_date ISNULL
+                  ORDER BY s.insert_date DESC
+                  limit 1) AS last_subscription_status,
+                 o.package_count,
+                 o.package_proxy_type,
+                 o.package_country_code,
+                 o.insert_date,
+                 o.update_date
+          FROM public.orders o
+                   INNER JOIN public.users u ON o.user_id = u.id
+          WHERE o.delete_date ISNULL
+            AND u.delete_date ISNULL
+      `,
+      values: [],
+    };
+
+    if (typeof filterModel.orderSerial !== 'undefined') {
+      getAllQuery.values.push(filterModel.orderSerial);
+      filterConditions.push(`serial = $${getAllQuery.values.length}`);
+    }
+
+    if (filterConditions.length > 0) {
+      getAllQuery.text += ` AND ${filterConditions.join(' AND ')}`;
+    }
+
+    try {
+      const { rowCount, rows } = await this.#db.query(getAllQuery);
+      if (rowCount === 0) {
+        return [null, []];
+      }
+
+      const result = rows.map((v) => this._fillModel(v));
 
       return [null, result];
     } catch (error) {

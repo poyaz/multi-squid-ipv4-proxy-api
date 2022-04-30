@@ -18,7 +18,6 @@ const DatabaseExecuteException = require('~src/core/exception/databaseExecuteExc
 const DatabaseRollbackException = require('~src/core/exception/databaseRollbackException');
 const DatabaseConnectionException = require('~src/core/exception/databaseConnectionException');
 const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
-const ProductModel = require("../../core/model/productModel");
 
 chai.should();
 chai.use(dirtyChai);
@@ -142,6 +141,97 @@ suite(`OrderPgRepository`, () => {
         insertDate: 'date',
       });
       expect(result.prePackageOrderInfo).to.be.includes({
+        count: 3,
+        proxyType: 'isp',
+        countryCode: 'GB',
+      });
+    });
+  });
+
+  suite(`Get all order`, () => {
+    test(`Should error get all order`, async () => {
+      const inputFilter = new OrderModel();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.orderRepository.getAll(inputFilter);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully get by id and return empty data`, async () => {
+      const inputFilter = new OrderModel();
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.orderRepository.getAll(inputFilter);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should successfully get by id and return null`, async () => {
+      const inputFilter = new OrderModel();
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              user_id: testObj.identifierGenerator1.generateId(),
+              username: 'user',
+              product_id: testObj.identifierGenerator2.generateId(),
+              package_id: testObj.identifierGenerator3.generateId(),
+              serial: 'orderSerial',
+              service_name: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              status: OrderModel.STATUS_SUCCESS,
+              last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
+              package_count: 3,
+              package_proxy_type: 'isp',
+              package_country_code: 'GB',
+              insert_date: '2021-08-23 13:37:50',
+              update_date: null,
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.orderRepository.getAll(inputFilter);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.instanceOf(OrderModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        userId: testObj.identifierGenerator1.generateId(),
+        productId: testObj.identifierGenerator2.generateId(),
+        packageId: testObj.identifierGenerator3.generateId(),
+        username: 'user',
+        orderSerial: 'orderSerial',
+        serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        status: OrderModel.STATUS_SUCCESS,
+        lastSubscriptionStatus: SubscriptionModel.STATUS_ACTIVATED,
+        insertDate: 'date',
+      });
+      expect(result[0].prePackageOrderInfo).to.be.includes({
         count: 3,
         proxyType: 'isp',
         countryCode: 'GB',
