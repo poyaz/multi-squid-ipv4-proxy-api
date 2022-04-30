@@ -582,4 +582,57 @@ suite(`OrderPgRepository`, () => {
       });
     });
   });
+
+  suite(`Update order`, () => {
+    test(`Should error update order when model id not found`, async () => {
+      const inputModel = new OrderModel();
+
+      const [error] = await testObj.orderRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update order when model property not set`, async () => {
+      const inputModel = new OrderModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.orderRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update order when execute query`, async () => {
+      const inputModel = new OrderModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.status = SubscriptionModel.STATUS_ACTIVATED;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.orderRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully update order`, async () => {
+      const inputModel = new OrderModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.status = SubscriptionModel.STATUS_ACTIVATED;
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.orderRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
 });
