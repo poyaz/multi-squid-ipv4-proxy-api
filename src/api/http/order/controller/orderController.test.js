@@ -30,12 +30,15 @@ suite(`OrderController`, () => {
     testObj.req = new createRequest();
     testObj.res = new createResponse();
 
-    const { orderService, dateTime, orderController } = helper.fakeOrderController(
-      testObj.req,
-      testObj.res,
-    );
+    const {
+      orderService,
+      orderParserService,
+      dateTime,
+      orderController,
+    } = helper.fakeOrderController(testObj.req, testObj.res);
 
     testObj.orderService = orderService;
+    testObj.orderParserService = orderParserService;
     testObj.dateTime = dateTime;
     testObj.orderController = orderController;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
@@ -359,6 +362,34 @@ suite(`OrderController`, () => {
         port: 8080,
       });
       expect(result.expireDate).to.be.a('null');
+    });
+  });
+
+  suite(`Process order`, () => {
+    test(`Should error process order`, async () => {
+      testObj.req.params = { paymentService: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING };
+      testObj.req.body = { events: [] };
+      testObj.orderParserService.parse.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderController.processOrder();
+
+      testObj.orderParserService.parse.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully process order`, async () => {
+      testObj.req.params = { paymentService: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING };
+      testObj.req.body = { events: [] };
+      testObj.orderParserService.parse.resolves([null]);
+
+      const [error] = await testObj.orderController.processOrder();
+
+      testObj.orderParserService.parse.should.have.callCount(1);
+      testObj.orderParserService.parse.should.have.calledWith(
+        sinon.match(testObj.req.params.paymentService),
+        sinon.match(testObj.req.body),
+      );
+      expect(error).to.be.a('null');
     });
   });
 });

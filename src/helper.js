@@ -857,17 +857,20 @@ function fakeProductPgRepository() {
 
 function fakeOrderController(req, res) {
   const IOrderService = require('~src/core/interface/iOrderService');
+  const IOrderParserService = require('~src/core/interface/iOrderParserService');
   const IDateTime = require('~src/core/interface/iDateTime');
   const OrderController = require('~src/api/http/order/controller/orderController');
 
   const orderService = sinon.createStubInstance(IOrderService);
+  const orderParserService = sinon.createStubInstance(IOrderParserService);
 
   const dateTime = sinon.createStubInstance(IDateTime);
 
-  const orderController = new OrderController(req, res, orderService, dateTime);
+  const orderController = new OrderController(req, res, orderService, orderParserService, dateTime);
 
   return {
     orderService,
+    orderParserService,
     dateTime,
     orderController,
   };

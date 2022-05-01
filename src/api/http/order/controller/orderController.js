@@ -18,6 +18,10 @@ class OrderController {
    */
   #orderService;
   /**
+   * @type {IOrderParserService}
+   */
+  #fastspringOrderParse;
+  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -27,12 +31,14 @@ class OrderController {
    * @param req
    * @param res
    * @param {IOrderService} orderService
+   * @param {IOrderParserService} fastspringOrderParse
    * @param {IDateTime} dateTime
    */
-  constructor(req, res, orderService, dateTime) {
+  constructor(req, res, orderService, fastspringOrderParse, dateTime) {
     this.#req = req;
     this.#res = res;
     this.#orderService = orderService;
+    this.#fastspringOrderParse = fastspringOrderParse;
     this.#dateTime = dateTime;
   }
 
@@ -117,6 +123,18 @@ class OrderController {
     const result = verifyOrderPackageOutputModel.getOutput(data);
 
     return [null, result];
+  }
+
+  async processOrder() {
+    const { paymentService } = this.#req.params;
+    const body = this.#req.body;
+
+    const [error] = await this.#fastspringOrderParse.parse(paymentService, body);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
   }
 }
 
