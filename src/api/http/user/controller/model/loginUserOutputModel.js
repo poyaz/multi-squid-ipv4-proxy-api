@@ -19,7 +19,7 @@ class LoginUserOutputModel {
    * @return {{}}
    */
   getOutput(model) {
-    const data = { id: model.id, role: 'user' };
+    const data = { id: model.id, username: model.username, role: 'user' };
 
     const obj = {};
     obj.token = this.#jwt.sign(data);

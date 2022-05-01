@@ -19,7 +19,7 @@ class LoginExternalUserOutputModel {
    * @return {{}}
    */
   getOutput(model) {
-    const data = { id: model.id, role: 'user', type: 'external' };
+    const data = { id: model.id, username: model.username, role: 'user', type: 'external' };
 
     const obj = {};
     obj.token = this.#jwt.sign(data);
