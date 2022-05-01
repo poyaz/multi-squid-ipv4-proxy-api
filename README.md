@@ -201,7 +201,7 @@ For generate new IP address you should use this API. If your ip range exist, thi
 
 * Method: `POST`
 * URL: `api/v1/proxy/generate`
-* Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>"}`
+* Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>", "type": "<proxy-type>", "country": "<proxy-country>"}`
 * Authorized type: `admin`
 
 ### Body format
@@ -210,6 +210,8 @@ For generate new IP address you should use this API. If your ip range exist, thi
 * `mask` number mask ip between 1 and 32 (Example: **22** or 24 or **32**)
 * `gateway` string ip (Example: **192.168.1.0** or **10.10.10.224**)
 * `interface` string (Example: **ens18**)
+* `type` string
+* `country` string valid 2-alpha country code
 
 ```bash
 curl \
@@ -217,7 +219,7 @@ curl \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/proxy/generate' \
-  -d '{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>"}'
+  -d '{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>", "type": "<proxy-type>", "country": "<proxy-country>"}'
 ```
 
 ### Example:
@@ -228,7 +230,7 @@ curl \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/proxy/generate' \
-    -d '{"ip": "192.168.1.1", "mask": 24, "gateway": "192.168.1.224", "interface": "ens192"}'
+    -d '{"ip": "192.168.1.1", "mask": 24, "gateway": "192.168.1.224", "interface": "ens192", "type": "isp", "country": "GB"}'
 ```
 
 ### Output:
@@ -1703,5 +1705,336 @@ curl \
 {
   "status": "success",
   "data": "http://oauth-platform-url"
+}
+```
+
+## Get user orders (user access)
+
+This API use for a get all order user has been purchased
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/user/:userId/order`
+* Authorized type: `user`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/user/:userId/order'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/user/5cda4022-2278-4515-80c9-7191de5244a5/order'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "d83141f5-5301-4ec1-af44-ce5b5c2d2c0d",
+      "userId": "5cda4022-2278-4515-80c9-7191de5244a5",
+      "productId": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+      "packageId": null,
+      "username": "user",
+      "orderSerial": null,
+      "serviceName": "fastspring",
+      "status": null,
+      "lastSubscriptionStatus": null,
+      "prePackageOrderInfo": {
+        "count": 1,
+        "expireDay": 30,
+        "proxyType": "isp",
+        "countryCode": "GB"
+      },
+      "insertDate": "2022-05-01 13:15:21",
+      "updateDate": null
+    }
+  ]
+}
+```
+
+## Get user orders (admin access)
+
+This API use for a get all order user has been purchased
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/order`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/order'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/order'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "totalItem": 1,
+  "data": [
+    {
+      "id": "d83141f5-5301-4ec1-af44-ce5b5c2d2c0d",
+      "userId": "5cda4022-2278-4515-80c9-7191de5244a5",
+      "productId": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+      "packageId": null,
+      "username": "user",
+      "orderSerial": null,
+      "serviceName": "fastspring",
+      "status": null,
+      "lastSubscriptionStatus": null,
+      "prePackageOrderInfo": {
+        "count": 1,
+        "expireDay": 30,
+        "proxyType": "isp",
+        "countryCode": "GB"
+      },
+      "insertDate": "2022-05-01 13:15:21",
+      "updateDate": null
+    }
+  ]
+}
+```
+
+## Get list of user's subscription for order (user access)
+
+This API use for a get all user's subscription for order
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/user/:userId/order/:orderId/subscription`
+* Authorized type: `user`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/user/:userId/order/:orderId/subscription'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/user/5cda4022-2278-4515-80c9-7191de5244a5/order/ec7c5690-c008-4c13-bf52-ba0bbff06fb0/subscription'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "totalItem": 1,
+  "data": [
+    {
+      "id": "5315b5d3-4a40-4760-acd7-006c5f92eb3a",
+      "orderId": "a0196e90-041b-4470-a6b9-70ce2f987c3f",
+      "status": "activated",
+      "insertDate": "2022-05-01 18:52:30",
+      "updateDate": null
+    }
+  ]
+}
+```
+
+## Get list of user's subscription for order (admin access)
+
+This API use for a get all user's subscription for order
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/order/:orderId/subscription`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/order/:orderId/subscription'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/order/ec7c5690-c008-4c13-bf52-ba0bbff06fb0/subscription'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "totalItem": 1,
+  "data": [
+    {
+      "id": "5315b5d3-4a40-4760-acd7-006c5f92eb3a",
+      "orderId": "a0196e90-041b-4470-a6b9-70ce2f987c3f",
+      "status": "activated",
+      "insertDate": "2022-05-01 18:52:30",
+      "updateDate": null
+    }
+  ]
+}
+```
+
+## Create order for user
+
+This API use for create new order for user
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/user/:userId/order`
+* Body: `{"productId": "<product-id>", "serviceName": "<service-name>", "prePackageOrderInfo": {"proxyType": "<proxy-type>", "countryCode": "<proxy-country-code>"}}`
+* Authorized type: `user`
+
+### Body format
+
+* `productId` string the id of product
+* `serviceName` string with payment service (In this case we use **fastspring**)
+* `prePackageOrderInfo` object
+  * `proxyType` string with type of proxy
+  * `countryCode` string with valid 2-alpha country code
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  '<your-hostname-or-ip>/api/v1/user/:userId/order' \
+  -d '{"productId": "<product-id>", "serviceName": "<service-name>", "prePackageOrderInfo": {"proxyType": "<proxy-type>", "countryCode": "<proxy-country-code>"}}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    '<your-hostname-or-ip>/api/v1/user/5cda4022-2278-4515-80c9-7191de5244a5/order'
+    -d '{"productId": "5286ad0c-8b00-4684-938a-861526cfbcfb", "serviceName": "fastspring", "prePackageOrderInfo": {"proxyType": "isp", "countryCode": "GB"}}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "id": "d83141f5-5301-4ec1-af44-ce5b5c2d2c0d",
+    "userId": "5cda4022-2278-4515-80c9-7191de5244a5",
+    "productId": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+    "packageId": null,
+    "username": "user",
+    "orderSerial": null,
+    "serviceName": "fastspring",
+    "status": null,
+    "lastSubscriptionStatus": null,
+    "prePackageOrderInfo": {
+      "count": 1,
+      "expireDay": 30,
+      "proxyType": "isp",
+      "countryCode": "GB"
+    },
+    "insertDate": "2022-05-01 13:15:21",
+    "updateDate": null
+  }
+}
+```
+
+## Verify user's order
+
+This API use for create new order for user
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/order/:orderId/package`
+* Body: `{"orderSerial": "<order-serial>"}`
+* Authorized type: `user`
+
+### Body format
+
+* `orderSerial` string the order serial of user's purchased
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  '<your-hostname-or-ip>/api/v1/order/:orderId/package' \
+  -d '{"orderSerial": "<order-serial>"}'
+```
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    '<your-hostname-or-ip>/api/v1/order/a0196e90-041b-4470-a6b9-70ce2f987c3f/package'
+    -d '{"orderSerial": "8EHE6LslRtqdcet092cM5g"}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "id": "ddb9f970-d722-4d7c-a636-0b4985cc075f",
+    "userId": "5cda4022-2278-4515-80c9-7191de5244a5",
+    "username": "user",
+    "password": "password",
+    "countIp": 1,
+    "type": "isp",
+    "country": "GB",
+    "ipList": [
+      {
+        "ip": "10.102.0.19",
+        "port": 3128
+      }
+    ],
+    "status": "enable",
+    "insertDate": "2022-05-01 13:56:44",
+    "updateDate": null,
+    "expireDate": null
+  }
 }
 ```
