@@ -27,6 +27,7 @@ class BaseOrderOutputModel {
     obj.userId = model.userId;
     obj.productId = model.productId;
     obj.packageId = typeof model.packageId === 'undefined' ? null : model.packageId;
+    obj.username = model.username;
     obj.orderSerial = model.orderSerial;
     obj.serviceName = model.serviceName;
     obj.status = model.status;

@@ -50,6 +50,7 @@ class OrderPgRepository extends IOrderRepository {
                   ORDER BY s.insert_date DESC
                   limit 1) AS last_subscription_status,
                  o.package_count,
+                 o.package_proxy_day,
                  o.package_proxy_type,
                  o.package_country_code,
                  o.insert_date,
@@ -96,6 +97,7 @@ class OrderPgRepository extends IOrderRepository {
                   ORDER BY s.insert_date DESC
                   limit 1) AS last_subscription_status,
                  o.package_count,
+                 o.package_proxy_day,
                  o.package_proxy_type,
                  o.package_country_code,
                  o.insert_date,
@@ -188,10 +190,11 @@ class OrderPgRepository extends IOrderRepository {
     const addQuery = {
       text: singleLine`
           INSERT INTO public.orders (id, user_id, product_id, package_id, serial, service_name,
-                                     status, body, package_count, package_proxy_type,
+                                     status, body, package_count, package_proxy_day,
+                                     package_proxy_type,
                                      package_country_code, insert_date)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-          RETURNING *
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          RETURNING *, (SELECT username FROM public.users u WHERE u.id = user_id) AS username
       `,
       values: [
         id,
@@ -203,6 +206,7 @@ class OrderPgRepository extends IOrderRepository {
         model.status,
         model.orderBodyData,
         model.prePackageOrderInfo.count,
+        model.prePackageOrderInfo.expireDay,
         model.prePackageOrderInfo.proxyType,
         model.prePackageOrderInfo.countryCode.toUpperCase(),
         now,
@@ -311,6 +315,7 @@ class OrderPgRepository extends IOrderRepository {
     model.lastSubscriptionStatus = row['last_subscription_status'];
     model.prePackageOrderInfo = {
       count: row['package_count'],
+      expireDay: row['package_proxy_day'],
       proxyType: row['package_proxy_type'],
       countryCode: row['package_country_code'],
     };

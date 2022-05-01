@@ -111,6 +111,7 @@ suite(`OrderPgRepository`, () => {
               status: OrderModel.STATUS_SUCCESS,
               last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
               package_count: 3,
+              package_proxy_day: 30,
               package_proxy_type: 'isp',
               package_country_code: 'GB',
               insert_date: '2021-08-23 13:37:50',
@@ -141,6 +142,7 @@ suite(`OrderPgRepository`, () => {
       });
       expect(result.prePackageOrderInfo).to.be.includes({
         count: 3,
+        expireDay: 30,
         proxyType: 'isp',
         countryCode: 'GB',
       });
@@ -201,6 +203,7 @@ suite(`OrderPgRepository`, () => {
               status: OrderModel.STATUS_SUCCESS,
               last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
               package_count: 3,
+              package_proxy_day: 30,
               package_proxy_type: 'isp',
               package_country_code: 'GB',
               insert_date: '2021-08-23 13:37:50',
@@ -232,6 +235,7 @@ suite(`OrderPgRepository`, () => {
       });
       expect(result[0].prePackageOrderInfo).to.be.includes({
         count: 3,
+        expireDay: 30,
         proxyType: 'isp',
         countryCode: 'GB',
       });
@@ -392,6 +396,7 @@ suite(`OrderPgRepository`, () => {
       inputModel.status = OrderModel.STATUS_SUCCESS;
       inputModel.prePackageOrderInfo = {
         count: 3,
+        expireDay: 30,
         proxyType: 'isp',
         countryCode: 'GB',
       };
@@ -436,6 +441,7 @@ suite(`OrderPgRepository`, () => {
               status: OrderModel.STATUS_SUCCESS,
               last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
               package_count: 3,
+              package_proxy_day: 30,
               package_proxy_type: 'isp',
               package_country_code: 'GB',
               insert_date: '2021-08-23 13:37:50',
@@ -468,11 +474,12 @@ suite(`OrderPgRepository`, () => {
               OrderModel.STATUS_SUCCESS,
               '{}',
               3,
+              30,
               'isp',
               'GB',
               'date',
             ])
-            .and(sinon.match.has('length', 12)),
+            .and(sinon.match.has('length', 13)),
         ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
@@ -491,6 +498,7 @@ suite(`OrderPgRepository`, () => {
       });
       expect(result.prePackageOrderInfo).to.be.includes({
         count: 3,
+        expireDay: 30,
         proxyType: 'isp',
         countryCode: 'GB',
       });
