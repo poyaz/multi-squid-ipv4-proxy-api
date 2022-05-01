@@ -10,6 +10,10 @@ class OrderControllerFactory {
    */
   #orderService;
   /**
+   * @type {IOrderParserService}
+   */
+  #fastspringOrderParse;
+  /**
    * @type {IDateTime}
    */
   #dateTime;
@@ -17,10 +21,12 @@ class OrderControllerFactory {
   /**
    *
    * @param {IOrderService} orderService
+   * @param {IOrderParserService} fastspringOrderParse
    * @param {IDateTime} dateTime
    */
-  constructor(orderService, dateTime) {
+  constructor(orderService, fastspringOrderParse, dateTime) {
     this.#orderService = orderService;
+    this.#fastspringOrderParse = fastspringOrderParse;
     this.#dateTime = dateTime;
   }
 
@@ -31,7 +37,13 @@ class OrderControllerFactory {
    * @return {OrderController}
    */
   create(req, res) {
-    return new OrderController(req, res, this.#orderService, this.#dateTime);
+    return new OrderController(
+      req,
+      res,
+      this.#orderService,
+      this.#fastspringOrderParse,
+      this.#dateTime,
+    );
   }
 }
 

@@ -37,6 +37,7 @@ const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApi
 const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
 
 const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
+const FastspringOrderParse = require('~src/core/service/fastspringOrderParse');
 const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
 const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
 const FindClusterServerService = require('~src/core/service/findClusterServerService');
@@ -181,7 +182,9 @@ class Loader {
       this._config.getStr('custom.payment.service.fastspring.apiAddress'),
     );
 
-    const orderRepository = this._config.getBool('custom.payment.enable') ? orderFastspringApiRepository : orderPgRepository;
+    const orderRepository = this._config.getBool('custom.payment.enable')
+      ? orderFastspringApiRepository
+      : orderPgRepository;
 
     // Service
     // -------
@@ -254,6 +257,13 @@ class Loader {
       findClusterPackageService,
       orderRepository,
     );
+    const fastspringOrderParse = new FastspringOrderParse(
+      orderService,
+      orderRepository,
+      this._config.getStr('custom.payment.service.fastspring.auth.username'),
+      this._config.getStr('custom.payment.service.fastspring.auth.password'),
+      this._config.getStr('custom.payment.service.fastspring.apiAddress'),
+    );
 
     // Controller and middleware
     // -------------------------
@@ -273,7 +283,11 @@ class Loader {
       addOrderValidation: new AddOrderValidationMiddlewareFactory(),
       verifyOrderValidation: new VerifyOrderValidationMiddlewareFactory(),
     };
-    const orderControllerFactory = new OrderControllerFactory(orderService, dateTime);
+    const orderControllerFactory = new OrderControllerFactory(
+      orderService,
+      fastspringOrderParse,
+      dateTime,
+    );
 
     const packageMiddlewares = {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
@@ -365,7 +379,7 @@ class Loader {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       updateExternalStoreValidationMiddlewareFactory:
-      productMiddleware.updateExternalStoreValidation,
+        productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 
