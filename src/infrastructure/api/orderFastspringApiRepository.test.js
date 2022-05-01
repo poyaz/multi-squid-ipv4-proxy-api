@@ -521,6 +521,9 @@ suite(`OrderFastspringApiRepository`, () => {
             },
           },
         ],
+        tags: {
+          orderId: inputModel.id,
+        },
         notes: [],
         items: [
           {
