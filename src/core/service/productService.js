@@ -22,6 +22,18 @@ class ProductService extends IProductService {
     this.#productRepository = productRepository;
   }
 
+  async getById(productId) {
+    const [error, result] = await this.#productRepository.getById(productId);
+    if (error) {
+      return [error];
+    }
+    if (!result) {
+      return [new NotFoundException()];
+    }
+
+    return [null, result];
+  }
+
   async getAll() {
     const filterModel = new ProductModel();
 

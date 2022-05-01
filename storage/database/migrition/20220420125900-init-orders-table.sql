@@ -9,6 +9,7 @@ create table orders
     status               varchar(50),
     body                 text,
     package_count        numeric,
+    package_proxy_day    numeric,
     package_proxy_type   varchar(10),
     package_country_code varchar(10),
     insert_date          timestamp without time zone,

@@ -7,8 +7,13 @@ const OrderModel = require('~src/core/model/orderModel');
 const PackageModel = require('~src/core/model/packageModel');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const AlreadyExistException = require('~src/core/exception/alreadyExistException');
+const ItemDisableException = require('~src/core/exception/itemDisableException');
 
 class OrderService extends IOrderService {
+  /**
+   * @type {IProductService}
+   */
+  #productService;
   /**
    * @type {IPackageService}
    */
@@ -20,12 +25,14 @@ class OrderService extends IOrderService {
 
   /**
    *
+   * @param {IProductService} productService
    * @param {IPackageService} packageService
    * @param {IOrderRepository} orderRepository
    */
-  constructor(packageService, orderRepository) {
+  constructor(productService, packageService, orderRepository) {
     super();
 
+    this.#productService = productService;
     this.#packageService = packageService;
     this.#orderRepository = orderRepository;
   }
@@ -78,6 +85,17 @@ class OrderService extends IOrderService {
   }
 
   async add(model) {
+    const [productError, productData] = await this.#productService.getById(model.productId);
+    if (productError) {
+      return [productError];
+    }
+    if (!productData.isEnable) {
+      return [new ItemDisableException()];
+    }
+
+    model.prePackageOrderInfo.count = productData.count;
+    model.prePackageOrderInfo.expireDay = productData.expireDay;
+
     return this.#orderRepository.add(model);
   }
 

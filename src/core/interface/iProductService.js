@@ -5,6 +5,17 @@
 class IProductService {
   /**
    *
+   * @param {string} productId
+   * @return {Promise<(Error|OrderModel)[]>}
+   */
+  async getById(productId) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { orderId: productId };
+    throw error;
+  }
+
+  /**
+   *
    * @return {Promise<(Error|Array<ProductModel>|[])[]>}
    */
   async getAll() {

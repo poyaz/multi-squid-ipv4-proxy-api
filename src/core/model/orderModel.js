@@ -12,7 +12,7 @@
  * @property {string} username
  * @property {string} status
  * @property {string} lastSubscriptionStatus
- * @property {Object<{count: number, proxyType: string, countryCode: string}>} prePackageOrderInfo
+ * @property {Object<{count: number, expireDay: number, proxyType: string, countryCode: string}>} prePackageOrderInfo
  * @property {string} body
  * @property {Date} insertDate
  * @property {Date} updateDate

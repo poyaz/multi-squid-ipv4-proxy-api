@@ -23,12 +23,51 @@ const testObj = {};
 
 suite(`ProductService`, () => {
   setup(() => {
-    const { productRepository, productService } = helper.fakePackageService();
+    const { productRepository, productService } = helper.fakeProductService();
 
     testObj.productRepository = productRepository;
     testObj.productService = productService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
     testObj.identifierGenerator1 = helper.fakeIdentifierGenerator('id-1');
+  });
+
+  suite(`Get product by id`, () => {
+    test(`Should error get product by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.getById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error get product by id when can't found record`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.productService.getById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should successfully get product by id`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputModel = new ProductModel();
+      testObj.productRepository.getById.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.productService.getById(inputId);
+
+      testObj.productRepository.getById.should.have.callCount(1);
+      testObj.productRepository.getById.should.have.calledWith(sinon.match(inputId));
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(ProductModel);
+    });
   });
 
   suite(`Get all product`, () => {

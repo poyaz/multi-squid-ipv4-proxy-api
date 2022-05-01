@@ -11,6 +11,7 @@ const Joi = require('joi').extend(JoiDate).extend(JoiCountry);
 const IHttpMiddleware = require('~src/api/interface/iHttpMiddleware');
 
 const SchemaValidatorException = require('~src/core/exception/schemaValidatorException');
+const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 
 class AddOrderValidationMiddleware extends IHttpMiddleware {
   #req;
@@ -27,9 +28,9 @@ class AddOrderValidationMiddleware extends IHttpMiddleware {
     const { body } = this.#req;
 
     const schema = Joi.object({
-      serviceName: Joi.string().required(),
+      productId: Joi.string().required(),
+      serviceName: Joi.string().valid(ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING).required(),
       prePackageOrderInfo: Joi.object({
-        count: Joi.number().min(1).required(),
         proxyType: Joi.string().valid('isp', 'dc').required(),
         countryCode: Joi.country().required(),
       }).required(),

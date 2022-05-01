@@ -63,7 +63,12 @@ suite(`OrderController`, () => {
       outputModel1.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel1.status = OrderModel.STATUS_SUCCESS;
       outputModel1.lastSubscriptionStatus = null;
-      outputModel1.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
+      outputModel1.prePackageOrderInfo = {
+        count: 3,
+        expireDay: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
+      };
       outputModel1.insertDate = new Date();
       testObj.orderService.getAll.resolves([null, [outputModel1]]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -86,6 +91,7 @@ suite(`OrderController`, () => {
       });
       expect(result[0].prePackageOrderInfo).to.have.include({
         count: 3,
+        expireDay: 3,
         proxyType: 'isp',
         countryCode: 'US',
       });
@@ -119,7 +125,12 @@ suite(`OrderController`, () => {
       outputModel1.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel1.status = OrderModel.STATUS_SUCCESS;
       outputModel1.lastSubscriptionStatus = null;
-      outputModel1.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
+      outputModel1.prePackageOrderInfo = {
+        count: 3,
+        expireDay: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
+      };
       outputModel1.insertDate = new Date();
       testObj.orderService.getAll.resolves([null, [outputModel1]]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -147,6 +158,7 @@ suite(`OrderController`, () => {
       });
       expect(result[0].prePackageOrderInfo).to.have.include({
         count: 3,
+        expireDay: 3,
         proxyType: 'isp',
         countryCode: 'US',
       });
@@ -195,9 +207,11 @@ suite(`OrderController`, () => {
     test(`Should error add new order`, async () => {
       testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
       testObj.req.body = {
+        productId: testObj.identifierGenerator.generateId(),
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         prePackageOrderInfo: {
           count: 3,
+          expireDay: 3,
           proxyType: 'isp',
           countryCode: 'US',
         },
@@ -211,8 +225,8 @@ suite(`OrderController`, () => {
         sinon.match
           .instanceOf(OrderModel)
           .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('productId', testObj.identifierGenerator.generateId()))
           .and(sinon.match.has('serviceName', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING))
-          .and(sinon.match.hasNested('prePackageOrderInfo.count', 3))
           .and(sinon.match.hasNested('prePackageOrderInfo.proxyType', 'isp'))
           .and(sinon.match.hasNested('prePackageOrderInfo.countryCode', 'US')),
       );
@@ -222,9 +236,11 @@ suite(`OrderController`, () => {
     test(`Should successfully add new order`, async () => {
       testObj.req.params = { userId: testObj.identifierGenerator.generateId() };
       testObj.req.body = {
+        productId: testObj.identifierGenerator.generateId(),
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         prePackageOrderInfo: {
           count: 3,
+          expireDay: 3,
           proxyType: 'isp',
           countryCode: 'US',
         },
@@ -237,7 +253,12 @@ suite(`OrderController`, () => {
       outputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel.status = OrderModel.STATUS_SUCCESS;
       outputModel.lastSubscriptionStatus = null;
-      outputModel.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
+      outputModel.prePackageOrderInfo = {
+        count: 3,
+        expireDay: 3,
+        proxyType: 'isp',
+        countryCode: 'US',
+      };
       outputModel.insertDate = new Date();
       testObj.orderService.add.resolves([null, outputModel]);
       testObj.dateTime.gregorianWithTimezoneString.returns('date');
@@ -248,9 +269,9 @@ suite(`OrderController`, () => {
       testObj.orderService.add.should.have.calledWith(
         sinon.match
           .instanceOf(OrderModel)
+          .and(sinon.match.has('productId', testObj.identifierGenerator.generateId()))
           .and(sinon.match.has('userId', testObj.identifierGenerator.generateId()))
           .and(sinon.match.has('serviceName', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING))
-          .and(sinon.match.hasNested('prePackageOrderInfo.count', 3))
           .and(sinon.match.hasNested('prePackageOrderInfo.proxyType', 'isp'))
           .and(sinon.match.hasNested('prePackageOrderInfo.countryCode', 'US')),
       );
@@ -268,6 +289,7 @@ suite(`OrderController`, () => {
       });
       expect(result.prePackageOrderInfo).to.have.include({
         count: 3,
+        expireDay: 3,
         proxyType: 'isp',
         countryCode: 'US',
       });

@@ -874,17 +874,21 @@ function fakeOrderController(req, res) {
 }
 
 function fakeOrderService() {
+  const IProductService = require('~src/core/interface/iProductService');
   const IPackageService = require('~src/core/interface/iPackageService');
   const IOrderRepository = require('~src/core/interface/iOrderRepository');
   const OrderService = require('~src/core/service/orderService');
+
+  const productService = sinon.createStubInstance(IProductService);
 
   const packageService = sinon.createStubInstance(IPackageService);
 
   const orderRepository = sinon.createStubInstance(IOrderRepository);
 
-  const orderService = new OrderService(packageService, orderRepository);
+  const orderService = new OrderService(productService, packageService, orderRepository);
 
   return {
+    productService,
     packageService,
     orderRepository,
     orderService,

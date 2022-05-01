@@ -34,6 +34,7 @@ class BaseOrderOutputModel {
       typeof model.lastSubscriptionStatus === 'undefined' ? null : model.lastSubscriptionStatus;
     obj.prePackageOrderInfo = {
       count: model.prePackageOrderInfo.count,
+      expireDay: model.prePackageOrderInfo.expireDay,
       proxyType: model.prePackageOrderInfo.proxyType,
       countryCode: model.prePackageOrderInfo.countryCode.toUpperCase(),
     };

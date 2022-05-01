@@ -11,12 +11,12 @@ const helper = require('~src/helper');
 
 const OrderModel = require('~src/core/model/orderModel');
 const PackageModel = require('~src/core/model/packageModel');
+const ProductModel = require('~src/core/model/productModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const ItemDisableException = require('~src/core/exception/itemDisableException');
-const DisableUserException = require('~src/core/exception/disableUserException');
 const AlreadyExistException = require('~src/core/exception/alreadyExistException');
 
 chai.should();
@@ -28,8 +28,14 @@ const testObj = {};
 
 suite(`OrderService`, () => {
   setup(() => {
-    const { packageService, orderRepository, orderService } = helper.fakeOrderService();
+    const {
+      productService,
+      packageService,
+      orderRepository,
+      orderService,
+    } = helper.fakeOrderService();
 
+    testObj.productService = productService;
     testObj.packageService = packageService;
     testObj.orderRepository = orderRepository;
     testObj.orderService = orderService;
@@ -44,7 +50,12 @@ suite(`OrderService`, () => {
     outputOrderModel.username = 'user1';
     outputOrderModel.status = OrderModel.STATUS_SUCCESS;
     outputOrderModel.lastSubscriptionStatus = null;
-    outputOrderModel.prePackageOrderInfo = { count: 3, proxyType: 'isp', countryCode: 'US' };
+    outputOrderModel.prePackageOrderInfo = {
+      count: 3,
+      expireDay: 3,
+      proxyType: 'isp',
+      countryCode: 'US',
+    };
     outputOrderModel.insertDate = new Date();
 
     const outputSubscriptionModel = new SubscriptionModel();
@@ -245,9 +256,9 @@ suite(`OrderService`, () => {
     setup(() => {
       const inputModel = new OrderModel();
       inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.productId = testObj.identifierGenerator.generateId();
       inputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       inputModel.prePackageOrderInfo = {
-        count: 3,
         proxyType: 'isp',
         countryCode: 'US',
       };
@@ -255,27 +266,76 @@ suite(`OrderService`, () => {
       testObj.inputModel = inputModel;
     });
 
+    test(`Should error add new order when get product info`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.productService.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.add(inputModel);
+
+      testObj.productService.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error add new order when product is disable`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputProductModel = new ProductModel();
+      outputProductModel.id = testObj.identifierGenerator.generateId();
+      outputProductModel.isEnable = false;
+      testObj.productService.getById.resolves([null, outputProductModel]);
+
+      const [error] = await testObj.orderService.add(inputModel);
+
+      testObj.productService.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(ItemDisableException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
     test(`Should error add new order`, async () => {
       const inputModel = testObj.inputModel;
+      const outputProductModel = new ProductModel();
+      outputProductModel.id = testObj.identifierGenerator.generateId();
+      outputProductModel.count = 3;
+      outputProductModel.expireDay = 30;
+      outputProductModel.isEnable = true;
+      testObj.productService.getById.resolves([null, outputProductModel]);
       testObj.orderRepository.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.orderService.add(inputModel);
 
+      testObj.productService.getById.should.have.callCount(1);
       testObj.orderRepository.add.should.have.callCount(1);
-      testObj.orderRepository.add.should.have.calledWith(sinon.match.instanceOf(OrderModel));
+      testObj.orderRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(OrderModel)
+          .and(sinon.match.hasNested('prePackageOrderInfo.count', 3))
+          .and(sinon.match.hasNested('prePackageOrderInfo.expireDay', 30)),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
     test(`Should successfully add new order`, async () => {
       const inputModel = testObj.inputModel;
+      const outputProductModel = new ProductModel();
+      outputProductModel.id = testObj.identifierGenerator.generateId();
+      outputProductModel.count = 3;
+      outputProductModel.expireDay = 30;
+      outputProductModel.isEnable = true;
+      testObj.productService.getById.resolves([null, outputProductModel]);
       const outputModel = testObj.outputOrderModel;
       testObj.orderRepository.add.resolves([null, outputModel]);
 
       const [error, result] = await testObj.orderService.add(inputModel);
 
+      testObj.productService.getById.should.have.callCount(1);
       testObj.orderRepository.add.should.have.callCount(1);
-      testObj.orderRepository.add.should.have.calledWith(sinon.match.instanceOf(OrderModel));
+      testObj.orderRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(OrderModel)
+          .and(sinon.match.hasNested('prePackageOrderInfo.count', 3))
+          .and(sinon.match.hasNested('prePackageOrderInfo.expireDay', 30)),
+      );
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(OrderModel);
     });

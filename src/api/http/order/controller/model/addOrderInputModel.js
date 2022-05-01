@@ -26,9 +26,9 @@ class AddOrderInputModel {
   getModel(body) {
     const model = new OrderModel();
     model.userId = this.#userId;
+    model.productId = body.productId;
     model.serviceName = body.serviceName;
     model.prePackageOrderInfo = {
-      count: body.prePackageOrderInfo.count,
       proxyType: body.prePackageOrderInfo.proxyType,
       countryCode: body.prePackageOrderInfo.countryCode.toUpperCase(),
     };
