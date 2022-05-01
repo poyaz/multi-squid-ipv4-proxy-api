@@ -67,7 +67,15 @@
         "id": "",
         "secret": ""
       },
-      "htmlPage": {
+      "htmlPageSuccess": {
+        "address": "",
+        "key": ""
+      },
+      "htmlPageError": {
+        "address": "",
+        "key": ""
+      },
+      "htmlPageCancel": {
         "address": "",
         "key": ""
       }

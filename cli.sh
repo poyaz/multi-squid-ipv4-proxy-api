@@ -634,8 +634,8 @@ if [[ $execute_mode == "oauth" ]]; then
 
   OAUTH_PAGE_ADDRESS=$(echo $OAUTH_PAGE_ADDRESS | sed 's/\//\\\//g')
   sed -i \
-      -e "s/\(OAUTH_HTML_PAGE_ADDRESS=\).*/\1$OAUTH_PAGE_ADDRESS/g" \
-      -e "s/\(OAUTH_HTML_PAGE_KEY_NAME=\).*/\1$OAUTH_PAGE_KEY_NAME/g" \
+      -e "s/\(OAUTH_HTML_PAGE_SUCCESS_ADDRESS=\).*/\1$OAUTH_PAGE_ADDRESS/g" \
+      -e "s/\(OAUTH_HTML_PAGE_SUCCESS_KEY_NAME=\).*/\1$OAUTH_PAGE_KEY_NAME/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
   docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node

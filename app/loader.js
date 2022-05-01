@@ -141,8 +141,18 @@ class Loader {
       current: this._options.cwd,
     };
     const oauthHtmlPageConfig = {
-      address: this._config.getStr('custom.oauth.htmlPage.address'),
-      key: this._config.getStr('custom.oauth.htmlPage.key'),
+      success: {
+        address: this._config.getStr('custom.oauth.htmlPageSuccess.address'),
+        key: this._config.getStr('custom.oauth.htmlPageSuccess.key'),
+      },
+      error: {
+        address: this._config.getStr('custom.oauth.htmlPageError.address'),
+        key: this._config.getStr('custom.oauth.htmlPageError.key'),
+      },
+      cancel: {
+        address: this._config.getStr('custom.oauth.htmlPageCancel.address'),
+        key: this._config.getStr('custom.oauth.htmlPageCancel.key'),
+      },
     };
 
     // Repository
@@ -379,7 +389,7 @@ class Loader {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       updateExternalStoreValidationMiddlewareFactory:
-        productMiddleware.updateExternalStoreValidation,
+      productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 

@@ -58,18 +58,28 @@ class OauthController {
 
   async verify() {
     const { platform } = this.#req.params;
-    const { code } = this.#req.query;
+    const { code, error: oauthError } = this.#req.query;
+
+    if (oauthError && oauthError === 'access_denied') {
+      const redirectUrl = this.#oauthHtmlPage.cancel.address.split(this.#oauthHtmlPage.cancel.key);
+
+      return [null, redirectUrl];
+    }
 
     const [error, data] = await this.#externalAuthService.verify(platform, code);
     if (error) {
-      return [error];
+      const redirectUrl = this.#oauthHtmlPage.error.address
+        .split(this.#oauthHtmlPage.error.key)
+        .join(encodeURIComponent(error.toString()));
+
+      return [null, redirectUrl];
     }
 
     const loginExternalUserOutputModel = new LoginExternalUserOutputModel(this.#jwt);
     const result = loginExternalUserOutputModel.getOutput(data);
 
-    const redirectUrl = this.#oauthHtmlPage.address
-      .split(this.#oauthHtmlPage.key)
+    const redirectUrl = this.#oauthHtmlPage.success.address
+      .split(this.#oauthHtmlPage.success.key)
       .join(result.token);
 
     return [null, redirectUrl];
