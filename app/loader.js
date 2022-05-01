@@ -20,6 +20,7 @@ const DateTime = require('~src/infrastructure/system/dateTime');
 const IdentifierGenerator = require('~src/infrastructure/system/identifierGenerator');
 
 const JobRepository = require('~src/infrastructure/database/jobRepository');
+const OrderPgRepository = require('~src/infrastructure/database/orderPgRepository');
 const PackagePgRepository = require('~src/infrastructure/database/packagePgRepository');
 const ProductPgRepository = require('~src/infrastructure/database/productPgRepository');
 const ProxyServerRepository = require('~src/infrastructure/database/proxyServerRepository');
@@ -33,6 +34,7 @@ const SquidServerRepository = require('~src/infrastructure/system/squidServerRep
 const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
 
 const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
+const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
 
 const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
 const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
@@ -40,6 +42,7 @@ const FindClusterProxyServerService = require('~src/core/service/findClusterProx
 const FindClusterServerService = require('~src/core/service/findClusterServerService');
 const FindClusterUserService = require('~src/core/service/findClusterUserService');
 const JobService = require('~src/core/service/jobService');
+const OrderService = require('~src/core/service/orderService');
 const PackageService = require('~src/core/service/packageService');
 const ProductService = require('~src/core/service/productService');
 const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
@@ -55,6 +58,10 @@ const RoleAccessMiddlewareFactory = require('~src/api/http/roleAccessMiddlewareF
 const JobControllerFactory = require('~src/api/http/job/controller/jobControllerFactory');
 
 const OauthControllerFactory = require('~src/api/http/oauth/controller/oauthControllerFactory');
+
+const AddOrderValidationMiddlewareFactory = require('~src/api/http/order/middleware/addOrderValidationMiddlewareFactory');
+const VerifyOrderValidationMiddlewareFactory = require('~src/api/http/order/middleware/verifyOrderValidationMiddlewareFactory');
+const OrderControllerFactory = require('~src/api/http/order/controller/orderControllerFactory');
 
 const CreatePackageValidationMiddlewareFactory = require('~src/api/http/package/middleware/createPackageValidationMiddlewareFactory');
 const RenewPackageValidatorMiddlewareFactory = require('~src/api/http/package/middleware/renewPackageValidatorMiddlewareFactory');
@@ -158,6 +165,7 @@ class Loader {
     const userSquidRepository = new UserSquidRepository(squidPasswordFile);
 
     const jobRepository = new JobRepository(pgDb, dateTime, identifierGenerator);
+    const orderPgRepository = new OrderPgRepository(pgDb, dateTime, identifierGenerator);
     const packagePgRepository = new PackagePgRepository(pgDb, dateTime, identifierGenerator);
     const productPgRepository = new ProductPgRepository(pgDb, dateTime, identifierGenerator);
     const proxyServerRepository = new ProxyServerRepository(pgDb, dateTime, identifierGenerator);
@@ -166,6 +174,14 @@ class Loader {
     const userPgRepository = new UserPgRepository(pgDb, dateTime, identifierGenerator);
 
     const proxyServerApiRepository = new ProxyServerApiRepository(dateTime, apiToken);
+    const orderFastspringApiRepository = new OrderFastspringApiRepository(
+      orderPgRepository,
+      this._config.getStr('custom.payment.service.fastspring.auth.username'),
+      this._config.getStr('custom.payment.service.fastspring.auth.password'),
+      this._config.getStr('custom.payment.service.fastspring.apiAddress'),
+    );
+
+    const orderRepository = this._config.getBool('custom.payment.enable') ? orderFastspringApiRepository : orderPgRepository;
 
     // Service
     // -------
@@ -233,6 +249,11 @@ class Loader {
       discord,
       findClusterUserService,
     );
+    const orderService = new OrderService(
+      productService,
+      findClusterPackageService,
+      orderRepository,
+    );
 
     // Controller and middleware
     // -------------------------
@@ -247,6 +268,12 @@ class Loader {
       jwt,
       oauthHtmlPageConfig,
     );
+
+    const orderMiddlewares = {
+      addOrderValidation: new AddOrderValidationMiddlewareFactory(),
+      verifyOrderValidation: new VerifyOrderValidationMiddlewareFactory(),
+    };
+    const orderControllerFactory = new OrderControllerFactory(orderService, dateTime);
 
     const packageMiddlewares = {
       createPackageValidation: new CreatePackageValidationMiddlewareFactory(),
@@ -322,6 +349,12 @@ class Loader {
       oauthControllerFactory,
     };
 
+    this._dependency.orderHttpApi = {
+      addOrderValidationMiddlewareFactory: orderMiddlewares.addOrderValidation,
+      verifyOrderValidationMiddlewareFactory: orderMiddlewares.verifyOrderValidation,
+      orderControllerFactory,
+    };
+
     this._dependency.packageHttpApi = {
       createPackageValidationMiddlewareFactory: packageMiddlewares.createPackageValidation,
       renewPackageValidatorMiddlewareFactory: packageMiddlewares.renewPackageValidator,
@@ -332,7 +365,7 @@ class Loader {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       updateExternalStoreValidationMiddlewareFactory:
-        productMiddleware.updateExternalStoreValidation,
+      productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 

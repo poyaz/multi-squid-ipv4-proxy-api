@@ -124,6 +124,7 @@ class ExpressApi extends IRunner {
 
   _userRoute() {
     const userHttpApi = this._dependency.userHttpApi;
+    const orderHttpApi = this._dependency.orderHttpApi;
 
     router.get('/v1/user', this._middlewareRoleAccess(['admin']), async (req, res, next) => {
       try {
@@ -167,13 +168,6 @@ class ExpressApi extends IRunner {
         }
       },
     );
-
-    /**
-     * @todo this API for get status of order with this format /v1/user/:userId/order?serial=...
-     */
-    router.get(`/v1/user/:userId/order`, this._middlewareRoleAccess(['user']), async () => {
-
-    });
 
     router.post(
       '/v1/user',
@@ -337,6 +331,68 @@ class ExpressApi extends IRunner {
         return next(error);
       }
     });
+
+    router.get(
+      `/v1/user/:userId/order`,
+      this._middlewareRoleAccess(['user']),
+      async (req, res, next) => {
+        try {
+          const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+          const response = await orderController.getAllOrderForUser();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.get(
+      `/v1/user/:userId/order/:orderId/subscription`,
+      this._middlewareRoleAccess(['user']),
+      async (req, res, next) => {
+        try {
+          const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+          const response = await orderController.getAllSubscriptionOfOrder();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.post(
+      `/v1/user/:userId/order`,
+      this._middlewareRoleAccess(['user']),
+      async (req, res, next) => {
+        try {
+          const middleware = orderHttpApi.addOrderValidationMiddlewareFactory.create(req, res);
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+          const response = await orderController.addOrder();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
   }
 
   _packageRoute() {
@@ -865,11 +921,65 @@ class ExpressApi extends IRunner {
    * @todo get order data
    */
   _orderRoute() {
-    router.post('/v1/order', this._middlewareRoleAccess(['admin']), async () => {
+    const orderHttpApi = this._dependency.orderHttpApi;
 
+    router.get('/v1/order', this._middlewareRoleAccess(['admin']), async (req, res, next) => {
+      try {
+        const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+        const response = await orderController.getAllOrderForAdmin();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
     });
 
-    router.post('/v1/order/:orderId/package', this._middlewareRoleAccess(['user']), async () => {});
+    router.get(
+      '/v1/order/:orderId/subscription',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+          const response = await orderController.getAllSubscriptionOfOrder();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.post(
+      '/v1/order/:orderId/package',
+      this._middlewareRoleAccess(['user']),
+      async (req, res, next) => {
+        try {
+          const middleware = orderHttpApi.verifyOrderValidationMiddlewareFactory.create(req, res);
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+          const response = await orderController.verifyOrderPackage();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
 
     router.post('/v1/order/process/service/:paymentService', async () => {});
   }
