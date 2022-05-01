@@ -209,7 +209,9 @@ class PackagePgRepository extends IPackageRepository {
 
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
     const packageId = this.#identifierGenerator.generateId();
-    const expireDate = this.#dateTime.gregorianWithTimezoneString(model.expireDate);
+    const expireDate = model.expireDate
+      ? this.#dateTime.gregorianWithTimezoneString(model.expireDate)
+      : null;
     const proxyType = model.type ? model.type : '-';
     const countryCode = model.country ? model.country.toUpperCase() : '-';
 
