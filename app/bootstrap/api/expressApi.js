@@ -981,7 +981,18 @@ class ExpressApi extends IRunner {
       },
     );
 
-    router.post('/v1/order/process/service/:paymentService', async () => {});
+    router.post('/v1/order/process/service/:paymentService', async (req, res, next) => {
+      try {
+        const orderController = orderHttpApi.orderControllerFactory.create(req, res);
+        const response = await orderController.processOrder();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
   }
 
   _productRoute() {
