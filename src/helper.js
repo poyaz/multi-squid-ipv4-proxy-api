@@ -934,6 +934,24 @@ function fakeOrderFastspringApiRepository() {
   return { orderRepository, orderFastspringApiRepository };
 }
 
+function fakeFastspringOrderParse() {
+  const IOrderService = require('~src/core/interface/iOrderService');
+  const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const FastspringOrderParse = require('~src/core/service/fastspringOrderParse');
+
+  const orderService = sinon.createStubInstance(IOrderService);
+
+  const orderRepository = sinon.createStubInstance(IOrderRepository);
+
+  const fastspringOrderParse = new FastspringOrderParse(orderService, orderRepository);
+
+  return {
+    orderService,
+    orderRepository,
+    fastspringOrderParse,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -984,4 +1002,5 @@ module.exports = {
   fakeOrderService,
   fakeOrderPgRepository,
   fakeOrderFastspringApiRepository,
+  fakeFastspringOrderParse,
 };
