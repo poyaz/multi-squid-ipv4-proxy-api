@@ -134,12 +134,12 @@ class ProxyServerRepository extends IProxyServerRepository {
                  ip,
                  port,
                  gateway,
-                 proxy_type,
-                 country_code,
+                 type,
+                 country,
                  $1
           FROM json_to_recordset($2) as (interface varchar(100), ip varchar(100), port int,
-                                         gateway varchar(100), proxy_type varchar(10),
-                                         country_code varchar(10))
+                                         gateway varchar(100), type varchar(10),
+                                         country varchar(10))
           ON CONFLICT (ip)
           WHERE delete_date ISNULL
               DO
