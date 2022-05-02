@@ -6,7 +6,7 @@
  * @property {uuid} id
  * @property {string} username
  * @property {string} password
- * @property {Object<{discordId: string}>} externalOauthData
+ * @property {Object<{discordId: string, discordTag: string}>} externalOauthData
  * @property {isEnable} boolean
  * @property {Date} insertDate
  */

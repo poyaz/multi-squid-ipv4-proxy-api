@@ -30,7 +30,10 @@ class BaseUserOutputModel {
 
     const discordId = model.externalOauthData.discordId;
     if (discordId) {
-      obj.discordUser = `${model.username}#${discordId}`;
+      obj.discord = {
+        id: discordId,
+        username: `${model.username}#${model.externalOauthData.discordTag}`,
+      };
     }
 
     return obj;
