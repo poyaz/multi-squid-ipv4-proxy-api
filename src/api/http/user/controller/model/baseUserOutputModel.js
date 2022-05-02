@@ -25,7 +25,13 @@ class BaseUserOutputModel {
     const obj = {};
     obj.id = model.id;
     obj.username = model.username;
+    obj.role = model.role;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
+
+    const discordId = model.externalOauthData.discordId;
+    if (discordId) {
+      obj.discordUser = `${model.username}#${discordId}`;
+    }
 
     return obj;
   }

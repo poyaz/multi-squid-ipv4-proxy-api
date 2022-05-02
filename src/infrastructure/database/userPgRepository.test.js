@@ -89,6 +89,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
               password: 'pass1',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -96,6 +98,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'user2',
               password: 'pass2',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -114,14 +118,18 @@ suite(`UserPgRepository`, () => {
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
         password: 'pass1',
+        role: 'user',
         isEnable: true,
       });
+      expect(result[0].externalOauthData.discordId).to.be.equal('5645');
       expect(result[1]).to.be.instanceOf(UserModel).and.includes({
         id: testObj.identifierGenerator.generateId(),
         username: 'user2',
         password: 'pass2',
+        role: 'user',
         isEnable: true,
       });
+      expect(result[1].externalOauthData.discordId).to.be.equal('5645');
     });
 
     test(`Should successfully get all with filter (with username)`, async () => {
@@ -137,6 +145,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
               password: 'pass1',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -158,8 +168,10 @@ suite(`UserPgRepository`, () => {
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
         password: 'pass1',
+        role: 'user',
         isEnable: true,
       });
+      expect(result[0].externalOauthData.discordId).to.be.equal('5645');
     });
 
     test(`Should successfully get all with filter (with isEnable)`, async () => {
@@ -175,6 +187,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
               password: 'pass1',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -196,8 +210,10 @@ suite(`UserPgRepository`, () => {
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
         password: 'pass1',
+        role: 'user',
         isEnable: true,
       });
+      expect(result[0].externalOauthData.discordId).to.be.equal('5645');
     });
 
     test(`Should successfully get all with filter (with username and isEnable)`, async () => {
@@ -214,6 +230,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
               password: 'pass1',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -235,8 +253,10 @@ suite(`UserPgRepository`, () => {
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
         password: 'pass1',
+        role: 'user',
         isEnable: true,
       });
+      expect(result[0].externalOauthData.discordId).to.be.equal('5645');
     });
   });
 
@@ -287,6 +307,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'user1',
               password: 'pass1',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -306,6 +328,7 @@ suite(`UserPgRepository`, () => {
         password: 'pass1',
         isEnable: true,
       });
+      expect(result.externalOauthData.discordId).to.be.equal('5645');
     });
   });
 
@@ -400,6 +423,8 @@ suite(`UserPgRepository`, () => {
       const inputModel = new UserModel();
       inputModel.username = 'username';
       inputModel.password = 'password';
+      inputModel.role = 'user';
+      inputModel.externalOauthData = { discordId: '5645' };
       const fetchQuery = {
         get rowCount() {
           return 1;
@@ -410,6 +435,8 @@ suite(`UserPgRepository`, () => {
               id: testObj.identifierGenerator.generateId(),
               username: 'username',
               password: 'pass1',
+              role: 'user',
+              external_oauth_data: { discordId: '5645' },
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
             },
@@ -432,9 +459,11 @@ suite(`UserPgRepository`, () => {
               testObj.identifierGenerator.generateId(),
               inputModel.username,
               inputModel.password,
+              inputModel.role,
+              JSON.stringify(inputModel.externalOauthData),
               true,
             ])
-            .and(sinon.match.has('length', 5)),
+            .and(sinon.match.has('length', 7)),
         ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
@@ -445,6 +474,7 @@ suite(`UserPgRepository`, () => {
         password: 'pass1',
         isEnable: true,
       });
+      expect(result.externalOauthData.discordId).to.be.equal('5645');
     });
   });
 

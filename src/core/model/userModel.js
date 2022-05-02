@@ -6,6 +6,7 @@
  * @property {uuid} id
  * @property {string} username
  * @property {string} password
+ * @property {Object<{discordId: string}>} externalOauthData
  * @property {isEnable} boolean
  * @property {Date} insertDate
  */
@@ -13,6 +14,7 @@ class UserModel {
   id = undefined;
   username = undefined;
   password = undefined;
+  externalOauthData = {};
   isEnable = undefined;
   insertDate = undefined;
 

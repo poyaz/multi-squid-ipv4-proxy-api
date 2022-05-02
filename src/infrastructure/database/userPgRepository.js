@@ -124,16 +124,26 @@ class UserPgRepository extends IUserRepository {
 
     const addQuery = {
       text: singleLine`
-          INSERT INTO public.users (id, username, password, is_enable, insert_date)
-          VALUES ($1, $2, $3, $4, $5)
+          INSERT INTO public.users AS u (id, username, password, role, external_oauth_data, is_enable,
+                                    insert_date)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           ON CONFLICT (username)
           WHERE delete_date ISNULL
               DO
           UPDATE
-          SET username = EXCLUDED.username
+          SET username            = EXCLUDED.username,
+              external_oauth_data = u.external_oauth_data || EXCLUDED.external_oauth_data
           RETURNING *
       `,
-      values: [id, model.username, model.password, true, now],
+      values: [
+        id,
+        model.username,
+        model.password,
+        model.role,
+        JSON.stringify(model.externalOauthData),
+        true,
+        now,
+      ],
     };
 
     try {
@@ -209,6 +219,10 @@ class UserPgRepository extends IUserRepository {
     model.id = row['id'];
     model.username = row['username'];
     model.password = row['password'];
+    model.role = row['role'];
+    model.externalOauthData = {
+      discordId: (row['external_oauth_data'] || {})['discordId'],
+    };
     model.isEnable = row['is_enable'];
     model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
 

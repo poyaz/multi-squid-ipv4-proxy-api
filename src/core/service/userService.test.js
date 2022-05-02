@@ -342,12 +342,17 @@ suite(`UserService`, () => {
         sinon.match(inputModel.username),
       );
       testObj.userRepository.add.should.have.callCount(1);
-      testObj.userRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
+      testObj.userRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('role', 'user'))
+          .and(sinon.match.has('externalOauthData', sinon.match.object)),
+      );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should error add new user if user can't create in porxy`, async () => {
+    test(`Should error add new user if user can't create in proxy`, async () => {
       const inputModel = new UserModel();
       inputModel.username = 'username';
       inputModel.password = 'password';
@@ -366,7 +371,12 @@ suite(`UserService`, () => {
         sinon.match(inputModel.username),
       );
       testObj.userRepository.add.should.have.callCount(1);
-      testObj.userRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
+      testObj.userRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('role', 'user'))
+          .and(sinon.match.has('externalOauthData', sinon.match.object)),
+      );
       testObj.userSquidRepository.add.should.have.callCount(1);
       testObj.userSquidRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
       expect(error).to.be.an.instanceof(UnknownException);
@@ -393,7 +403,12 @@ suite(`UserService`, () => {
         sinon.match(inputModel.username),
       );
       testObj.userRepository.add.should.have.callCount(1);
-      testObj.userRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
+      testObj.userRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('role', 'user'))
+          .and(sinon.match.has('externalOauthData', sinon.match.object)),
+      );
       testObj.userSquidRepository.add.should.have.callCount(1);
       testObj.userSquidRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
       expect(error).to.be.a('null');

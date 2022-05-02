@@ -65,6 +65,8 @@ class DiscordExternalAuthService extends IExternalAuthService {
       const model = new UserModel();
       model.username = userInfo['username'];
       model.password = `${new Date().getTime()}${Math.floor(Math.random() * 100000) + 10}`;
+      model.role = 'user';
+      model.externalOauthData = { discordId: userInfo['discriminator'] };
 
       const [addUserError, addUserData] = await this.#userService.add(model);
       if (addUserError && !(addUserError instanceof UserExistException)) {

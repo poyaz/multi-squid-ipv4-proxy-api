@@ -107,6 +107,7 @@ class UserService extends IUserService {
       return [new UserExistException()];
     }
 
+    model.role = 'user';
     const [addError, addData] = await this.#userRepository.add(model);
     if (addError) {
       return [addError];

@@ -19,7 +19,12 @@ class LoginExternalUserOutputModel {
    * @return {{}}
    */
   getOutput(model) {
-    const data = { id: model.id, username: model.username, role: 'user', type: 'external' };
+    const data = { id: model.id, username: model.username, role: model.role, type: 'external' };
+
+    const discordId = model.externalOauthData.discordId;
+    if (discordId) {
+      data.discordUser = `${model.username}#${discordId}`;
+    }
 
     const obj = {};
     obj.token = this.#jwt.sign(data);

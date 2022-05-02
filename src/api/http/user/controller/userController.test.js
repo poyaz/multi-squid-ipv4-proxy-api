@@ -62,12 +62,16 @@ suite(`UserController`, () => {
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
       outputModel1.password = 'pass1';
+      outputModel1.role = 'user';
+      outputModel1.externalOauthData = { discordId: '5645' };
       outputModel1.isEnable = true;
       outputModel1.insertDate = new Date();
       const outputModel2 = new UserModel();
       outputModel2.id = testObj.identifierGenerator.generateId();
       outputModel2.username = 'user2';
       outputModel2.password = 'pass2';
+      outputModel2.role = 'user';
+      outputModel2.externalOauthData = { discordId: '5645' };
       outputModel2.isEnable = false;
       testObj.findClusterUserService.getAll.resolves([null, [outputModel1, outputModel2]]);
 
@@ -79,12 +83,16 @@ suite(`UserController`, () => {
       expect(result[0]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        role: 'user',
+        discordUser: 'user1#5645',
       });
       expect(result[0].password).to.be.a('undefined');
       expect(result[0].insertDate).to.have.match(testObj.dateRegex);
       expect(result[1]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: 'user2',
+        role: 'user',
+        discordUser: 'user2#5645',
       });
       expect(result[1].password).to.be.a('undefined');
       expect(result[1].insertDate).to.have.be.equal(null);
@@ -95,6 +103,8 @@ suite(`UserController`, () => {
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
       outputModel1.password = 'pass1';
+      outputModel1.role = 'user';
+      outputModel1.externalOauthData = { discordId: '5645' };
       outputModel1.isEnable = true;
       outputModel1.insertDate = new Date();
       testObj.req.query = { username: 'user1' };
@@ -111,6 +121,8 @@ suite(`UserController`, () => {
       expect(result[0]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        discordUser: 'user1#5645',
+        role: 'user',
       });
       expect(result[0].password).to.be.a('undefined');
     });
@@ -120,6 +132,8 @@ suite(`UserController`, () => {
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
       outputModel1.password = 'pass1';
+      outputModel1.role = 'user';
+      outputModel1.externalOauthData = { discordId: '5645' };
       outputModel1.isEnable = false;
       outputModel1.insertDate = new Date();
       testObj.req.query = { isEnable: 'false' };
@@ -136,6 +150,8 @@ suite(`UserController`, () => {
       expect(result[0]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        role: 'user',
+        discordUser: 'user1#5645',
       });
       expect(result[0].password).to.be.a('undefined');
     });
@@ -145,6 +161,8 @@ suite(`UserController`, () => {
       outputModel1.id = testObj.identifierGenerator.generateId();
       outputModel1.username = 'user1';
       outputModel1.password = 'pass1';
+      outputModel1.role = 'user';
+      outputModel1.externalOauthData = { discordId: '5645' };
       outputModel1.isEnable = true;
       outputModel1.insertDate = new Date();
       testObj.req.query = { username: 'user1', isEnable: 'true' };
@@ -161,6 +179,8 @@ suite(`UserController`, () => {
       expect(result[0]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        role: 'user',
+        discordUser: 'user1#5645',
       });
       expect(result[0].password).to.be.a('undefined');
     });
@@ -183,6 +203,8 @@ suite(`UserController`, () => {
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.username = 'user1';
       outputModel.password = 'pass1';
+      outputModel.role = 'user';
+      outputModel.externalOauthData = { discordId: '5645' };
       outputModel.isEnable = true;
       outputModel.insertDate = new Date();
       testObj.findClusterUserService.getUserById.resolves([null, outputModel]);
@@ -194,6 +216,8 @@ suite(`UserController`, () => {
       expect(result).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: 'user1',
+        role: 'user',
+        discordUser: 'user1#5645',
       });
       expect(result.password).to.be.a('undefined');
       expect(result.insertDate).to.have.match(testObj.dateRegex);
@@ -223,6 +247,8 @@ suite(`UserController`, () => {
       outputModel.id = testObj.identifierGenerator.generateId();
       outputModel.username = testObj.req.body.username;
       outputModel.password = testObj.req.body.password;
+      outputModel.role = 'user';
+      outputModel.externalOauthData = { discordId: '5645' };
       outputModel.insertDate = new Date();
       testObj.findClusterUserService.add.resolves([null, outputModel]);
 
@@ -240,6 +266,8 @@ suite(`UserController`, () => {
       expect(result).to.have.include({
         id: testObj.identifierGenerator.generateId(),
         username: testObj.req.body.username,
+        role: 'user',
+        discordUser: 'username#5645',
       });
       expect(result.password).to.be.a('undefined');
       expect(result.insertDate).to.have.match(testObj.dateRegex);
