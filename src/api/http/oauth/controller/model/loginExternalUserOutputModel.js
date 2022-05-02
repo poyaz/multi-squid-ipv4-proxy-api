@@ -23,7 +23,7 @@ class LoginExternalUserOutputModel {
 
     const discordId = model.externalOauthData.discordId;
     if (discordId) {
-      data.discordUser = `${model.username}#${discordId}`;
+      data.discordId = discordId;
     }
 
     const obj = {};
