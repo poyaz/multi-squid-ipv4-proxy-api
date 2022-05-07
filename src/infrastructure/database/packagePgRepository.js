@@ -47,6 +47,7 @@ class PackagePgRepository extends IPackageRepository {
                                     p.status,
                                     p.expire_date,
                                     p.insert_date,
+                                    p.renewal_date,
                                     count(*)                                                    AS count_ip,
                                     (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
                                     (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
@@ -65,7 +66,7 @@ class PackagePgRepository extends IPackageRepository {
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND p.id = $1
-          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date
+          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date, p.renewal_date
       `,
       values: [id],
     };
@@ -95,6 +96,7 @@ class PackagePgRepository extends IPackageRepository {
                                                    p.status,
                                                    p.expire_date,
                                                    p.insert_date,
+                                                   p.renewal_date,
                                                    count(*)                                                    AS count_ip,
                                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
                                                    (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
@@ -134,7 +136,7 @@ class PackagePgRepository extends IPackageRepository {
       fetchQuery.text += ` AND ${filterConditions.join(' AND ')}`;
     }
 
-    fetchQuery.text += ` GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date`;
+    fetchQuery.text += ` GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date, p.renewal_date`;
     fetchQuery.text += ` ORDER BY p.insert_date DESC`;
 
     try {
@@ -162,6 +164,7 @@ class PackagePgRepository extends IPackageRepository {
                                                    p.status,
                                                    p.expire_date,
                                                    p.insert_date,
+                                                   p.renewal_date,
                                                    count(*)                                                    AS count_ip,
                                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
                                                    (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
@@ -181,7 +184,7 @@ class PackagePgRepository extends IPackageRepository {
             AND ba.delete_date ISNULL
             AND p.status <> $1
             AND p.expire_date < $2
-          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date
+          GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date, p.renewal_date
           ORDER BY p.insert_date DESC
       `,
       values: [PackageModel.STATUS_EXPIRE, now],
@@ -212,16 +215,19 @@ class PackagePgRepository extends IPackageRepository {
     const expireDate = model.expireDate
       ? this.#dateTime.gregorianWithTimezoneString(model.expireDate)
       : null;
+    const renewalDate = model.renewalDate
+      ? this.#dateTime.gregorianWithTimezoneString(model.renewalDate)
+      : null;
     const proxyType = model.type ? model.type : '-';
     const countryCode = model.country ? model.country.toUpperCase() : '-';
 
     const insertToPackage = {
       text: singleLine`
-          INSERT INTO public.packages (id, user_id, status, expire_date, insert_date)
-          VALUES ($1, $2, $3, $4, $5)
+          INSERT INTO public.packages (id, user_id, status, expire_date, renewal_date, insert_date)
+          VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING *
       `,
-      values: [packageId, model.userId, model.status, expireDate, now],
+      values: [packageId, model.userId, model.status, expireDate, renewalDate, now],
     };
     const insertToMap = {
       text: singleLine`
@@ -312,6 +318,10 @@ class PackagePgRepository extends IPackageRepository {
       param.push(this.#dateTime.gregorianWithTimezoneString(model.expireDate));
       columns.push(`expire_date = $${param.length}`);
     }
+    if (typeof model.renewalDate !== 'undefined') {
+      param.push(this.#dateTime.gregorianWithTimezoneString(model.renewalDate));
+      columns.push(`renewal_date = $${param.length}`);
+    }
     if (typeof model.deleteDate !== 'undefined') {
       param.push(this.#dateTime.gregorianWithTimezoneString(model.deleteDate));
       columns.push(`delete_date = $${param.length}`);
@@ -391,8 +401,13 @@ class PackagePgRepository extends IPackageRepository {
     model.country = row['country_code'] ? row['country_code'].toUpperCase() : row['country_code'];
     model.ipList = row['ip_list'];
     model.status = row['status'];
-    model.expireDate = row['expire_date'];
-    model.insertDate = row['insert_date'];
+    model.expireDate = row['expire_date']
+      ? this.#dateTime.gregorianDateWithTimezone(row['expire_date'])
+      : null;
+    model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
+    model.renewalDate = row['renewal_date']
+      ? this.#dateTime.gregorianDateWithTimezone(row['renewal_date'])
+      : null;
 
     return model;
   }

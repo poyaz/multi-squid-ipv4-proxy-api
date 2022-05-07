@@ -34,7 +34,8 @@ class BasePackageOutputModel {
     obj.status = model.status;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);
     obj.updateDate = this._gregorianWithTimezoneString(model.updateDate);
-    obj.expireDate = this._gregorianExpireDateWithTimezoneString(model.expireDate);
+    obj.renewalDate = this._gregorianExpireDateWithoutTimeString(model.renewalDate);
+    obj.expireDate = this._gregorianExpireDateWithoutTimeString(model.expireDate);
 
     return obj;
   }
@@ -47,7 +48,7 @@ class BasePackageOutputModel {
     return this.#dateTime.gregorianWithTimezoneString(date);
   }
 
-  _gregorianExpireDateWithTimezoneString(date) {
+  _gregorianExpireDateWithoutTimeString(date) {
     if (!date) {
       return null;
     }

@@ -108,6 +108,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -135,6 +136,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
       expect(result.insertDate).to.be.an.instanceOf(Date);
+      expect(result.renewalDate).to.be.an.instanceOf(Date);
       expect(result.ipList).to.be.length(1);
     });
   });
@@ -206,6 +208,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -237,6 +240,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].renewalDate).to.be.an.instanceOf(Date);
       expect(result[0].ipList).to.be.length(1);
     });
 
@@ -262,6 +266,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -296,6 +301,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].renewalDate).to.be.an.instanceOf(Date);
       expect(result[0].ipList).to.be.length(1);
     });
 
@@ -321,6 +327,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -355,6 +362,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].renewalDate).to.be.an.instanceOf(Date);
       expect(result[0].ipList).to.be.length(1);
     });
 
@@ -380,6 +388,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -414,6 +423,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].renewalDate).to.be.an.instanceOf(Date);
       expect(result[0].ipList).to.be.length(1);
     });
   });
@@ -477,6 +487,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: new Date(),
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -509,6 +520,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result[0].expireDate).to.be.an.instanceOf(Date);
       expect(result[0].insertDate).to.be.an.instanceOf(Date);
+      expect(result[0].renewalDate).to.be.an.instanceOf(Date);
       expect(result[0].ipList).to.be.length(1);
     });
   });
@@ -625,6 +637,7 @@ suite(`PackagePgRepository`, () => {
               status: PackageModel.STATUS_ENABLE,
               expire_date: testObj.inputModel.expireDate,
               insert_date: new Date(),
+              renewal_date: new Date(),
             },
           ];
         },
@@ -660,7 +673,7 @@ suite(`PackagePgRepository`, () => {
       const sinonMatch1 = sinon.match.has(
         'values',
         sinon.match
-          .has('length', 5)
+          .has('length', 6)
           .and(
             sinon.match.array.startsWith([
               testObj.identifierGenerator.generateId(),
@@ -688,6 +701,7 @@ suite(`PackagePgRepository`, () => {
       });
       expect(result.expireDate).to.be.an.instanceOf(Date);
       expect(result.insertDate).to.be.an.instanceOf(Date);
+      expect(result.renewalDate).to.be.an.instanceOf(Date);
       expect(result.ipList).to.be.length(2);
     });
   });

@@ -26,6 +26,7 @@
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220420125900-init-orders-table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220420134925-init-subscription-table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502094900-alter-external-data-and-role.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502130015-alter-renewal-column-to-package.sql" dialect="PostgreSQL" />
   </component>
   <component name="SqlResolveMappings">
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/jobRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />

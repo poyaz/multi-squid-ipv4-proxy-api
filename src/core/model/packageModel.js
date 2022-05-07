@@ -16,6 +16,7 @@
  * @property {Date} updateDate
  * @property {Date} deleteDate
  * @property {Date} expireDate
+ * @property {Date} renewalDate
  */
 class PackageModel {
   static STATUS_ENABLE = 'enable';
@@ -36,6 +37,7 @@ class PackageModel {
   updateDate = undefined;
   deleteDate = undefined;
   expireDate = undefined;
+  renewalDate = undefined;
 }
 
 module.exports = PackageModel;

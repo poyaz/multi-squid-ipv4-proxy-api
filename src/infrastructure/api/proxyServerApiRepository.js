@@ -271,6 +271,9 @@ class ProxyServerApiRepository extends IServerApiRepository {
     model.type = body['type'];
     model.country = body['country'];
     model.isEnable = body['isEnable'];
+    model.renewalDate = body['renewalDate']
+      ? this.#dateTime.gregorianDateWithTimezone(body['renewalDate'], 'YYYY-MM-DD')
+      : null;
     model.expireDate = body['expireDate']
       ? this.#dateTime.gregorianDateWithTimezone(body['expireDate'], 'YYYY-MM-DD')
       : null;
