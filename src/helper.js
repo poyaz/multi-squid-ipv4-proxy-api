@@ -955,6 +955,37 @@ function fakeFastspringOrderParse() {
   };
 }
 
+function fakeFastspringPackageService() {
+  const IPackageService = require('~src/core/interface/iPackageService');
+  const IPackageRepository = require('~src/core/interface/iPackageRepository');
+  const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const IFastspringApiRepository = require('~src/core/interface/iFastspringApiRepository');
+  const FastspringPackageService = require('~src/core/service/fastspringPackageService');
+
+  const packageService = sinon.createStubInstance(IPackageService);
+
+  const packageRepository = sinon.createStubInstance(IPackageRepository);
+
+  const orderRepository = sinon.createStubInstance(IOrderRepository);
+
+  const fastspringApiRepository = sinon.createStubInstance(IFastspringApiRepository);
+
+  const fastspringPackageService = new FastspringPackageService(
+    packageService,
+    packageRepository,
+    orderRepository,
+    fastspringApiRepository,
+  );
+
+  return {
+    packageService,
+    packageRepository,
+    orderRepository,
+    fastspringApiRepository,
+    fastspringPackageService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -1006,4 +1037,5 @@ module.exports = {
   fakeOrderPgRepository,
   fakeOrderFastspringApiRepository,
   fakeFastspringOrderParse,
+  fakeFastspringPackageService,
 };
