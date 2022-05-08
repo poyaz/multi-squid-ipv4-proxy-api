@@ -114,6 +114,10 @@ class OrderPgRepository extends IOrderRepository {
       getAllQuery.values.push(filterModel.orderSerial);
       filterConditions.push(`serial = $${getAllQuery.values.length}`);
     }
+    if (typeof filterModel.packageId !== 'undefined') {
+      getAllQuery.values.push(filterModel.packageId);
+      filterConditions.push(`package_id = $${getAllQuery.values.length}`);
+    }
 
     if (filterConditions.length > 0) {
       getAllQuery.text += ` AND ${filterConditions.join(' AND ')}`;
