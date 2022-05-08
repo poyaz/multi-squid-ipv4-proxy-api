@@ -20,6 +20,7 @@ const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const ApiCallException = require('~src/core/exception/apiCallException');
 const UnknownException = require('~src/core/exception/unknownException');
+const FastspringAlreadyCanceledException = require('~src/core/exception/fastspringAlreadyCanceledException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -384,6 +385,47 @@ suite(`FastspringApiRepository`, () => {
         serial: inputSerial,
         status: SubscriptionModel.STATUS_ACTIVATED,
       });
+    });
+  });
+
+  suite(`Cancel subscription`, () => {
+    test(`Should error cancel subscription`, async () => {
+      const inputSerial = 'subscription serial';
+      const apiError = new Error('API call error');
+      axiosDeleteStub.throws(apiError);
+
+      const [error] = await testObj.fastspringApiRepository.cancelSubscription(inputSerial);
+
+      axiosDeleteStub.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(ApiCallException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error cancel subscription when already canceled`, async () => {
+      const inputSerial = 'subscription serial';
+      const apiError = new Error('API call error');
+      apiError.response = {
+        status: 400,
+        data: {
+          subscriptions: [
+            {
+              action: 'subscription.cancel',
+              subscription: 'subscription serial',
+              result: 'success',
+              error: {
+                subscription: 'The subscription is already canceled',
+              },
+            },
+          ],
+        },
+      };
+      axiosDeleteStub.throws(apiError);
+
+      const [error] = await testObj.fastspringApiRepository.cancelSubscription(inputSerial);
+
+      axiosDeleteStub.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(FastspringAlreadyCanceledException);
+      expect(error).to.have.property('httpCode', 400);
     });
   });
 });

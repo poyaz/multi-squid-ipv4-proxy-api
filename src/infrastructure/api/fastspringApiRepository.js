@@ -9,6 +9,7 @@ const ApiCallException = require('~src/core/exception/apiCallException');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const UnauthorizedException = require('~src/core/exception/unauthorizedException');
 const ForbiddenException = require('~src/core/exception/forbiddenException');
+const FastspringAlreadyCanceledException = require('~src/core/exception/fastspringAlreadyCanceledException');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 
 class FastspringApiRepository extends IFastspringApiRepository {
@@ -51,6 +52,16 @@ class FastspringApiRepository extends IFastspringApiRepository {
     }
   }
 
+  async cancelSubscription(subscriptionSerial) {
+    try {
+      await axios.delete(`${this.#apiDomain}/subscriptions/${subscriptionSerial}`, this.#reqOption);
+
+      return [null];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   _fillSubscription(row) {
     const model = new SubscriptionModel();
     model.orderId = row['tags']['orderId'];
@@ -70,6 +81,16 @@ class FastspringApiRepository extends IFastspringApiRepository {
   _errorHandler(error) {
     if (error.response) {
       switch (error.response.status) {
+        case 400:
+          if (error.response.data) {
+            if (
+              Object.hasOwnProperty.call(error.response.data, 'subscriptions') &&
+              error.response.data.subscriptions[0].error.subscription.match(/canceled/)
+            ) {
+              return [new FastspringAlreadyCanceledException(error)];
+            }
+          }
+          break;
         case 401:
           return [new UnauthorizedException()];
         case 403:
