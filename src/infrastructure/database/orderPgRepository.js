@@ -335,6 +335,7 @@ class OrderPgRepository extends IOrderRepository {
     const model = new SubscriptionModel();
     model.id = row['id'];
     model.orderId = row['order_id'];
+    model.serial = row['serial'];
     model.status = row['status'];
     model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
     model.updateDate = row['update_date']
