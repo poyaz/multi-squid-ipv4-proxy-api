@@ -26,7 +26,7 @@ class AddProductValidationMiddleware extends IHttpMiddleware {
 
     const schema = Joi.object({
       count: Joi.number().min(1).required(),
-      price: Joi.number().min(1).required(),
+      price: Joi.number().min(1).optional(),
       expireDay: Joi.number().min(1).required(),
       externalStore: Joi.array()
         .items(

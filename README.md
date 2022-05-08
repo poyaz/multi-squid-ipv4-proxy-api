@@ -1166,7 +1166,7 @@ curl \
 ### Body format
 
 * `count` number
-* `price` number
+* `price` number - this field has optional
 * `expireDay` number
 * `externalStore` Array of object with store information - this field has optional
 * `externalStore.type` String store name or type
