@@ -67,6 +67,16 @@ suite(`OrderService`, () => {
 
     testObj.outputOrderModel = outputOrderModel;
     testObj.outputSubscriptionModel = outputSubscriptionModel;
+
+    testObj.clock = sinon.useFakeTimers({
+      now: new Date(2019, 1, 1, 0, 0),
+      shouldAdvanceTime: true,
+      advanceTimeDelta: 20,
+    });
+  });
+
+  teardown(() => {
+    testObj.clock.restore();
   });
 
   suite(`Get order info by orderSerial`, () => {
@@ -513,13 +523,17 @@ suite(`OrderService`, () => {
           .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS)),
       );
       testObj.packageService.add.should.have.callCount(1);
+      const renewalDateCondition = new Date(
+        new Date().getTime() + outputOrderModel.prePackageOrderInfo.expireDay * 24 * 60 * 60 * 1000,
+      );
       testObj.packageService.add.should.have.calledWith(
         sinon.match
           .has('userId', testObj.identifierGenerator.generateId())
           .and(sinon.match.has('username', 'user1'))
           .and(sinon.match.has('countIp', 3))
           .and(sinon.match.has('type', 'isp'))
-          .and(sinon.match.has('country', 'US')),
+          .and(sinon.match.has('country', 'US'))
+          .and(sinon.match.has('renewalDate', renewalDateCondition)),
       );
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
@@ -545,13 +559,17 @@ suite(`OrderService`, () => {
         .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS));
       testObj.orderRepository.update.getCall(0).should.have.calledWith(sinonMatch0);
       testObj.packageService.add.should.have.callCount(1);
+      const renewalDateCondition = new Date(
+        new Date().getTime() + outputOrderModel.prePackageOrderInfo.expireDay * 24 * 60 * 60 * 1000,
+      );
       testObj.packageService.add.should.have.calledWith(
         sinon.match
           .has('userId', testObj.identifierGenerator.generateId())
           .and(sinon.match.has('username', 'user1'))
           .and(sinon.match.has('countIp', 3))
           .and(sinon.match.has('type', 'isp'))
-          .and(sinon.match.has('country', 'US')),
+          .and(sinon.match.has('country', 'US'))
+          .and(sinon.match.has('renewalDate', renewalDateCondition)),
       );
       const sinonMatch1 = sinon.match
         .has('id', testObj.identifierGenerator.generateId())
@@ -585,13 +603,17 @@ suite(`OrderService`, () => {
         .and(sinon.match.has('status', OrderModel.STATUS_SUCCESS));
       testObj.orderRepository.update.getCall(0).should.have.calledWith(sinonMatch0);
       testObj.packageService.add.should.have.callCount(1);
+      const renewalDateCondition = new Date(
+        new Date().getTime() + outputOrderModel.prePackageOrderInfo.expireDay * 24 * 60 * 60 * 1000,
+      );
       testObj.packageService.add.should.have.calledWith(
         sinon.match
           .has('userId', testObj.identifierGenerator.generateId())
           .and(sinon.match.has('username', 'user1'))
           .and(sinon.match.has('countIp', 3))
           .and(sinon.match.has('type', 'isp'))
-          .and(sinon.match.has('country', 'US')),
+          .and(sinon.match.has('country', 'US'))
+          .and(sinon.match.has('renewalDate', renewalDateCondition)),
       );
       const sinonMatch1 = sinon.match
         .has('id', testObj.identifierGenerator.generateId())

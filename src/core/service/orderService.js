@@ -137,6 +137,9 @@ class OrderService extends IOrderService {
     addPackageModel.countIp = fetchOrderData.prePackageOrderInfo.count;
     addPackageModel.type = fetchOrderData.prePackageOrderInfo.proxyType;
     addPackageModel.country = fetchOrderData.prePackageOrderInfo.countryCode;
+    addPackageModel.renewalDate = new Date(
+      new Date().getTime() + fetchOrderData.prePackageOrderInfo.expireDay * 24 * 60 * 60 * 1000,
+    );
 
     const [addPackageError, addPackageData] = await this.#packageService.add(addPackageModel);
     if (addPackageError) {
