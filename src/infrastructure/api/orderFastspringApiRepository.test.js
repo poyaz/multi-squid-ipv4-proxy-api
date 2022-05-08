@@ -2,10 +2,6 @@
  * Created by pooya on 4/30/22.
  */
 
-/**
- * Created by pooya on 4/17/22.
- */
-
 const chai = require('chai');
 const sinon = require('sinon');
 const dirtyChai = require('dirty-chai');
