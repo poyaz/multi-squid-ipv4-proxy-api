@@ -81,6 +81,7 @@ suite(`PackageController`, () => {
       outputModel.ipList = [{ ip: '192.168.1.2', port: 8080 }];
       outputModel.status = PackageModel.STATUS_ENABLE;
       outputModel.insertDate = new Date();
+      outputModel.renewalDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
       outputModel.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
       testObj.findClusterPackageService.add.resolves([null, outputModel]);
 
@@ -108,6 +109,7 @@ suite(`PackageController`, () => {
       });
       expect(result.insertDate).to.have.match(testObj.dateRegex);
       expect(result.expireDate).to.have.match(testObj.expireRegex);
+      expect(result.renewalDate).to.have.match(testObj.expireRegex);
     });
   });
 
@@ -140,6 +142,7 @@ suite(`PackageController`, () => {
         { ip: '192.168.1.3', port: 8080 },
       ];
       outputModel1.status = PackageModel.STATUS_ENABLE;
+      outputModel1.renewalDate = new Date();
       outputModel1.expireDate = new Date();
       outputModel1.insertDate = new Date();
       const outputModel2 = new PackageModel();
@@ -152,6 +155,7 @@ suite(`PackageController`, () => {
       outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.status = PackageModel.STATUS_ENABLE;
+      outputModel2.renewalDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
       testObj.findClusterPackageService.getAllByUsername.resolves([
@@ -187,6 +191,7 @@ suite(`PackageController`, () => {
         port: 8080,
       });
       expect(result[0].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[0].renewalDate).to.have.match(testObj.expireRegex);
       expect(result[0].expireDate).to.have.match(testObj.expireRegex);
       expect(result[1]).to.be.a('object');
       expect(result[1]).to.have.include({
@@ -204,6 +209,7 @@ suite(`PackageController`, () => {
         port: 8080,
       });
       expect(result[1].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[1].renewalDate).to.have.match(testObj.expireRegex);
       expect(result[1].expireDate).to.have.match(testObj.expireRegex);
     });
 
@@ -223,6 +229,7 @@ suite(`PackageController`, () => {
         { ip: '192.168.1.3', port: 8080 },
       ];
       outputModel1.status = PackageModel.STATUS_ENABLE;
+      outputModel1.renewalDate = new Date();
       outputModel1.expireDate = new Date();
       outputModel1.insertDate = new Date();
       const outputModel2 = new PackageModel();
@@ -235,6 +242,7 @@ suite(`PackageController`, () => {
       outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.status = PackageModel.STATUS_ENABLE;
+      outputModel2.renewalDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
       testObj.findClusterPackageService.getAllByUsername.resolves([
@@ -271,6 +279,7 @@ suite(`PackageController`, () => {
         port: 8080,
       });
       expect(result[0].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[0].renewalDate).to.have.match(testObj.expireRegex);
       expect(result[0].expireDate).to.have.match(testObj.expireRegex);
       expect(result[1]).to.be.a('object');
       expect(result[1]).to.have.include({
@@ -288,6 +297,7 @@ suite(`PackageController`, () => {
         port: 8080,
       });
       expect(result[1].insertDate).to.have.match(testObj.dateRegex);
+      expect(result[1].renewalDate).to.have.match(testObj.expireRegex);
       expect(result[1].expireDate).to.have.match(testObj.expireRegex);
     });
   });
@@ -322,6 +332,7 @@ suite(`PackageController`, () => {
         { ip: '192.168.1.3', port: 8080 },
       ];
       outputModel1.status = PackageModel.STATUS_ENABLE;
+      outputModel1.renewalDate = new Date();
       outputModel1.expireDate = new Date();
       outputModel1.insertDate = new Date();
       const outputModel2 = new PackageModel();
@@ -333,6 +344,7 @@ suite(`PackageController`, () => {
       outputModel2.country = 'GB';
       outputModel2.ipList = [{ ip: '192.168.1.4', port: 8080 }];
       outputModel2.status = PackageModel.STATUS_ENABLE;
+      outputModel2.renewalDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.expireDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000);
       outputModel2.insertDate = new Date();
       testObj.packageService.getAllByUsername.resolves([null, [outputModel1, outputModel2]]);
@@ -367,6 +379,7 @@ suite(`PackageController`, () => {
       });
       expect(result[0].insertDate).to.have.match(testObj.dateRegex);
       expect(result[0].expireDate).to.have.match(testObj.expireRegex);
+      expect(result[0].renewalDate).to.have.match(testObj.expireRegex);
       expect(result[1]).to.be.a('object');
       expect(result[1]).to.have.include({
         id: testObj.identifierGenerator.generateId(),
@@ -383,6 +396,7 @@ suite(`PackageController`, () => {
       });
       expect(result[1].insertDate).to.have.match(testObj.dateRegex);
       expect(result[1].expireDate).to.have.match(testObj.expireRegex);
+      expect(result[1].renewalDate).to.have.match(testObj.expireRegex);
     });
   });
 
