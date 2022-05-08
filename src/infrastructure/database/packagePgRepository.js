@@ -315,11 +315,17 @@ class PackagePgRepository extends IPackageRepository {
       columns.push(`status = $${param.length}`);
     }
     if (typeof model.expireDate !== 'undefined') {
-      param.push(this.#dateTime.gregorianWithTimezoneString(model.expireDate));
+      param.push(
+        model.expireDate ? this.#dateTime.gregorianWithTimezoneString(model.expireDate) : null,
+      );
       columns.push(`expire_date = $${param.length}`);
     }
     if (typeof model.renewalDate !== 'undefined') {
-      param.push(this.#dateTime.gregorianWithTimezoneString(model.renewalDate));
+      param.push(
+        model.renewalDate !== null
+          ? this.#dateTime.gregorianWithTimezoneString(model.renewalDate)
+          : null,
+      );
       columns.push(`renewal_date = $${param.length}`);
     }
     if (typeof model.deleteDate !== 'undefined') {
