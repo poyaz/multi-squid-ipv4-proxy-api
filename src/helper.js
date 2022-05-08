@@ -986,6 +986,18 @@ function fakeFastspringPackageService() {
   };
 }
 
+function fakeFastspringApiRepository() {
+  const FastspringApiRepository = require('~src/infrastructure/api/fastspringApiRepository');
+
+  const fastspringApiRepository = new FastspringApiRepository(
+    'username',
+    'password',
+    'https://example.com',
+  );
+
+  return { fastspringApiRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -1038,4 +1050,5 @@ module.exports = {
   fakeOrderFastspringApiRepository,
   fakeFastspringOrderParse,
   fakeFastspringPackageService,
+  fakeFastspringApiRepository,
 };
