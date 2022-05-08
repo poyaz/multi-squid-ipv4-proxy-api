@@ -33,11 +33,13 @@ const PackageFileRepository = require('~src/infrastructure/system/packageFileRep
 const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
 const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
 
+const FastspringApiRepository = require('~src/infrastructure/api/fastspringApiRepository');
 const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
 const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
 
 const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
 const FastspringOrderParse = require('~src/core/service/fastspringOrderParse');
+const FastspringPackageService = require('~src/core/service/fastspringPackageService');
 const FindClusterPackageService = require('~src/core/service/findClusterPackageService');
 const FindClusterProxyServerService = require('~src/core/service/findClusterProxyServerService');
 const FindClusterServerService = require('~src/core/service/findClusterServerService');
@@ -154,6 +156,11 @@ class Loader {
         key: this._config.getStr('custom.oauth.htmlPageCancel.key'),
       },
     };
+    const fastspringConfig = {
+      username: this._config.getStr('custom.payment.service.fastspring.auth.username'),
+      password: this._config.getStr('custom.payment.service.fastspring.auth.password'),
+      domain: this._config.getStr('custom.payment.service.fastspring.apiAddress'),
+    };
 
     // Repository
     // ----------
@@ -184,12 +191,17 @@ class Loader {
     const urlAccessPgRepository = new UrlAccessPgRepository(pgDb, dateTime, identifierGenerator);
     const userPgRepository = new UserPgRepository(pgDb, dateTime, identifierGenerator);
 
+    const fastspringApiRepository = new FastspringApiRepository(
+      fastspringConfig.username,
+      fastspringConfig.password,
+      fastspringConfig.domain,
+    );
     const proxyServerApiRepository = new ProxyServerApiRepository(dateTime, apiToken);
     const orderFastspringApiRepository = new OrderFastspringApiRepository(
       orderPgRepository,
-      this._config.getStr('custom.payment.service.fastspring.auth.username'),
-      this._config.getStr('custom.payment.service.fastspring.auth.password'),
-      this._config.getStr('custom.payment.service.fastspring.apiAddress'),
+      fastspringConfig.username,
+      fastspringConfig.password,
+      fastspringConfig.domain,
     );
 
     const orderRepository = this._config.getBool('custom.payment.enable')
@@ -242,6 +254,12 @@ class Loader {
       proxyServerApiRepository,
       currentInstanceIp,
     );
+    const fastspringPackageService = new FastspringPackageService(
+      findClusterPackageService,
+      packagePgRepository,
+      orderPgRepository,
+      fastspringApiRepository,
+    );
     const findClusterProxyServerService = new FindClusterProxyServerService(
       proxyServerService,
       serverService,
@@ -264,7 +282,7 @@ class Loader {
     );
     const orderService = new OrderService(
       productService,
-      findClusterPackageService,
+      fastspringPackageService,
       orderRepository,
     );
     const fastspringOrderParse = new FastspringOrderParse(
@@ -305,7 +323,7 @@ class Loader {
     };
     const packageControllerFactory = new PackageControllerFactory(
       packageService,
-      findClusterPackageService,
+      fastspringPackageService,
       dateTime,
     );
 
@@ -352,7 +370,7 @@ class Loader {
     // Other API
     // --------------------------
 
-    const packageCronjob = new PackageCronjob(findClusterPackageService);
+    const packageCronjob = new PackageCronjob(fastspringPackageService);
     const reloadCronjob = new ReloadCronjob(proxyServerService);
 
     // Fill dependency
@@ -389,7 +407,7 @@ class Loader {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       updateExternalStoreValidationMiddlewareFactory:
-      productMiddleware.updateExternalStoreValidation,
+        productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 
