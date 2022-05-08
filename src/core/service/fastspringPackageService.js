@@ -89,7 +89,10 @@ class FastspringPackageService extends IPackageService {
           return [fetchSubscriptionError];
         }
 
-        if (fetchSubscriptionData.status === SubscriptionModel.STATUS_ACTIVATED) {
+        if (
+          fetchSubscriptionData &&
+          fetchSubscriptionData.status === SubscriptionModel.STATUS_ACTIVATED
+        ) {
           const job = this.#fastspringApiRepository.cancelSubscription(
             fetchSubscriptionData.serial,
           );

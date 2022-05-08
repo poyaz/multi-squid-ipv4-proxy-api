@@ -6,7 +6,7 @@ class IFastspringApiRepository {
   /**
    *
    * @param {string} subscriptionSerial
-   * @return {Promise<(Error)[]>}
+   * @return {Promise<(Error|SubscriptionModel|null)[]>}
    */
   async getSubscription(subscriptionSerial) {
     const error = new Error('The method has to be overridden by subclasses.');
