@@ -574,41 +574,12 @@ suite(`PackageService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successfully cancel package (update proxy file has errored)`, async () => {
-      const inputId = testObj.identifierGenerator.generateId();
-      const outputFetchModel = new PackageModel();
-      outputFetchModel.status = PackageModel.STATUS_ENABLE;
-      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
-      testObj.packageRepository.update.resolves([null]);
-      testObj.packageFileRepository.update.resolves([new UnknownException()]);
-
-      const [error] = await testObj.packageService.cancel(inputId);
-
-      testObj.packageRepository.getById.should.have.callCount(1);
-      testObj.packageRepository.update.should.have.callCount(1);
-      testObj.packageRepository.update.should.have.calledWith(
-        sinon.match
-          .instanceOf(PackageModel)
-          .and(sinon.match.has('status', PackageModel.STATUS_CANCEL))
-          .and(
-            sinon.match.has(
-              'expireDate',
-              new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
-            ),
-          ),
-      );
-      testObj.packageFileRepository.update.should.have.callCount(1);
-      testObj.consoleError.should.callCount(1);
-      expect(error).to.be.a('null');
-    });
-
     test(`Should successfully cancel package`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputFetchModel = new PackageModel();
       outputFetchModel.status = PackageModel.STATUS_ENABLE;
       testObj.packageRepository.getById.resolves([null, outputFetchModel]);
       testObj.packageRepository.update.resolves([null]);
-      testObj.packageFileRepository.update.resolves([null]);
 
       const [error] = await testObj.packageService.cancel(inputId);
 
@@ -625,8 +596,6 @@ suite(`PackageService`, () => {
             ),
           ),
       );
-      testObj.packageFileRepository.update.should.have.callCount(1);
-      testObj.proxySquidRepository.reload.should.have.callCount(1);
       expect(error).to.be.a('null');
     });
   });

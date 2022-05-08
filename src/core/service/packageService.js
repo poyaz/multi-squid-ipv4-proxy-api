@@ -176,12 +176,6 @@ class PackageService extends IPackageService {
     if (error) {
       return [error];
     }
-    const [updateError] = await this.#packageFileRepository.update(cancelModel);
-    if (updateError) {
-      console.error('updateCancelPackage', updateError);
-    } else {
-      this._reloadServer();
-    }
 
     return [null];
   }
