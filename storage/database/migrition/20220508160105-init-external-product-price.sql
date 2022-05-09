@@ -2,7 +2,7 @@ create table external_product_price
 (
     id                uuid primary key not null,
     external_store_id uuid             not null,
-    price             int,
+    price             float,
     unit              varchar(50),
     country           varchar(50),
     insert_date       timestamp without time zone,
