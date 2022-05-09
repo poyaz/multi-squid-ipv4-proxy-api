@@ -62,6 +62,7 @@ suite(`ProductController`, () => {
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
       outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
+      outputExternalStoreModel1.price = [{ unit: 'USD', value: 1000, country: 'US' }];
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
       outputModel1.isEnable = true;
@@ -89,6 +90,11 @@ suite(`ProductController`, () => {
         serial: 'productSerial',
         insertDate: 'date',
       });
+      expect(result[0].externalStore[0].price[0]).to.have.include({
+        unit: 'USD',
+        value: 1000,
+        country: 'US',
+      });
     });
   });
 
@@ -112,6 +118,7 @@ suite(`ProductController`, () => {
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
       outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
+      outputExternalStoreModel1.price = [{ unit: 'USD', value: 1000, country: 'US', country: 'US' }];
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
       outputModel1.isEnable = true;
@@ -138,6 +145,11 @@ suite(`ProductController`, () => {
         type: 'fastspring',
         serial: 'productSerial',
         insertDate: 'date',
+      });
+      expect(result[0].externalStore[0].price[0]).to.have.include({
+        unit: 'USD',
+        value: 1000,
+        country: 'US',
       });
     });
   });
@@ -201,6 +213,7 @@ suite(`ProductController`, () => {
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
       outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
+      outputExternalStoreModel1.price = [{ unit: 'USD', value: 1000, country: 'US' }];
       outputExternalStoreModel1.insertDate = new Date();
       outputModel.externalStore = [outputExternalStoreModel1];
       outputModel.isEnable = true;
@@ -242,6 +255,11 @@ suite(`ProductController`, () => {
         type: 'fastspring',
         serial: 'productSerial',
         insertDate: 'date',
+      });
+      expect(result.externalStore[0].price[0]).to.have.include({
+        unit: 'USD',
+        value: 1000,
+        country: 'US',
       });
     });
   });

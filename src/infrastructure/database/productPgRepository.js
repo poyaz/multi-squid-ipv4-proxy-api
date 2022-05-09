@@ -175,6 +175,56 @@ class ProductPgRepository extends IProductRepository {
     }
   }
 
+  async upsertExternalProductPrice(model) {
+    if (model.price.length === 0) {
+      return [null, model];
+    }
+
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addPriceRecordList = model.price.map((v) => ({
+      unit: v.unit,
+      country: v.country,
+      value: v.value,
+    }));
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.external_product_price (id, external_store_id, price, unit, country, insert_date)
+          SELECT $1,
+                 $2,
+                 t.value,
+                 t.unit,
+                 t.country,
+                 $3
+          FROM json_to_recordset($4) as t(value int, unit varchar(50), country varchar(50))
+          ON CONFLICT (external_store_id, unit)
+          WHERE delete_date ISNULL
+              DO
+          UPDATE
+          SET unit        = EXCLUDED.unit,
+              price       = EXCLUDED.price,
+              country     = EXCLUDED.country,
+              update_date = EXCLUDED.insert_date
+          RETURNING *
+      `,
+      values: [id, model.id, now, JSON.stringify(addPriceRecordList)],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = [];
+      rows.map((v) => this._fillExternalProductPrice(result, v));
+
+      model.price = result[0].price;
+
+      return [null, model];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async update(model) {
     if (typeof model.id === 'undefined') {
       return [new ModelIdNotExistException()];
@@ -305,13 +355,26 @@ class ProductPgRepository extends IProductRepository {
       `,
       values: [id, now],
     };
+    const deleteExternalProductPriceQuery = {
+      text: singleLine`
+          UPDATE public.external_product_price
+          SET delete_date = $2
+          WHERE delete_date ISNULL
+            AND external_store_id in (SELECT id FROM public.external_store WHERE product_id = $1)
+      `,
+      values: [id, now],
+    };
 
     const transaction = { isStart: false };
     try {
       await client.query(`BEGIN`);
       transaction.isStart = true;
 
-      await Promise.all([client.query(deleteQuery), client.query(deleteExternalStoreQuery)]);
+      await Promise.all([
+        client.query(deleteQuery),
+        client.query(deleteExternalStoreQuery),
+        client.query(deleteExternalProductPriceQuery),
+      ]);
 
       await client.query('END');
 
@@ -324,8 +387,13 @@ class ProductPgRepository extends IProductRepository {
   }
 
   async deleteExternalStore(productId, externalStoreId) {
+    const [errorClient, client] = await this._getDatabaseClient();
+    if (errorClient) {
+      return [errorClient];
+    }
+
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
-    const deleteQuery = {
+    const deleteExternalStoreQuery = {
       text: singleLine`
           UPDATE public.external_store
           SET delete_date = $3
@@ -335,13 +403,34 @@ class ProductPgRepository extends IProductRepository {
       `,
       values: [externalStoreId, productId, now],
     };
+    const deleteExternalProductPriceQuery = {
+      text: singleLine`
+          UPDATE public.external_product_price
+          SET delete_date = $3
+          WHERE delete_date ISNULL
+            AND external_store_id in
+                (SELECT id FROM public.external_store WHERE id = $1 AND product_id = $2)
+      `,
+      values: [externalStoreId, productId, now],
+    };
 
+    const transaction = { isStart: false };
     try {
-      await this.#db.query(deleteQuery);
+      await client.query(`BEGIN`);
+      transaction.isStart = true;
+
+      await Promise.all([
+        client.query(deleteExternalStoreQuery),
+        client.query(deleteExternalProductPriceQuery),
+      ]);
+
+      await client.query('END');
 
       return [null];
-    } catch (error) {
-      return [new DatabaseExecuteException(error)];
+    } catch (executeError) {
+      return [await this._rollbackOnError(client, executeError, transaction.isStart)];
+    } finally {
+      client.release();
     }
   }
 
@@ -424,6 +513,23 @@ class ProductPgRepository extends IProductRepository {
     );
 
     productModel.externalStore.push(externalStoreModel);
+  }
+
+  _fillExternalProductPrice(result, row) {
+    const unit = row['unit'] ? row['unit'].toUpperCase() : '';
+    const country = row['country'] ? row['country'].toUpperCase() : '';
+
+    const find = result.find((v) => v.id === row['external_store_id']);
+    if (find) {
+      find.price.push({ unit, country, value: row['price'] });
+      return;
+    }
+
+    const model = new ExternalStoreModel();
+    model.id = row['external_store_id'];
+    model.price.push({ unit, country, value: row['price'] });
+
+    result.push(model);
   }
 }
 

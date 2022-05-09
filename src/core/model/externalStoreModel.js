@@ -7,6 +7,7 @@
  * @property {string} productId
  * @property {string} type
  * @property {string} serial
+ * @property {Array<{value: number, unit: string, country: string}>} price
  * @property {Date} insertDate
  */
 class ExternalStoreModel {
@@ -16,6 +17,7 @@ class ExternalStoreModel {
   productId = undefined;
   type = undefined;
   serial = undefined;
+  price = [];
   insertDate = undefined;
 }
 

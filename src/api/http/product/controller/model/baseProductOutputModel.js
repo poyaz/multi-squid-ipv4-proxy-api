@@ -32,6 +32,11 @@ class BaseProductOutputModel {
       type: v.type,
       serial: v.serial,
       insertDate: this._gregorianWithTimezoneString(model.insertDate),
+      price: v.price.map((p) => ({
+        unit: p.unit.toUpperCase(),
+        value: p.value,
+        country: p.country.toUpperCase(),
+      })),
     }));
     obj.isEnable = model.isEnable;
     obj.insertDate = this._gregorianWithTimezoneString(model.insertDate);

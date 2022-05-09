@@ -998,6 +998,23 @@ function fakeFastspringApiRepository() {
   return { fastspringApiRepository };
 }
 
+function fakeExternalProductApiRepository() {
+  const IProductRepository = require('~src/core/interface/iProductRepository');
+  const IFastspringApiRepository = require('~src/core/interface/iFastspringApiRepository');
+  const ExternalProductApiRepository = require('~src/infrastructure/api/externalProductApiRepository');
+
+  const productRepository = sinon.createStubInstance(IProductRepository);
+
+  const fastspringApiRepository = sinon.createStubInstance(IFastspringApiRepository);
+
+  const externalProductApiRepository = new ExternalProductApiRepository(
+    productRepository,
+    fastspringApiRepository,
+  );
+
+  return { productRepository, fastspringApiRepository, externalProductApiRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -1051,4 +1068,5 @@ module.exports = {
   fakeFastspringOrderParse,
   fakeFastspringPackageService,
   fakeFastspringApiRepository,
+  fakeExternalProductApiRepository,
 };

@@ -11,6 +11,7 @@ const UnauthorizedException = require('~src/core/exception/unauthorizedException
 const ForbiddenException = require('~src/core/exception/forbiddenException');
 const FastspringAlreadyCanceledException = require('~src/core/exception/fastspringAlreadyCanceledException');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
+const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 
 class FastspringApiRepository extends IFastspringApiRepository {
   /**
@@ -37,6 +38,24 @@ class FastspringApiRepository extends IFastspringApiRepository {
     };
   }
 
+  async getProductPrice(productSerial) {
+    try {
+      const response = await axios.get(
+        `${this.#apiDomain}/products/price/${productSerial}`,
+        this.#reqOption,
+      );
+
+      const model = new ExternalStoreModel();
+      model.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      model.serial = productSerial;
+      this._fillProductPrice(model, response.data);
+
+      return [null, model];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
+  }
+
   async getSubscription(subscriptionSerial) {
     try {
       const response = await axios.get(
@@ -60,6 +79,17 @@ class FastspringApiRepository extends IFastspringApiRepository {
     } catch (error) {
       return this._errorHandler(error);
     }
+  }
+
+  _fillProductPrice(model, row) {
+    const data = Object.entries(row['products'][0]['pricing']);
+    data.map(([key, value]) =>
+      model.price.push({
+        value: value.price,
+        unit: value.currency.toUpperCase(),
+        country: key.toUpperCase(),
+      }),
+    );
   }
 
   _fillSubscription(row) {

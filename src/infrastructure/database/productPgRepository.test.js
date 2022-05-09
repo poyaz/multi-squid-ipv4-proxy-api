@@ -49,10 +49,15 @@ suite(`ProductPgRepository`, () => {
     testObj.identifierGenerator1 = helper.fakeIdentifierGenerator('id-1');
 
     testObj.fillModelSpy = sinon.spy(testObj.productRepository, '_fillModel');
+    testObj.fillExternalProductPrice = sinon.spy(
+      testObj.productRepository,
+      '_fillExternalProductPrice',
+    );
   });
 
   teardown(() => {
     testObj.fillModelSpy.restore();
+    testObj.fillExternalProductPrice.restore();
   });
 
   suite(`Get all products`, () => {
@@ -594,6 +599,129 @@ suite(`ProductPgRepository`, () => {
     });
   });
 
+  suite(`Upsert external product price`, () => {
+    setup(() => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.id = testObj.identifierGenerator1.generateId();
+      inputModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputModel.productId = testObj.identifierGenerator.generateId();
+      inputModel.serial = 'product serial';
+      inputModel.price = [
+        { value: 1000, unit: 'USD', country: 'US' },
+        { value: 100, unit: 'EUR', country: 'DE' },
+      ];
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error upsert external product price`, async () => {
+      const inputModel = testObj.inputModel;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.upsertExternalProductPrice(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully upsert external product price (don't execute if price is empty)`, async () => {
+      const inputModel = testObj.inputModel;
+      inputModel.price = [];
+
+      const [error, result] = await testObj.productRepository.upsertExternalProductPrice(
+        inputModel,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        productId: testObj.identifierGenerator.generateId(),
+        serial: 'product serial',
+      });
+      expect(result.price).to.be.length(0);
+    });
+
+    test(`Should successfully upsert external product price`, async () => {
+      const inputModel = testObj.inputModel;
+      const fetchQuery = {
+        get rowCount() {
+          return 2;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              external_store_id: testObj.identifierGenerator1.generateId(),
+              price: 1000,
+              unit: 'usd',
+              country: 'us',
+              insert_date: '2021-08-23 13:37:50',
+              update_date: '2021-08-23 13:37:50',
+            },
+            {
+              id: testObj.identifierGenerator.generateId(),
+              external_store_id: testObj.identifierGenerator1.generateId(),
+              price: 100,
+              unit: 'eur',
+              country: 'de',
+              insert_date: '2021-08-23 13:37:50',
+              update_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.dateTime.gregorianCurrentDateWithTimezoneString.returns('2021-08-23 13:37:50');
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.productRepository.upsertExternalProductPrice(
+        inputModel,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .deepEquals([
+              testObj.identifierGenerator.generateId(),
+              inputModel.id,
+              '2021-08-23 13:37:50',
+              JSON.stringify(inputModel.price),
+            ])
+            .and(sinon.match.has('length', 4)),
+        ),
+      );
+      testObj.fillExternalProductPrice.should.have.callCount(2);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator1.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        productId: testObj.identifierGenerator.generateId(),
+        serial: 'product serial',
+      });
+      expect(result.price).to.be.length(2);
+      expect(result.price[0]).to.be.includes({
+        unit: 'USD',
+        value: 1000,
+        country: 'US',
+      });
+      expect(result.price[1]).to.be.includes({
+        unit: 'EUR',
+        value: 100,
+        country: 'DE',
+      });
+    });
+  });
+
   suite(`Update product`, () => {
     test(`Should error update product when model id not found`, async () => {
       const inputModel = new ProductModel();
@@ -800,51 +928,141 @@ suite(`ProductPgRepository`, () => {
       testObj.postgresDbClient.query.onCall(1).resolves();
       testObj.postgresDbClient.query.onCall(2).resolves();
       testObj.postgresDbClient.query.onCall(3).resolves();
+      testObj.postgresDbClient.query.onCall(4).resolves();
 
       const [error] = await testObj.productRepository.delete(inputId);
 
       testObj.postgresDb.connect.should.have.callCount(1);
-      testObj.postgresDbClient.query.should.have.callCount(4);
+      testObj.postgresDbClient.query.should.have.callCount(5);
       testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
       const sinonMatch1 = sinon.match.has('text', sinon.match(/product/));
       testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
       const sinonMatch2 = sinon.match.has('text', sinon.match(/external_store/));
       testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
-      testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
+      const sinonMatch3 = sinon.match.has(
+        'text',
+        sinon.match(/external_product_price/).and(sinon.match(/external_store/)),
+      );
+      testObj.postgresDbClient.query.getCall(3).should.calledWith(sinonMatch3);
+      testObj.postgresDbClient.query.getCall(4).should.calledWith('END');
       expect(error).to.be.a('null');
     });
   });
 
   suite(`delete external store product`, () => {
-    test(`Should error delete external store product when execute query`, async () => {
+    test(`Should error delete external store product when create database client`, async () => {
       const inputProductId = testObj.identifierGenerator.generateId();
       const inputExternalStoreId = testObj.identifierGenerator.generateId();
-      const queryError = new Error('Query error');
-      testObj.postgresDb.query.throws(queryError);
+      const connectionError = new Error('Connection error');
+      testObj.postgresDb.connect.throws(connectionError);
 
       const [error] = await testObj.productRepository.deleteExternalStore(
         inputProductId,
         inputExternalStoreId,
       );
 
-      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.connect.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseConnectionException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', connectionError);
+    });
+
+    test(`Should error delete external store product when create start transaction`, async () => {
+      const inputProductId = testObj.identifierGenerator.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(0).throws(queryError);
+
+      const [error] = await testObj.productRepository.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(1);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.release.should.have.callCount(1);
       expect(error).to.be.an.instanceof(DatabaseExecuteException);
       expect(error).to.have.property('httpCode', 400);
       expect(error).to.have.property('isOperation', false);
       expect(error).to.have.property('errorInfo', queryError);
     });
 
-    test(`Should successfully delete external store product`, async () => {
+    test(`Should error delete external store product when execute other query`, async () => {
       const inputProductId = testObj.identifierGenerator.generateId();
       const inputExternalStoreId = testObj.identifierGenerator.generateId();
-      testObj.postgresDb.query.resolves();
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      testObj.postgresDbClient.query.onCall(2).resolves();
 
       const [error] = await testObj.productRepository.deleteExternalStore(
         inputProductId,
         inputExternalStoreId,
       );
 
-      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should error delete external store product when execute other query and rollback`, async () => {
+      const inputProductId = testObj.identifierGenerator.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDbClient.query.onCall(1).throws(queryError);
+      const rollbackError = new Error('Rollback error');
+      testObj.postgresDbClient.query.onCall(2).throws(rollbackError);
+
+      const [error] = await testObj.productRepository.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(3);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      testObj.postgresDbClient.query.getCall(2).should.calledWith('ROLLBACK');
+      testObj.postgresDbClient.release.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseRollbackException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+      expect(error).to.have.property('rollbackErrorInfo', rollbackError);
+    });
+
+    test(`Should successfully delete external store product`, async () => {
+      const inputProductId = testObj.identifierGenerator.generateId();
+      const inputExternalStoreId = testObj.identifierGenerator.generateId();
+      testObj.postgresDbClient.query.onCall(0).resolves();
+      testObj.postgresDbClient.query.onCall(1).resolves();
+      testObj.postgresDbClient.query.onCall(2).resolves();
+      testObj.postgresDbClient.query.onCall(3).resolves();
+
+      const [error] = await testObj.productRepository.deleteExternalStore(
+        inputProductId,
+        inputExternalStoreId,
+      );
+
+      testObj.postgresDb.connect.should.have.callCount(1);
+      testObj.postgresDbClient.query.should.have.callCount(4);
+      testObj.postgresDbClient.query.getCall(0).should.calledWith('BEGIN');
+      const sinonMatch1 = sinon.match.has('text', sinon.match(/external_store/));
+      testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
+      const sinonMatch2 = sinon.match.has(
+        'text',
+        sinon.match(/external_product_price/).and(sinon.match(/external_store/)),
+      );
+      testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
+      testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
       expect(error).to.be.a('null');
     });
   });
