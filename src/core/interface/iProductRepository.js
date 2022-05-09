@@ -38,6 +38,17 @@ class IProductRepository {
 
   /**
    *
+   * @param {ExternalStoreModel} model
+   * @return {Promise<(Error|ExternalStoreModel)[]>}
+   */
+  async upsertExternalProductPrice(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+
+  /**
+   *
    * @param {ProductModel} model
    * @return {Promise<(Error)[]>}
    */
