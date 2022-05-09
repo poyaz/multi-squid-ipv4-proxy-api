@@ -33,6 +33,7 @@ const PackageFileRepository = require('~src/infrastructure/system/packageFileRep
 const SquidServerRepository = require('~src/infrastructure/system/squidServerRepository');
 const UserSquidRepository = require('~src/infrastructure/system/userSquidRepository');
 
+const ExternalProductApiRepository = require('~src/infrastructure/api/externalProductApiRepository');
 const FastspringApiRepository = require('~src/infrastructure/api/fastspringApiRepository');
 const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
 const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
@@ -156,6 +157,7 @@ class Loader {
         key: this._config.getStr('custom.oauth.htmlPageCancel.key'),
       },
     };
+    const isPaymentEnable = this._config.getBool('custom.payment.enable');
     const fastspringConfig = {
       username: this._config.getStr('custom.payment.service.fastspring.auth.username'),
       password: this._config.getStr('custom.payment.service.fastspring.auth.password'),
@@ -203,10 +205,13 @@ class Loader {
       fastspringConfig.password,
       fastspringConfig.domain,
     );
+    const externalProductApiRepository = new ExternalProductApiRepository(
+      productPgRepository,
+      fastspringApiRepository,
+    );
 
-    const orderRepository = this._config.getBool('custom.payment.enable')
-      ? orderFastspringApiRepository
-      : orderPgRepository;
+    const orderRepository = isPaymentEnable ? orderFastspringApiRepository : orderPgRepository;
+    const productRepository = isPaymentEnable ? externalProductApiRepository : productPgRepository;
 
     // Service
     // -------
@@ -218,13 +223,13 @@ class Loader {
       packageFileRepository,
       squidServerRepository,
     );
-    const packageService = new PackageService(
+    const packageSingleService = new PackageService(
       userService,
       packagePgRepository,
       packageFileRepository,
       squidServerRepository,
     );
-    const productService = new ProductService(productPgRepository);
+    const productService = new ProductService(productRepository);
     const urlAccessService = new UrlAccessService(
       userService,
       urlAccessPgRepository,
@@ -249,7 +254,7 @@ class Loader {
     );
     const serverService = new ServerService(serverRepository, currentInstanceIp);
     const findClusterPackageService = new FindClusterPackageService(
-      packageService,
+      packageSingleService,
       serverService,
       proxyServerApiRepository,
       currentInstanceIp,
@@ -260,6 +265,7 @@ class Loader {
       orderPgRepository,
       fastspringApiRepository,
     );
+    const packageService = isPaymentEnable ? fastspringPackageService : findClusterPackageService;
     const findClusterProxyServerService = new FindClusterProxyServerService(
       proxyServerService,
       serverService,
@@ -282,7 +288,7 @@ class Loader {
     );
     const orderService = new OrderService(
       productService,
-      fastspringPackageService,
+      packageService,
       orderRepository,
     );
     const fastspringOrderParse = new FastspringOrderParse(
@@ -322,8 +328,8 @@ class Loader {
       renewPackageValidator: new RenewPackageValidatorMiddlewareFactory(),
     };
     const packageControllerFactory = new PackageControllerFactory(
+      packageSingleService,
       packageService,
-      fastspringPackageService,
       dateTime,
     );
 
@@ -370,7 +376,7 @@ class Loader {
     // Other API
     // --------------------------
 
-    const packageCronjob = new PackageCronjob(fastspringPackageService);
+    const packageCronjob = new PackageCronjob(packageService);
     const reloadCronjob = new ReloadCronjob(proxyServerService);
 
     // Fill dependency
@@ -407,7 +413,7 @@ class Loader {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       updateExternalStoreValidationMiddlewareFactory:
-        productMiddleware.updateExternalStoreValidation,
+      productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 
