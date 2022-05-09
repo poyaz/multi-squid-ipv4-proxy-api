@@ -111,6 +111,7 @@ suite(`ProductPgRepository`, () => {
               is_enable: true,
               external_store_id: testObj.identifierGenerator1.generateId(),
               external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              external_store_price: [{ value: 10, unit: 'usd', country: 'us' }],
               external_store_serial: 'productSerial1',
               external_store_insert_date: '2021-08-23 13:37:50',
               insert_date: '2021-08-23 13:37:50',
@@ -126,6 +127,7 @@ suite(`ProductPgRepository`, () => {
               external_store_id: testObj.identifierGenerator1.generateId(),
               external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               external_store_serial: 'productSerial2',
+              external_store_price: [],
               external_store_insert_date: '2021-08-23 13:37:50',
               insert_date: '2021-08-23 13:37:50',
               update_date: null,
@@ -140,6 +142,7 @@ suite(`ProductPgRepository`, () => {
               external_store_id: null,
               external_store_type: null,
               external_store_serial: null,
+              external_store_price: [],
               external_store_insert_date: null,
               insert_date: '2021-08-23 13:37:50',
               update_date: null,
@@ -172,6 +175,11 @@ suite(`ProductPgRepository`, () => {
         type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         serial: 'productSerial1',
         insertDate: 'date',
+      });
+      expect(result[0].externalStore[0].price[0]).and.includes({
+        value: 10,
+        unit: 'USD',
+        country: 'US',
       });
       expect(result[0].externalStore[1]).to.be.instanceOf(ExternalStoreModel).and.includes({
         id: testObj.identifierGenerator1.generateId(),
@@ -209,6 +217,7 @@ suite(`ProductPgRepository`, () => {
               external_store_id: testObj.identifierGenerator1.generateId(),
               external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               external_store_serial: 'productSerial1',
+              external_store_price: [],
               external_store_insert_date: '2021-08-23 13:37:50',
               insert_date: '2021-08-23 13:37:50',
               update_date: null,
@@ -299,6 +308,7 @@ suite(`ProductPgRepository`, () => {
               external_store_id: testObj.identifierGenerator1.generateId(),
               external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               external_store_serial: 'productSerial1',
+              external_store_price: [{ value: 10, unit: 'usd', country: 'us' }],
               external_store_insert_date: '2021-08-23 13:37:50',
               is_enable: true,
               insert_date: '2021-08-23 13:37:50',
@@ -331,6 +341,11 @@ suite(`ProductPgRepository`, () => {
         type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         serial: 'productSerial1',
         insertDate: 'date',
+      });
+      expect(result.externalStore[0].price[0]).and.includes({
+        value: 10,
+        unit: 'USD',
+        country: 'US',
       });
     });
   });
@@ -486,6 +501,7 @@ suite(`ProductPgRepository`, () => {
               external_store_id: testObj.identifierGenerator.generateId(),
               external_store_type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               external_store_serial: 'productSerial',
+              external_store_price: [],
               external_store_insert_date: '2021-08-23 13:37:50',
             },
           ];
@@ -534,6 +550,7 @@ suite(`ProductPgRepository`, () => {
         serial: 'productSerial',
         insertDate: 'date',
       });
+      expect(result.externalStore[0].price).to.be.length(0);
     });
 
     test(`Should successfully add new product in database without add in another table`, async () => {
@@ -691,11 +708,7 @@ suite(`ProductPgRepository`, () => {
         sinon.match.has(
           'values',
           sinon.match.array
-            .deepEquals([
-              inputModel.id,
-              '2021-08-23 13:37:50',
-              JSON.stringify(inputModel.price),
-            ])
+            .deepEquals([inputModel.id, '2021-08-23 13:37:50', JSON.stringify(inputModel.price)])
             .and(sinon.match.has('length', 3)),
         ),
       );

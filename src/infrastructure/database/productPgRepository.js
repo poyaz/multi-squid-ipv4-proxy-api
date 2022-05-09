@@ -44,14 +44,20 @@ class ProductPgRepository extends IProductRepository {
     const getAllQuery = {
       text: singleLine`
           SELECT p.*,
-                 es.id          AS external_store_id,
-                 es.type        AS external_store_type,
-                 es.serial      AS external_store_serial,
-                 es.insert_date AS external_store_insert_date
+                 es.id                                    AS external_store_id,
+                 es.type                                  AS external_store_type,
+                 es.serial                                AS external_store_serial,
+                 es.insert_date                           AS external_store_insert_date,
+                 jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'price',
+                                              epp.price)) AS external_store_price
           FROM public.product p
                    LEFT JOIN public.external_store es
                              ON p.id = es.product_id AND es.delete_date ISNULL
+                   LEFT JOIN public.external_product_price epp
+                             ON es.id = epp.external_store_id AND epp.delete_date ISNULL
           WHERE p.delete_date ISNULL
+          GROUP BY p.id, p.count, p.price, p.expire_day, p.is_enable, p.insert_date, p.update_date,
+                   p.delete_date, es.id, es.type, es.id, es.serial, es.insert_date
       `,
       values: [],
     };
@@ -84,15 +90,21 @@ class ProductPgRepository extends IProductRepository {
     const getByIdQuery = {
       text: singleLine`
           SELECT p.*,
-                 es.id          AS external_store_id,
-                 es.type        AS external_store_type,
-                 es.serial      AS external_store_serial,
-                 es.insert_date AS external_store_insert_date
+                 es.id                                    AS external_store_id,
+                 es.type                                  AS external_store_type,
+                 es.serial                                AS external_store_serial,
+                 es.insert_date                           AS external_store_insert_date,
+                 jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'price',
+                                              epp.price)) AS external_store_price
           FROM public.product p
                    LEFT JOIN public.external_store es
                              ON p.id = es.product_id AND es.delete_date ISNULL
+                   LEFT JOIN public.external_product_price epp
+                             ON es.id = epp.external_store_id AND epp.delete_date ISNULL
           WHERE p.delete_date ISNULL
             AND p.id = $1
+          GROUP BY p.id, p.count, p.price, p.expire_day, p.is_enable, p.insert_date, p.update_date,
+                   p.delete_date, es.id, es.type, es.id, es.serial, es.insert_date
       `,
       values: [id],
     };
@@ -180,7 +192,6 @@ class ProductPgRepository extends IProductRepository {
       return [null, model];
     }
 
-    const id = this.#identifierGenerator.generateId();
     const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
 
     const addPriceRecordList = model.price.map((v) => ({
@@ -508,6 +519,11 @@ class ProductPgRepository extends IProductRepository {
     externalStoreModel.productId = row['id'];
     externalStoreModel.type = row['external_store_type'];
     externalStoreModel.serial = row['external_store_serial'];
+    externalStoreModel.price = (row['external_store_price'] || []).map((v) => ({
+      unit: v.unit ? v.unit.toUpperCase() : '',
+      country: v.country ? v.country.toUpperCase() : '',
+      value: v.value,
+    }));
     externalStoreModel.insertDate = this.#dateTime.gregorianDateWithTimezone(
       row['external_store_insert_date'],
     );
