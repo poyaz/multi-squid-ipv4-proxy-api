@@ -191,14 +191,14 @@ class ProductPgRepository extends IProductRepository {
     const addQuery = {
       text: singleLine`
           INSERT INTO public.external_product_price (id, external_store_id, price, unit, country, insert_date)
-          SELECT $1,
-                 $2,
+          SELECT public.uuid_generate_v4(),
+                 $1,
                  t.value,
                  t.unit,
                  t.country,
-                 $3
-          FROM json_to_recordset($4) as t(value int, unit varchar(50), country varchar(50))
-          ON CONFLICT (external_store_id, unit)
+                 $2
+          FROM json_to_recordset($3) as t(value float, unit varchar(50), country varchar(50))
+          ON CONFLICT (external_store_id, unit, country)
           WHERE delete_date ISNULL
               DO
           UPDATE
@@ -208,7 +208,7 @@ class ProductPgRepository extends IProductRepository {
               update_date = EXCLUDED.insert_date
           RETURNING *
       `,
-      values: [id, model.id, now, JSON.stringify(addPriceRecordList)],
+      values: [model.id, now, JSON.stringify(addPriceRecordList)],
     };
 
     try {

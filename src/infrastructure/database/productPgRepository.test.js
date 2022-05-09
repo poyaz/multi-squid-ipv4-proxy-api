@@ -692,12 +692,11 @@ suite(`ProductPgRepository`, () => {
           'values',
           sinon.match.array
             .deepEquals([
-              testObj.identifierGenerator.generateId(),
               inputModel.id,
               '2021-08-23 13:37:50',
               JSON.stringify(inputModel.price),
             ])
-            .and(sinon.match.has('length', 4)),
+            .and(sinon.match.has('length', 3)),
         ),
       );
       testObj.fillExternalProductPrice.should.have.callCount(2);
