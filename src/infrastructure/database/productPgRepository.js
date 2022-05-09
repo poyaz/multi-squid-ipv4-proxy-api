@@ -44,12 +44,13 @@ class ProductPgRepository extends IProductRepository {
     const getAllQuery = {
       text: singleLine`
           SELECT p.*,
-                 es.id                                    AS external_store_id,
-                 es.type                                  AS external_store_type,
-                 es.serial                                AS external_store_serial,
-                 es.insert_date                           AS external_store_insert_date,
-                 jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'price',
-                                              epp.price)) AS external_store_price
+                 es.id                         AS external_store_id,
+                 es.type                       AS external_store_type,
+                 es.serial                     AS external_store_serial,
+                 es.insert_date                AS external_store_insert_date,
+                 jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'value',
+                                              epp.price))
+                 FILTER (WHERE epp.id NOTNULL) AS external_store_price
           FROM public.product p
                    LEFT JOIN public.external_store es
                              ON p.id = es.product_id AND es.delete_date ISNULL
@@ -90,12 +91,13 @@ class ProductPgRepository extends IProductRepository {
     const getByIdQuery = {
       text: singleLine`
           SELECT p.*,
-                 es.id                                    AS external_store_id,
-                 es.type                                  AS external_store_type,
-                 es.serial                                AS external_store_serial,
-                 es.insert_date                           AS external_store_insert_date,
-                 jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'price',
-                                              epp.price)) AS external_store_price
+                 es.id                                                                  AS external_store_id,
+                 es.type                                                                AS external_store_type,
+                 es.serial                                                              AS external_store_serial,
+                 es.insert_date                                                         AS external_store_insert_date,
+                 jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'value',
+                                              epp.price))
+                 FILTER (WHERE epp.id NOTNULL)                                          AS external_store_price
           FROM public.product p
                    LEFT JOIN public.external_store es
                              ON p.id = es.product_id AND es.delete_date ISNULL
