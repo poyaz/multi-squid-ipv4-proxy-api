@@ -91,13 +91,13 @@ class ProductPgRepository extends IProductRepository {
     const getByIdQuery = {
       text: singleLine`
           SELECT p.*,
-                 es.id                                                                  AS external_store_id,
-                 es.type                                                                AS external_store_type,
-                 es.serial                                                              AS external_store_serial,
-                 es.insert_date                                                         AS external_store_insert_date,
+                 es.id                         AS external_store_id,
+                 es.type                       AS external_store_type,
+                 es.serial                     AS external_store_serial,
+                 es.insert_date                AS external_store_insert_date,
                  jsonb_agg(jsonb_build_object('unit', epp.unit, 'country', epp.country, 'value',
                                               epp.price))
-                 FILTER (WHERE epp.id NOTNULL)                                          AS external_store_price
+                 FILTER (WHERE epp.id NOTNULL) AS external_store_price
           FROM public.product p
                    LEFT JOIN public.external_store es
                              ON p.id = es.product_id AND es.delete_date ISNULL
@@ -186,6 +186,30 @@ class ProductPgRepository extends IProductRepository {
       return [await this._rollbackOnError(client, executeError, transaction.isStart)];
     } finally {
       client.release();
+    }
+  }
+
+  async addExternalStoreProduct(model) {
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.external_store (id, product_id, type, serial, insert_date)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING *
+      `,
+      values: [id, model.productId, model.type, model.serial, now],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = this._fillExternalStoreModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
     }
   }
 
@@ -491,7 +515,7 @@ class ProductPgRepository extends IProductRepository {
   _fillModel(result, row) {
     const find = result.find((v) => v.id === row['id']);
     if (find) {
-      this._fillExternalStoreModel(find, row);
+      this._fillProductWithExternalStoreModel(find, row);
       return;
     }
 
@@ -506,12 +530,12 @@ class ProductPgRepository extends IProductRepository {
       ? this.#dateTime.gregorianDateWithTimezone(row['update_date'])
       : null;
 
-    this._fillExternalStoreModel(model, row);
+    this._fillProductWithExternalStoreModel(model, row);
 
     result.push(model);
   }
 
-  _fillExternalStoreModel(productModel, row) {
+  _fillProductWithExternalStoreModel(productModel, row) {
     if (!row['external_store_id']) {
       return;
     }
@@ -531,6 +555,17 @@ class ProductPgRepository extends IProductRepository {
     );
 
     productModel.externalStore.push(externalStoreModel);
+  }
+
+  _fillExternalStoreModel(row) {
+    const model = new ExternalStoreModel();
+    model.id = row['id'];
+    model.productId = row['product_id'];
+    model.type = row['type'];
+    model.serial = row['serial'];
+    model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);
+
+    return model;
   }
 
   _fillExternalProductPrice(result, row) {

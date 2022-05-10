@@ -6,6 +6,8 @@ const GetAllProductOutputModel = require('./model/getAllProductOutputModel');
 const GetAllEnableProductOutputModel = require('./model/getAllEnableProductOutputModel');
 const AddProductInputModel = require('./model/addProductInputModel');
 const AddProductOutputModel = require('./model/addProductOutputModel');
+const AddExternalStoreProductInputModel = require('./model/addExternalStoreProductInputModel');
+const AddExternalStoreProductOutputModel = require('./model/addExternalStoreProductOutputModel');
 const UpdateProductInputModel = require('./model/updateProductInputModel');
 const UpdateExternalStoreProductInputModel = require('./model/updateExternalStoreProductInputModel');
 
@@ -72,6 +74,26 @@ class ProductController {
 
     const addProductOutputModel = new AddProductOutputModel(this.#dateTime);
     const result = addProductOutputModel.getOutput(data);
+
+    return [null, result];
+  }
+
+  async addExternalStoreProduct() {
+    const { productId } = this.#req.params;
+    const { body } = this.#req;
+
+    const addExternalStoreProductInputModel = new AddExternalStoreProductInputModel(productId);
+    const model = addExternalStoreProductInputModel.getModel(body);
+
+    const [error, data] = await this.#productService.addExternalStoreProduct(model);
+    if (error) {
+      return [error];
+    }
+
+    const addExternalStoreProductOutputModel = new AddExternalStoreProductOutputModel(
+      this.#dateTime,
+    );
+    const result = addExternalStoreProductOutputModel.getOutput(data);
 
     return [null, result];
   }

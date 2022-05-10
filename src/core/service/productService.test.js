@@ -209,6 +209,92 @@ suite(`ProductService`, () => {
     });
   });
 
+  suite(`Add external store product`, () => {
+    setup(() => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputModel.serial = 'product serial';
+
+      testObj.inputModel = inputModel;
+
+      testObj.productRepositoryGetById = sinon.stub(testObj.productService, 'getById');
+      testObj.clock = sinon.useFakeTimers({
+        now: new Date(2019, 1, 1, 0, 0, 0, 0),
+        shouldAdvanceTime: true,
+        advanceTimeDelta: 20,
+      });
+    });
+
+    teardown(() => {
+      testObj.productRepositoryGetById.restore();
+      testObj.clock.restore();
+    });
+
+    test(`Should error add new external store product when fail get product by id`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.productRepositoryGetById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.addExternalStoreProduct(inputModel);
+
+      testObj.productRepositoryGetById.should.have.callCount(1);
+      testObj.productRepositoryGetById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator1.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should error add new external store product`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.productRepositoryGetById.resolves([null]);
+      testObj.productRepository.addExternalStoreProduct.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productService.addExternalStoreProduct(inputModel);
+
+      testObj.productRepository.addExternalStoreProduct.should.have.callCount(1);
+      testObj.productRepository.addExternalStoreProduct.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('productId', testObj.identifierGenerator1.generateId()))
+          .and(sinon.match.has('type', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING))
+          .and(sinon.match.has('serial', 'product serial')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully add new external store product`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.productRepositoryGetById.resolves([null]);
+      const outputModel = new ExternalStoreModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.productId = testObj.identifierGenerator.generateId();
+      outputModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputModel.serial = 'product serial';
+      outputModel.insertDate = new Date();
+      testObj.productRepository.addExternalStoreProduct.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.productService.addExternalStoreProduct(inputModel);
+
+      testObj.productRepository.addExternalStoreProduct.should.have.callCount(1);
+      testObj.productRepository.addExternalStoreProduct.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('productId', testObj.identifierGenerator1.generateId()))
+          .and(sinon.match.has('type', ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING))
+          .and(sinon.match.has('serial', 'product serial')),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(ExternalStoreModel);
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'product serial',
+        insertDate: outputModel.insertDate,
+      });
+    });
+  });
+
   suite(`Disable product`, () => {
     test(`Should error disable product when get product has error`, async () => {
       const inputId = testObj.identifierGenerator.generateId();

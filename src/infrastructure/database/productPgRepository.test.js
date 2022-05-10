@@ -49,6 +49,10 @@ suite(`ProductPgRepository`, () => {
     testObj.identifierGenerator1 = helper.fakeIdentifierGenerator('id-1');
 
     testObj.fillModelSpy = sinon.spy(testObj.productRepository, '_fillModel');
+    testObj.fillExternalStoreModelSpy = sinon.spy(
+      testObj.productRepository,
+      '_fillExternalStoreModel',
+    );
     testObj.fillExternalProductPrice = sinon.spy(
       testObj.productRepository,
       '_fillExternalProductPrice',
@@ -57,6 +61,7 @@ suite(`ProductPgRepository`, () => {
 
   teardown(() => {
     testObj.fillModelSpy.restore();
+    testObj.fillExternalStoreModelSpy.restore();
     testObj.fillExternalProductPrice.restore();
   });
 
@@ -613,6 +618,102 @@ suite(`ProductPgRepository`, () => {
         insertDate: 'date',
       });
       expect(result.externalStore).to.be.length(0);
+    });
+  });
+
+  suite(`Add new external store product`, () => {
+    setup(() => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputModel.serial = 'product serial';
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add new external store product`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.dateTime.gregorianCurrentDateWithTimezoneString.returns('date');
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.productRepository.addExternalStoreProduct(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .deepEquals([
+              testObj.identifierGenerator.generateId(),
+              testObj.identifierGenerator1.generateId(),
+              inputModel.type,
+              inputModel.serial,
+              'date',
+            ])
+            .and(sinon.match.has('length', 5)),
+        ),
+      );
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully add new external store product`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.dateTime.gregorianCurrentDateWithTimezoneString.returns('date');
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              product_id: testObj.identifierGenerator1.generateId(),
+              type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+              serial: 'product serial',
+              insert_date: '2021-08-23 13:37:50',
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+      testObj.dateTime.gregorianDateWithTimezone.returns('date');
+
+      const [error, result] = await testObj.productRepository.addExternalStoreProduct(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .deepEquals([
+              testObj.identifierGenerator.generateId(),
+              testObj.identifierGenerator1.generateId(),
+              inputModel.type,
+              inputModel.serial,
+              'date',
+            ])
+            .and(sinon.match.has('length', 5)),
+        ),
+      );
+      testObj.fillExternalStoreModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.have.instanceOf(ExternalStoreModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        productId: testObj.identifierGenerator1.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'product serial',
+        insertDate: 'date',
+      });
     });
   });
 

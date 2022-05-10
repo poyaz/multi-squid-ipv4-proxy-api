@@ -51,6 +51,15 @@ class ProductService extends IProductService {
     return this.#productRepository.add(model);
   }
 
+  async addExternalStoreProduct(model) {
+    const [error] = await this.getById(model.productId);
+    if (error) {
+      return [error];
+    }
+
+    return this.#productRepository.addExternalStoreProduct(model);
+  }
+
   async disableById(id) {
     const [fetchError] = await this._getProductById(id);
     if (fetchError) {

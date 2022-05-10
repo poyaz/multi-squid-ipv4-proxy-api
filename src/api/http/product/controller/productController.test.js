@@ -118,7 +118,7 @@ suite(`ProductController`, () => {
       outputExternalStoreModel1.id = testObj.identifierGenerator.generateId();
       outputExternalStoreModel1.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputExternalStoreModel1.serial = 'productSerial';
-      outputExternalStoreModel1.price = [{ unit: 'USD', value: 1000, country: 'US', country: 'US' }];
+      outputExternalStoreModel1.price = [{ unit: 'USD', value: 1000, country: 'US' }];
       outputExternalStoreModel1.insertDate = new Date();
       outputModel1.externalStore = [outputExternalStoreModel1];
       outputModel1.isEnable = true;
@@ -261,6 +261,70 @@ suite(`ProductController`, () => {
         value: 1000,
         country: 'US',
       });
+    });
+  });
+
+  suite(`Add external product`, () => {
+    test(`Should error add new external product`, async () => {
+      testObj.req.params = {
+        productId: testObj.identifierGenerator.generateId(),
+      };
+      testObj.req.body = {
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial',
+      };
+      testObj.productService.addExternalStoreProduct.resolves([new UnknownException()]);
+
+      const [error] = await testObj.productController.addExternalStoreProduct();
+
+      testObj.productService.addExternalStoreProduct.should.have.callCount(1);
+      testObj.productService.addExternalStoreProduct.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('productId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('type', sinon.match.string))
+          .and(sinon.match.has('serial', sinon.match.string)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully add new external product`, async () => {
+      testObj.req.params = {
+        productId: testObj.identifierGenerator.generateId(),
+      };
+      testObj.req.body = {
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'productSerial',
+      };
+      const outputModel = new ExternalStoreModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.productId = testObj.identifierGenerator.generateId();
+      outputModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputModel.serial = 'product serial';
+      outputModel.insertDate = new Date();
+      testObj.productService.addExternalStoreProduct.resolves([null, outputModel]);
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+
+      const [error, result] = await testObj.productController.addExternalStoreProduct();
+
+      testObj.productService.addExternalStoreProduct.should.have.callCount(1);
+      testObj.productService.addExternalStoreProduct.should.have.calledWith(
+        sinon.match
+          .instanceOf(ExternalStoreModel)
+          .and(sinon.match.has('productId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('type', sinon.match.string))
+          .and(sinon.match.has('serial', sinon.match.string)),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('object');
+      expect(result).to.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        productId: testObj.identifierGenerator.generateId(),
+        type: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        serial: 'product serial',
+        insertDate: 'date',
+      });
+      expect(result.price).to.be.length(0);
     });
   });
 
