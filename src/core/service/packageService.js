@@ -270,7 +270,6 @@ class PackageService extends IPackageService {
       return [null];
     }
 
-    dataFetchPackage.expireDate = null;
     dataFetchPackage.deleteDate = null;
     const [error] = await this.#packageFileRepository.update(dataFetchPackage);
     if (error) {

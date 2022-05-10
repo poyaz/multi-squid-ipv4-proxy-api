@@ -75,7 +75,12 @@ class PackageFileRepository extends IPackageRepository {
       return [new ModelUsernameNotExistException()];
     }
 
-    if (!model.expireDate && !model.deleteDate && model.ipList.length > 0) {
+    if (
+      !model.expireDate &&
+      !model.deleteDate &&
+      model.status === PackageModel.STATUS_ENABLE &&
+      model.ipList.length > 0
+    ) {
       try {
         const lines = await fsAsync.readFile(this.#accessUserIpPath, 'utf8');
 
@@ -105,6 +110,15 @@ class PackageFileRepository extends IPackageRepository {
     let updatePattern = '';
     switch (true) {
       case model.expireDate instanceof Date && model.ipList.length > 0: {
+        const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
+        updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
+        break;
+      }
+      case !model.expireDate && model.status !== PackageModel.STATUS_ENABLE: {
+        if (model.ipList.length === 0) {
+          break;
+        }
+
         const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
         updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
         break;

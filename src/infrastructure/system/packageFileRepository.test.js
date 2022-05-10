@@ -195,6 +195,7 @@ suite(`PackageFileRepository`, () => {
     test(`Should error update package when read file for check ip exist (if package has not deleted or expired)`, async () => {
       const inputModel = new PackageModel();
       inputModel.username = 'user1';
+      inputModel.status = PackageModel.STATUS_ENABLE;
       inputModel.ipList = [
         { ip: '192.168.1.1', port: 8080 },
         { ip: '192.168.1.2', port: 8080 },
@@ -214,6 +215,7 @@ suite(`PackageFileRepository`, () => {
     test(`Should error update package when detect we need append ip to list before update (if package has not deleted or expired)`, async () => {
       const inputModel = new PackageModel();
       inputModel.username = 'user1';
+      inputModel.status = PackageModel.STATUS_ENABLE;
       inputModel.ipList = [
         { ip: '192.168.1.1', port: 8080 },
         { ip: '192.168.1.2', port: 8080 },
@@ -275,6 +277,7 @@ suite(`PackageFileRepository`, () => {
     test(`Should successfully update package (disable user)`, async () => {
       const inputModel = new PackageModel();
       inputModel.username = 'user1';
+      inputModel.status = PackageModel.STATUS_ENABLE;
       inputModel.ipList = [
         { ip: '192.168.1.1', port: 8080 },
         { ip: '192.168.1.2', port: 8080 },
@@ -301,6 +304,7 @@ suite(`PackageFileRepository`, () => {
     test(`Should successfully update package (enable user)`, async () => {
       const inputModel = new PackageModel();
       inputModel.username = 'user1';
+      inputModel.status = PackageModel.STATUS_ENABLE;
       childProcess.spawn.returns();
       childProcess.spawn.callsFake(() => {
         const stderr = new PassThrough();
