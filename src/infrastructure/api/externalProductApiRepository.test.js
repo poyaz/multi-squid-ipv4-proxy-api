@@ -450,6 +450,17 @@ suite(`ExternalProductApiRepository`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
+    test(`Should successfully get product by id without get price of product (if product result is null)`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.productRepository.getById.resolves([null, null]);
+
+      const [error, result] = await testObj.externalProductApiRepository.getById(inputId);
+
+      testObj.productRepository.getById.should.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('null');
+    });
+
     test(`Should successfully get product by id without get price of product (if price has been set)`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputModel = testObj.outputModel;
@@ -846,6 +857,44 @@ suite(`ExternalProductApiRepository`, () => {
         unit: 'USD',
         country: 'US',
       });
+    });
+  });
+
+  suite(`Add new external store product`, () => {
+    setup(() => {
+      const inputModel = new ExternalStoreModel();
+      inputModel.productId = testObj.identifierGenerator1.generateId();
+      inputModel.type = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      inputModel.serial = 'product serial';
+
+      testObj.inputModel = inputModel;
+    });
+
+    test(`Should error add new external store product`, async () => {
+      const inputModel = testObj.inputModel;
+      testObj.productRepository.addExternalStoreProduct.resolves([new UnknownException()]);
+
+      const [error] = await testObj.externalProductApiRepository.addExternalStoreProduct(
+        inputModel,
+      );
+
+      testObj.productRepository.addExternalStoreProduct.should.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully add new external store product`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputModel = new ExternalStoreModel();
+      testObj.productRepository.addExternalStoreProduct.resolves([null, outputModel]);
+
+      const [error, result] = await testObj.externalProductApiRepository.addExternalStoreProduct(
+        inputModel,
+      );
+
+      testObj.productRepository.addExternalStoreProduct.should.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(ExternalStoreModel);
     });
   });
 

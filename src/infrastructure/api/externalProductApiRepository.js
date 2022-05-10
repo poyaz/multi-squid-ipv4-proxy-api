@@ -48,6 +48,9 @@ class ExternalProductApiRepository extends IProductRepository {
     if (getByIdError) {
       return [getByIdError];
     }
+    if (!getByIdData) {
+      return [null, null];
+    }
 
     const getPriceDataList = this._getListOfProductNeedFetchPrice([getByIdData]);
     if (getPriceDataList.length === 0) {
@@ -73,6 +76,10 @@ class ExternalProductApiRepository extends IProductRepository {
     await this._getProductPriceFromExternalStore(getPriceDataList);
 
     return [null, addData];
+  }
+
+  async addExternalStoreProduct(model) {
+    return this.#productRepository.addExternalStoreProduct(model);
   }
 
   async upsertExternalProductPrice(model) {
