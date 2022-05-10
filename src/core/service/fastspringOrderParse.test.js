@@ -33,12 +33,14 @@ const testObj = {};
 suite(`FastspringOrderParse`, () => {
   setup(() => {
     const {
+      packageService,
       orderService,
       orderRepository,
       fastspringApiRepository,
       fastspringOrderParse,
     } = helper.fakeFastspringOrderParse();
 
+    testObj.packageService = packageService;
     testObj.orderService = orderService;
     testObj.orderRepository = orderRepository;
     testObj.fastspringApiRepository = fastspringApiRepository;
@@ -332,6 +334,320 @@ suite(`FastspringOrderParse`, () => {
           .and(sinon.match.has('subscriptionBodyData', JSON.stringify(inputData.events[0].data))),
       );
       testObj.consoleError.should.callCount(0);
+    });
+  });
+
+  suite(`Add cancel subscription`, () => {
+    setup(() => {
+      testObj.inputDataSubscription = {
+        events: [
+          {
+            id: 'IZPctFfySiGRKKHwnqsIEg',
+            processed: false,
+            created: 1652170730281,
+            type: 'subscription.canceled',
+            live: false,
+            data: {
+              id: 'subscription serial',
+              quote: null,
+              subscription: 'subscription serial',
+              active: true,
+              state: 'canceled',
+              changed: 1652170730281,
+              changedValue: 1652170730281,
+              changedInSeconds: 1652170730,
+              changedDisplay: '5/10/22',
+              changedDisplayISO8601: '2022-05-10',
+              live: false,
+              currency: 'USD',
+              account: '4w0LKG1mSE6-HEnGCt5xkA',
+              product: 'at-datacenter-proxies-100',
+              sku: null,
+              display: 'AT Datacenter Proxies [100]',
+              quantity: 1,
+              adhoc: false,
+              autoRenew: true,
+              price: 180,
+              priceDisplay: '$180.00',
+              priceInPayoutCurrency: 180,
+              priceInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              subtotal: 193.05,
+              subtotalDisplay: '$193.05',
+              subtotalInPayoutCurrency: 193.05,
+              subtotalInPayoutCurrencyDisplay: '$193.05',
+              tags: { orderId: '17e5e218-80df-4a35-8023-42ee943f2356' },
+              next: 1654819200000,
+              nextValue: 1654819200000,
+              nextInSeconds: 1654819200,
+              nextDisplay: '6/10/22',
+              nextDisplayISO8601: '2022-06-10',
+              end: null,
+              endValue: null,
+              endInSeconds: null,
+              endDisplay: null,
+              endDisplayISO8601: null,
+              canceledDate: 1652140800000,
+              canceledDateValue: 1652140800000,
+              canceledDateInSeconds: 1652140800,
+              canceledDateDisplay: '5/10/22',
+              canceledDateDisplayISO8601: '2022-05-10',
+              deactivationDate: 1654819200000,
+              deactivationDateValue: 1654819200000,
+              deactivationDateInSeconds: 1654819200,
+              deactivationDateDisplay: '6/10/22',
+              deactivationDateDisplayISO8601: '2022-06-10',
+              sequence: 1,
+              periods: null,
+              remainingPeriods: null,
+              begin: 1652140800000,
+              beginValue: 1652140800000,
+              beginInSeconds: 1652140800,
+              beginDisplay: '5/10/22',
+              beginDisplayISO8601: '2022-05-10',
+              intervalUnit: 'month',
+              intervalLength: 1,
+              nextChargeCurrency: 'USD',
+              nextChargeDate: 1654819200000,
+              nextChargeDateValue: 1654819200000,
+              nextChargeDateInSeconds: 1654819200,
+              nextChargeDateDisplay: '6/10/22',
+              nextChargeDateDisplayISO8601: '2022-06-10',
+              nextChargePreTax: 180,
+              nextChargePreTaxDisplay: '$180.00',
+              nextChargePreTaxInPayoutCurrency: 180,
+              nextChargePreTaxInPayoutCurrencyDisplay: '$180.00',
+              nextChargeTotal: 193.05,
+              nextChargeTotalDisplay: '$193.05',
+              nextChargeTotalInPayoutCurrency: 193.05,
+              nextChargeTotalInPayoutCurrencyDisplay: '$193.05',
+              nextNotificationType: 'PAYMENT_REMINDER',
+              nextNotificationDate: 1654214400000,
+              nextNotificationDateValue: 1654214400000,
+              nextNotificationDateInSeconds: 1654214400,
+              nextNotificationDateDisplay: '6/3/22',
+              nextNotificationDateDisplayISO8601: '2022-06-03',
+              paymentReminder: { intervalUnit: 'week', intervalLength: 1 },
+              paymentOverdue: {
+                intervalUnit: 'week',
+                intervalLength: 1,
+                total: 4,
+                sent: 0,
+              },
+              cancellationSetting: {
+                cancellation: 'AFTER_LAST_NOTIFICATION',
+                intervalUnit: 'week',
+                intervalLength: 1,
+              },
+              fulfillments: {},
+              instructions: [
+                {
+                  product: 'at-datacenter-proxies-100',
+                  type: 'regular',
+                  periodStartDate: null,
+                  periodStartDateValue: null,
+                  periodStartDateInSeconds: null,
+                  periodStartDateDisplay: null,
+                  periodStartDateDisplayISO8601: null,
+                  periodEndDate: null,
+                  periodEndDateValue: null,
+                  periodEndDateInSeconds: null,
+                  periodEndDateDisplay: null,
+                  periodEndDateDisplayISO8601: null,
+                  intervalUnit: 'month',
+                  intervalLength: 1,
+                  discountPercent: 0,
+                  discountPercentValue: 0,
+                  discountPercentDisplay: '0%',
+                  discountTotal: 0,
+                  discountTotalDisplay: '$0.00',
+                  discountTotalInPayoutCurrency: 0,
+                  discountTotalInPayoutCurrencyDisplay: '$0.00',
+                  unitDiscount: 0,
+                  unitDiscountDisplay: '$0.00',
+                  unitDiscountInPayoutCurrency: 0,
+                  unitDiscountInPayoutCurrencyDisplay: '$0.00',
+                  price: 180,
+                  priceDisplay: '$180.00',
+                  priceInPayoutCurrency: 180,
+                  priceInPayoutCurrencyDisplay: '$180.00',
+                  priceTotal: 180,
+                  priceTotalDisplay: '$180.00',
+                  priceTotalInPayoutCurrency: 180,
+                  priceTotalInPayoutCurrencyDisplay: '$180.00',
+                  unitPrice: 180,
+                  unitPriceDisplay: '$180.00',
+                  unitPriceInPayoutCurrency: 180,
+                  unitPriceInPayoutCurrencyDisplay: '$180.00',
+                  total: 180,
+                  totalDisplay: '$180.00',
+                  totalInPayoutCurrency: 180,
+                  totalInPayoutCurrencyDisplay: '$180.00',
+                },
+              ],
+              initialOrderId: 'order serial',
+              initialOrderReference: 'DESAINEGMBH220510-3308-55135',
+            },
+          },
+        ],
+      };
+    });
+
+    test(`Should error parse event when cancel subscription (error on get order info)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      testObj.orderRepository.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.consoleError.should.have.callCount(1);
+    });
+
+    test(`Should successfully parse event when cancel subscription (not found data)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      testObj.orderRepository.getAll.resolves([null, []]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.consoleError.should.have.callCount(0);
+    });
+
+    test(`Should successfully parse event when cancel subscription (package info is null)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputOrderModel = new OrderModel();
+      outputOrderModel.packageId = null;
+      testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.consoleError.should.have.callCount(0);
+    });
+
+    test(`Should error parse event when cancel subscription (error on get package info)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputOrderModel = new OrderModel();
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
+      testObj.packageService.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.packageService.getById.should.have.callCount(1);
+      testObj.packageService.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.consoleError.should.have.callCount(1);
+    });
+
+    test(`Should successfully parse event when cancel subscription (if package status is not enable)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputOrderModel = new OrderModel();
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.id = testObj.identifierGenerator.generateId();
+      outputPackageModel.status = PackageModel.STATUS_CANCEL;
+      testObj.packageService.getById.resolves([null, outputPackageModel]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.packageService.getById.should.have.callCount(1);
+      testObj.packageService.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.consoleError.should.have.callCount(0);
+    });
+
+    test(`Should error parse event when cancel subscription (error on cancel package)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputOrderModel = new OrderModel();
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.id = testObj.identifierGenerator.generateId();
+      outputPackageModel.status = PackageModel.STATUS_ENABLE;
+      testObj.packageService.getById.resolves([null, outputPackageModel]);
+      testObj.packageService.cancel.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.packageService.getById.should.have.callCount(1);
+      testObj.packageService.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.packageService.cancel.should.have.callCount(1);
+      testObj.packageService.cancel.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.consoleError.should.have.callCount(1);
+    });
+
+    test(`Should error parse event when cancel subscription (cancel package)`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputOrderModel = new OrderModel();
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.id = testObj.identifierGenerator.generateId();
+      outputPackageModel.status = PackageModel.STATUS_ENABLE;
+      testObj.packageService.getById.resolves([null, outputPackageModel]);
+      testObj.packageService.cancel.resolves([null]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.packageService.getById.should.have.callCount(1);
+      testObj.packageService.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.packageService.cancel.should.have.callCount(1);
+      testObj.packageService.cancel.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.consoleError.should.have.callCount(0);
     });
   });
 });

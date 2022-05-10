@@ -289,6 +289,7 @@ class Loader {
     );
     const orderService = new OrderService(productService, packageService, orderRepository);
     const fastspringOrderParse = new FastspringOrderParse(
+      packageService,
       orderService,
       orderRepository,
       fastspringApiRepository,
