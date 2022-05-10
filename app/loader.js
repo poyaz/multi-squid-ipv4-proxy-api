@@ -87,6 +87,7 @@ const ServerControllerFactory = require('~src/api/http/server/controller/serverC
 
 const AddProductValidationMiddlewareFactory = require('~src/api/http/product/middleware/addProductValidationMiddlewareFactory');
 const UpdateProductValidationMiddlewareFactory = require('~src/api/http/product/middleware/updateProductValidationMiddlewareFactory');
+const AddExternalStoreValidationMiddlewareFactory = require('~src/api/http/product/middleware/addExternalStoreValidationMiddlewareFactory');
 const UpdateExternalStoreValidationMiddlewareFactory = require('~src/api/http/product/middleware/updateExternalStoreValidationMiddlewareFactory');
 const ProductControllerFactory = require('~src/api/http/product/controller/productControllerFactory');
 
@@ -286,11 +287,7 @@ class Loader {
       discord,
       findClusterUserService,
     );
-    const orderService = new OrderService(
-      productService,
-      packageService,
-      orderRepository,
-    );
+    const orderService = new OrderService(productService, packageService, orderRepository);
     const fastspringOrderParse = new FastspringOrderParse(
       orderService,
       orderRepository,
@@ -336,6 +333,7 @@ class Loader {
     const productMiddleware = {
       addProductValidation: new AddProductValidationMiddlewareFactory(),
       updateProductValidation: new UpdateProductValidationMiddlewareFactory(),
+      addExternalStoreValidation: new AddExternalStoreValidationMiddlewareFactory(),
       updateExternalStoreValidation: new UpdateExternalStoreValidationMiddlewareFactory(),
     };
     const productControllerFactory = new ProductControllerFactory(productService, dateTime);
@@ -412,8 +410,9 @@ class Loader {
     this._dependency.productHttpApi = {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
+      addExternalStoreValidationMiddlewareFactory: productMiddleware.addExternalStoreValidation,
       updateExternalStoreValidationMiddlewareFactory:
-      productMiddleware.updateExternalStoreValidation,
+        productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 

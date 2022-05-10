@@ -1052,6 +1052,37 @@ class ExpressApi extends IRunner {
       },
     );
 
+    router.post(
+      '/v1/product/:productId/external-store',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const middleware = productHttpApi.addExternalStoreValidationMiddlewareFactory.create(
+            req,
+            res,
+          );
+
+          await middleware.act();
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+      async (req, res, next) => {
+        try {
+          const serverController = productHttpApi.productControllerFactory.create(req, res);
+          const response = await serverController.addExternalStoreProduct();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
     router.put(
       '/v1/product/:id/disable',
       this._middlewareRoleAccess(['admin']),

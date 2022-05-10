@@ -69,9 +69,11 @@ After execute command you should fill bellow step:
 
 ## Cluster instance
 
-For deploy this proxy with single instance you should use two options. At first need start one node with `--init-cluster` and for other nodes need execute with `--join-cluster`
+For deploy this proxy with single instance you should use two options. At first need start one node
+with `--init-cluster` and for other nodes need execute with `--join-cluster`
 
-After you deployed cluster service you should add all server with API (You can use `Create new server` API for add a new server). You can use all API in cluster mode after added servers 
+After you deployed cluster service you should add all server with API (You can use `Create new server` API for add a new
+server). You can use all API in cluster mode after added servers
 
 ### Create first node
 
@@ -92,13 +94,15 @@ After execute command you should fill bellow step:
 * Step 2: Enter webserver port. Server listens this port for execute API
 * Step 3: Enter a password for generate token for others node instance
 
-When server runs successfully a token generated and store in `storage/temp/master.key.txt` folder. You should copy this token and use for another node to join in cluster
+When server runs successfully a token generated and store in `storage/temp/master.key.txt` folder. You should copy this
+token and use for another node to join in cluster
 
 ### Join node to cluster
 
 Now you have a token, and you can join a new instance to cluster. We need to logging in a new server.
 
-Now start a join a new node to cluster you should store your token in a file (Default address is `storage/temp/master.key.txt` but you can store in each file you want)
+Now start a join a new node to cluster you should store your token in a file (Default address
+is `storage/temp/master.key.txt` but you can store in each file you want)
 
 ```bash
 > bash cli.sh --install
@@ -119,7 +123,8 @@ After execute command you should fill bellow step:
 
 **P.S**
 
-Default token store in `storage/temp/master.key.txt` on a master server but if you forgot cluster token you can use below command in master service and get cluster token:
+Default token store in `storage/temp/master.key.txt` on a master server but if you forgot cluster token you can use
+below command in master service and get cluster token:
 
 ```bash
 > bash cli.sh --fetch-cluster
@@ -133,22 +138,27 @@ After execute command you should fill bellow step:
 External authenticate
 =====================
 
-This application uses external authenticate for create and login user (After login need username change your password for connect to proxy)
+This application uses external authenticate for create and login user (After login need username change your password
+for connect to proxy)
 
 Supported oauth application:
 
 ## Discord
 
-For use **Discord** need add oauth configuration then we can use this (Need add oauth data in all cluster. you can use `bash cli.sh --discord` for add and update discord config)
+For use **Discord** need add oauth configuration then we can use this (Need add oauth data in all cluster. you can
+use `bash cli.sh --discord` for add and update discord config)
 
-Before we start how to config Discord, you need get redirect url. Default redirect url look like `<protocol>://<host-or-domain-address>/api/v1/oauth/discord/callback` or you can use **Get all external oauth options** API
+Before we start how to config Discord, you need get redirect url. Default redirect url look
+like `<protocol>://<host-or-domain-address>/api/v1/oauth/discord/callback` or you can use **Get all external oauth
+options** API
 
 How get Discord oauth config:
 
 1. Go to https://discord.com/developers/applications/ and create application
 2. Copy **redirect url** in `Redirects` box
 2. Copy `CLIENT ID` and `CLIENT SECRET`
-3. Use `bash cli.sh --discord` to config service (If you're using cluster mode you have to use this command in all servers)
+3. Use `bash cli.sh --discord` to config service (If you're using cluster mode you have to use this command in all
+   servers)
 
 ```bash
 bash cli.sh --discord
@@ -187,7 +197,9 @@ Enter oauth client page url: http://localhost:8080/#/home?access_token=<token>
 Enter oauth client key name: <token>
 ```
 
-My custom url is `http://localhost:8080/#/home?access_token=<token>` and I want to replace `<token>` in web server. It means server force client to redirect in `http://localhost:8080/#/home?access_token=eyJhbGciOiJI...` (This is sample page, and you should replace with own page url)
+My custom url is `http://localhost:8080/#/home?access_token=<token>` and I want to replace `<token>` in web server. It
+means server force client to redirect in `http://localhost:8080/#/home?access_token=eyJhbGciOiJI...` (This is sample
+page, and you should replace with own page url)
 
 
 API
@@ -201,7 +213,8 @@ For generate new IP address you should use this API. If your ip range exist, thi
 
 * Method: `POST`
 * URL: `api/v1/proxy/generate`
-* Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>", "type": "<proxy-type>", "country": "<proxy-country>"}`
+*
+Body: `{"ip": "<your-ip-address>", "mask": <ip-mask>, "gateway": "<your-gateway>", "interface": "<interface-name>", "type": "<proxy-type>", "country": "<proxy-country>"}`
 * Authorized type: `admin`
 
 ### Body format
@@ -1216,6 +1229,57 @@ curl \
 }
 ```
 
+## Add new external store on product
+
+Add new external store on product
+
+### Information:
+
+* Method: `POST`
+* URL: `api/v1/product/:productId/external-store`
+* Authorized type: `admin`
+
+```bash
+curl \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/product/:productId/external-store' \
+  -d '{"type": "<store-name-or-type>", "serial": "<product-id-or-serial>"}'
+```
+
+### Body format
+
+* `type` String store name or type
+* `serial` String store product id or serial
+
+### Example:
+
+```bash
+curl \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/product/751c4a35-ed2a-489d-870f-b09dc7b0f8a5/external-store' \
+  -d '{"type": "fastspring", "serial": "at-datacenter-proxies-200"}'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "data": {
+    "id": "3039f558-8e1b-4ef9-a398-e8d9fa9b7f36",
+    "productId": "5286ad0c-8b00-4684-938a-861526cfbcfb",
+    "type": "fastspring",
+    "serial": "at-datacenter-proxies-200",
+    "price": [],
+    "insertDate": "2022-05-10 12:29:05"
+  }
+}
+```
+
 ## Update exist product
 
 Update information of product with product id
@@ -1923,7 +1987,8 @@ This API use for create new order for user
 
 * Method: `POST`
 * URL: `api/v1/user/:userId/order`
-* Body: `{"productId": "<product-id>", "serviceName": "<service-name>", "prePackageOrderInfo": {"proxyType": "<proxy-type>", "countryCode": "<proxy-country-code>"}}`
+*
+Body: `{"productId": "<product-id>", "serviceName": "<service-name>", "prePackageOrderInfo": {"proxyType": "<proxy-type>", "countryCode": "<proxy-country-code>"}}`
 * Authorized type: `user`
 
 ### Body format
@@ -1931,8 +1996,8 @@ This API use for create new order for user
 * `productId` string the id of product
 * `serviceName` string with payment service (In this case we use **fastspring**)
 * `prePackageOrderInfo` object
-  * `proxyType` string with type of proxy
-  * `countryCode` string with valid 2-alpha country code
+    * `proxyType` string with type of proxy
+    * `countryCode` string with valid 2-alpha country code
 
 ```bash
 curl \
