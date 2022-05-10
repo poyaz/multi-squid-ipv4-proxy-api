@@ -530,6 +530,7 @@ suite(`FastspringOrderParse`, () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
       const outputOrderModel = new OrderModel();
+      outputOrderModel.id = testObj.identifierGenerator.generateId();
       outputOrderModel.packageId = null;
       testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
 
@@ -547,6 +548,7 @@ suite(`FastspringOrderParse`, () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
       const outputOrderModel = new OrderModel();
+      outputOrderModel.id = testObj.identifierGenerator.generateId();
       outputOrderModel.packageId = testObj.identifierGenerator.generateId();
       testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
       testObj.packageService.getById.resolves([new UnknownException()]);
@@ -569,6 +571,7 @@ suite(`FastspringOrderParse`, () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
       const outputOrderModel = new OrderModel();
+      outputOrderModel.id = testObj.identifierGenerator.generateId();
       outputOrderModel.packageId = testObj.identifierGenerator.generateId();
       testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
       const outputPackageModel = new PackageModel();
@@ -594,6 +597,7 @@ suite(`FastspringOrderParse`, () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
       const outputOrderModel = new OrderModel();
+      outputOrderModel.id = testObj.identifierGenerator.generateId();
       outputOrderModel.packageId = testObj.identifierGenerator.generateId();
       testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
       const outputPackageModel = new PackageModel();
@@ -620,10 +624,11 @@ suite(`FastspringOrderParse`, () => {
       testObj.consoleError.should.have.callCount(1);
     });
 
-    test(`Should error parse event when cancel subscription (cancel package)`, async () => {
+    test(`Should error parse event when cancel subscription (error on add cancel subscription record)`, async () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
       const outputOrderModel = new OrderModel();
+      outputOrderModel.id = testObj.identifierGenerator.generateId();
       outputOrderModel.packageId = testObj.identifierGenerator.generateId();
       testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
       const outputPackageModel = new PackageModel();
@@ -631,6 +636,7 @@ suite(`FastspringOrderParse`, () => {
       outputPackageModel.status = PackageModel.STATUS_ENABLE;
       testObj.packageService.getById.resolves([null, outputPackageModel]);
       testObj.packageService.cancel.resolves([null]);
+      testObj.orderRepository.addSubscription.resolves([new UnknownException()]);
 
       const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
 
@@ -647,7 +653,57 @@ suite(`FastspringOrderParse`, () => {
       testObj.packageService.cancel.should.have.calledWith(
         sinon.match(testObj.identifierGenerator.generateId()),
       );
-      testObj.consoleError.should.have.callCount(0);
+      testObj.orderRepository.addSubscription.should.have.callCount(1);
+      testObj.orderRepository.addSubscription.should.have.calledWith(
+        sinon.match
+          .instanceOf(SubscriptionModel)
+          .and(sinon.match.has('orderId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('serial', inputData.events[0].data.id))
+          .and(sinon.match.has('status', SubscriptionModel.STATUS_CANCELED))
+          .and(sinon.match.has('subscriptionBodyData', JSON.stringify(inputData.events[0].data))),
+      );
+      testObj.consoleError.should.callCount(1);
+    });
+
+    test(`Should successfully parse event when cancel subscription`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputOrderModel = new OrderModel();
+      outputOrderModel.id = testObj.identifierGenerator.generateId();
+      outputOrderModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.orderRepository.getAll.resolves([null, [outputOrderModel]]);
+      const outputPackageModel = new PackageModel();
+      outputPackageModel.id = testObj.identifierGenerator.generateId();
+      outputPackageModel.status = PackageModel.STATUS_ENABLE;
+      testObj.packageService.getById.resolves([null, outputPackageModel]);
+      testObj.packageService.cancel.resolves([null]);
+      testObj.orderRepository.addSubscription.resolves([null]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.getAll.should.have.callCount(1);
+      testObj.orderRepository.getAll.should.have.calledWith(
+        sinon.match.has('orderSerial', 'order serial'),
+      );
+      testObj.packageService.getById.should.have.callCount(1);
+      testObj.packageService.getById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.packageService.cancel.should.have.callCount(1);
+      testObj.packageService.cancel.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      testObj.orderRepository.addSubscription.should.have.callCount(1);
+      testObj.orderRepository.addSubscription.should.have.calledWith(
+        sinon.match
+          .instanceOf(SubscriptionModel)
+          .and(sinon.match.has('orderId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('serial', inputData.events[0].data.id))
+          .and(sinon.match.has('status', SubscriptionModel.STATUS_CANCELED))
+          .and(sinon.match.has('subscriptionBodyData', JSON.stringify(inputData.events[0].data))),
+      );
+      testObj.consoleError.should.callCount(0);
     });
   });
 });

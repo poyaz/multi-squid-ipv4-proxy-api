@@ -101,8 +101,11 @@ class FastspringOrderParse extends IOrderParserService {
   }
 
   async _cancelSubscription(data) {
+    const orderSerial = data.initialOrderId;
+    const subscriptionSerial = data.id;
+
     const filterModel = new OrderModel();
-    filterModel.orderSerial = data.initialOrderId;
+    filterModel.orderSerial = orderSerial;
     const [orderError, orderDataList] = await this.#orderRepository.getAll(filterModel);
     if (orderError) {
       return [orderError];
@@ -124,7 +127,18 @@ class FastspringOrderParse extends IOrderParserService {
       return [null];
     }
 
-    const [error] = await this.#packageService.cancel(orderData.packageId);
+    const [cancelError] = await this.#packageService.cancel(orderData.packageId);
+    if (cancelError) {
+      return [cancelError];
+    }
+
+    const model = new SubscriptionModel();
+    model.orderId = orderData.id;
+    model.serial = subscriptionSerial;
+    model.status = SubscriptionModel.STATUS_CANCELED;
+    model.subscriptionBodyData = JSON.stringify(data);
+
+    const [error] = await this.#orderRepository.addSubscription(model);
     if (error) {
       return [error];
     }
