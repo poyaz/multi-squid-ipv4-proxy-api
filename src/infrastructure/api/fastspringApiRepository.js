@@ -10,6 +10,7 @@ const NotFoundException = require('~src/core/exception/notFoundException');
 const UnauthorizedException = require('~src/core/exception/unauthorizedException');
 const ForbiddenException = require('~src/core/exception/forbiddenException');
 const FastspringAlreadyCanceledException = require('~src/core/exception/fastspringAlreadyCanceledException');
+const OrderModel = require('~src/core/model/orderModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 
@@ -36,6 +37,24 @@ class FastspringApiRepository extends IFastspringApiRepository {
         password: apiPassword,
       },
     };
+  }
+
+  async getOrder(orderSerial) {
+    try {
+      const response = await axios.get(`${this.#apiDomain}/orders/${orderSerial}`, this.#reqOption);
+
+      const model = new OrderModel();
+      model.id = response.data['tags']['orderId'];
+      model.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      model.orderSerial = response.data['id'];
+      model.status = response.data['completed']
+        ? OrderModel.STATUS_SUCCESS
+        : OrderModel.STATUS_FAIL;
+
+      return [null, model];
+    } catch (error) {
+      return this._errorHandler(error);
+    }
   }
 
   async getProductPrice(productSerial) {

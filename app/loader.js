@@ -291,9 +291,7 @@ class Loader {
     const fastspringOrderParse = new FastspringOrderParse(
       orderService,
       orderRepository,
-      this._config.getStr('custom.payment.service.fastspring.auth.username'),
-      this._config.getStr('custom.payment.service.fastspring.auth.password'),
-      this._config.getStr('custom.payment.service.fastspring.apiAddress'),
+      fastspringApiRepository,
     );
 
     // Controller and middleware
@@ -412,7 +410,7 @@ class Loader {
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       addExternalStoreValidationMiddlewareFactory: productMiddleware.addExternalStoreValidation,
       updateExternalStoreValidationMiddlewareFactory:
-        productMiddleware.updateExternalStoreValidation,
+      productMiddleware.updateExternalStoreValidation,
       productControllerFactory,
     };
 

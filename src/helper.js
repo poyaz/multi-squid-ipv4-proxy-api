@@ -940,17 +940,25 @@ function fakeOrderFastspringApiRepository() {
 function fakeFastspringOrderParse() {
   const IOrderService = require('~src/core/interface/iOrderService');
   const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const IFastspringApiRepository = require('~src/core/interface/iFastspringApiRepository');
   const FastspringOrderParse = require('~src/core/service/fastspringOrderParse');
 
   const orderService = sinon.createStubInstance(IOrderService);
 
   const orderRepository = sinon.createStubInstance(IOrderRepository);
 
-  const fastspringOrderParse = new FastspringOrderParse(orderService, orderRepository);
+  const fastspringApiRepository = sinon.createStubInstance(IFastspringApiRepository);
+
+  const fastspringOrderParse = new FastspringOrderParse(
+    orderService,
+    orderRepository,
+    fastspringApiRepository,
+  );
 
   return {
     orderService,
     orderRepository,
+    fastspringApiRepository,
     fastspringOrderParse,
   };
 }

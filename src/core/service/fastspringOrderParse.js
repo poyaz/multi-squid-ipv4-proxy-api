@@ -24,37 +24,22 @@ class FastspringOrderParse extends IOrderParserService {
    */
   #orderRepository;
   /**
-   * @type {string}
+   * @type {IFastspringApiRepository}
    */
-  #apiDomain;
-  /**
-   * @type {Object}
-   */
-  #reqOption;
+  #fastspringApiRepository;
 
   /**
    *
    * @param {IOrderService} orderService
    * @param {IOrderRepository} orderRepository
-   * @param {string} apiUsername
-   * @param {string} apiPassword
-   * @param {string} apiDomain
+   * @param {IFastspringApiRepository} fastspringApiRepository
    */
-  constructor(orderService, orderRepository, apiUsername, apiPassword, apiDomain) {
+  constructor(orderService, orderRepository, fastspringApiRepository) {
     super();
 
     this.#orderService = orderService;
     this.#orderRepository = orderRepository;
-    this.#apiDomain = apiDomain;
-    this.#reqOption = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      auth: {
-        username: apiUsername,
-        password: apiPassword,
-      },
-    };
+    this.#fastspringApiRepository = fastspringApiRepository;
   }
 
   async parse(serviceName, data) {
@@ -84,64 +69,42 @@ class FastspringOrderParse extends IOrderParserService {
     const orderSerial = data.initialOrderId;
     const subscriptionSerial = data.id;
 
-    try {
-      const response = await axios.get(`${this.#apiDomain}/orders/${orderSerial}`, this.#reqOption);
-
-      const model = new SubscriptionModel();
-      model.orderId = response.data['tags']['orderId'];
-      model.serial = subscriptionSerial;
-      switch (/^subscription\.(.+)/.exec(type)[1]) {
-        case 'activated':
-          model.status = SubscriptionModel.STATUS_ACTIVATED;
-          break;
-        case 'canceled':
-          model.status = SubscriptionModel.STATUS_CANCELED;
-          break;
-        case 'uncanceled':
-          model.status = SubscriptionModel.STATUS_UNCANCELED;
-          break;
-        case 'deactivated':
-          model.status = SubscriptionModel.STATUS_DEACTIVATED;
-          break;
-        case 'charge.completed':
-          model.status = SubscriptionModel.STATUS_CHARGE_COMPLETED;
-          break;
-        case 'charge.failed':
-          model.status = SubscriptionModel.STATUS_CHARGE_FAILED;
-          break;
-      }
-      model.subscriptionBodyData = JSON.stringify(data);
-
-      const [error] = await this.#orderRepository.addSubscription(model);
-      if (error) {
-        return [error];
-      }
-
-      return [null];
-    } catch (error) {
-      return this._errorHandler(error);
-    }
-  }
-
-  _errorHandler(error) {
-    if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          return [new UnauthorizedException()];
-        case 403:
-          return [new ForbiddenException()];
-        case 404:
-          return [new NotFoundException()];
-      }
-
-      console.error(error.response.data);
-
-      return [new UnknownException()];
-    } else if (error.request) {
-      return [new ApiCallException()];
+    const [orderError, orderData] = await this.#fastspringApiRepository.getOrder(orderSerial);
+    if (orderError) {
+      return [orderError];
     }
 
-    return [new ApiCallException()];
+    const model = new SubscriptionModel();
+    model.orderId = orderData.id;
+    model.serial = subscriptionSerial;
+    switch (/^subscription\.(.+)/.exec(type)[1]) {
+      case 'activated':
+        model.status = SubscriptionModel.STATUS_ACTIVATED;
+        break;
+      case 'canceled':
+        model.status = SubscriptionModel.STATUS_CANCELED;
+        break;
+      case 'uncanceled':
+        model.status = SubscriptionModel.STATUS_UNCANCELED;
+        break;
+      case 'deactivated':
+        model.status = SubscriptionModel.STATUS_DEACTIVATED;
+        break;
+      case 'charge.completed':
+        model.status = SubscriptionModel.STATUS_CHARGE_COMPLETED;
+        break;
+      case 'charge.failed':
+        model.status = SubscriptionModel.STATUS_CHARGE_FAILED;
+        break;
+    }
+    model.subscriptionBodyData = JSON.stringify(data);
+
+    const [error] = await this.#orderRepository.addSubscription(model);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
   }
 }
 

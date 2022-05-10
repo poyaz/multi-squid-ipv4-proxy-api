@@ -5,6 +5,17 @@
 class IFastspringApiRepository {
   /**
    *
+   * @param {string} orderSerial
+   * @return {Promise<(Error|OrderModel|null)[]>}
+   */
+  async getOrder(orderSerial) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { orderSerial };
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} productSerial
    * @return {Promise<(Error|ExternalStoreModel|null)[]>}
    */
