@@ -170,7 +170,7 @@ suite(`PackageService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successfully get all package by username and merge ip list (return empty list)`, async () => {
+    test(`Should successfully get all package by username and merge ip list (return empty package is enable)`, async () => {
       const inputUsername = 'user1';
       const inputFilterModel = new PackageModel();
       testObj.userService.getAll.resolves([null, [new UserModel()]]);
@@ -181,6 +181,7 @@ suite(`PackageService`, () => {
       outputFetchModel1.countIp = 1;
       outputFetchModel1.ipList = [{ ip: '192.168.1.2', port: 8080 }];
       outputFetchModel1.expireDate = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+      outputFetchModel1.status = PackageModel.STATUS_ENABLE;
       testObj.packageRepository.getAllByUsername.resolves([null, [outputFetchModel1]]);
       testObj.packageFileRepository.getAllByUsername.resolves([null, []]);
 
@@ -218,6 +219,7 @@ suite(`PackageService`, () => {
         { ip: '192.168.1.4', port: 8080 },
       ];
       outputFetchModel1.expireDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+      outputFetchModel1.status = PackageModel.STATUS_ENABLE;
       const outputFetchModel2 = new PackageModel();
       outputFetchModel2.id = testObj.identifierGenerator.generateId();
       outputFetchModel2.userId = testObj.identifierGenerator.generateId();
@@ -228,6 +230,7 @@ suite(`PackageService`, () => {
         { ip: '192.168.1.6', port: 8080 },
       ];
       outputFetchModel2.expireDate = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+      outputFetchModel2.status = PackageModel.STATUS_EXPIRE;
       testObj.packageRepository.getAllByUsername.resolves([
         null,
         [outputFetchModel1, outputFetchModel2],
@@ -253,7 +256,7 @@ suite(`PackageService`, () => {
       testObj.packageFileRepository.getAllByUsername.should.have.calledWith(
         sinon.match(inputUsername),
       );
-      expect(error).to.be.a('null');
+      expect(error).to.be.a('null');console.log(result)
       expect(result).to.be.length(2);
       expect(result[0]).to.be.an.instanceof(PackageModel);
       expect(result[0].countIp).to.be.equal(1);

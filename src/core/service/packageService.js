@@ -78,26 +78,28 @@ class PackageService extends IPackageService {
       return [fetchFileError];
     }
 
-    if (fetchFileData.length === 0) {
-      return [null, []];
-    }
-
-    const validRunningIpList = fetchFileData[0].ipList;
+    const result = [];
+    const validRunningIpList = fetchFileData.length > 0 ? fetchFileData[0].ipList : [];
     for (let i = 0; i < fetchData.length; i++) {
       const data = fetchData[i];
-      if (data.expireDate instanceof Date && data.expireDate.getTime() < new Date().getTime()) {
+
+      if (data.status === PackageModel.STATUS_ENABLE && validRunningIpList.length === 0) {
         continue;
       }
 
-      const validMatchIpList = data.ipList.filter((source) =>
-        validRunningIpList.find((find) => source.ip === find.ip),
-      );
+      if (data.status === PackageModel.STATUS_ENABLE) {
+        const validMatchIpList = data.ipList.filter((source) =>
+          validRunningIpList.find((find) => source.ip === find.ip),
+        );
 
-      data.countIp = validMatchIpList.length;
-      data.ipList = validMatchIpList;
+        data.countIp = validMatchIpList.length;
+        data.ipList = validMatchIpList;
+      }
+
+      result.push(data);
     }
 
-    return [null, fetchData];
+    return [null, result];
   }
 
   async add(model) {
