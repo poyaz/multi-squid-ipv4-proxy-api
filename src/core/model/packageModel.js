@@ -23,6 +23,7 @@ class PackageModel {
   static STATUS_DISABLE = 'disable';
   static STATUS_EXPIRE = 'expire';
   static STATUS_CANCEL = 'cancel';
+  static STATUS_DELETE = 'delete';
 
   id = undefined;
   userId = undefined;

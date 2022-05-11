@@ -927,62 +927,6 @@ suite(`PackageService`, () => {
       expect(error).to.have.property('httpCode', 404);
     });
 
-    test(`Should successful sync package and do nothing when user was disabled`, async () => {
-      const inputId = testObj.identifierGenerator.generateId();
-      const outputPackageModel = new PackageModel();
-      outputPackageModel.id = testObj.identifierGenerator.generateId();
-      outputPackageModel.username = 'user1';
-      testObj.packageRepository.getById.resolves([null, outputPackageModel]);
-      const outputUserModel = new UserModel();
-      outputUserModel.isEnable = false;
-      testObj.userService.getAll.resolves([null, [outputUserModel]]);
-
-      const [error] = await testObj.packageService.syncPackageById(inputId);
-
-      testObj.packageRepository.getById.should.have.callCount(1);
-      testObj.userService.getAll.should.have.callCount(1);
-      testObj.packageFileRepository.update.should.have.callCount(0);
-      expect(error).to.be.a('null');
-    });
-
-    test(`Should successful sync package and do nothing when package was expired`, async () => {
-      const inputId = testObj.identifierGenerator.generateId();
-      const outputPackageModel = new PackageModel();
-      outputPackageModel.id = testObj.identifierGenerator.generateId();
-      outputPackageModel.username = 'user1';
-      outputPackageModel.expireDate = new Date();
-      testObj.packageRepository.getById.resolves([null, outputPackageModel]);
-      const outputUserModel = new UserModel();
-      outputUserModel.isEnable = true;
-      testObj.userService.getAll.resolves([null, [outputUserModel]]);
-
-      const [error] = await testObj.packageService.syncPackageById(inputId);
-
-      testObj.packageRepository.getById.should.have.callCount(1);
-      testObj.userService.getAll.should.have.callCount(1);
-      testObj.packageFileRepository.update.should.have.callCount(0);
-      expect(error).to.be.a('null');
-    });
-
-    test(`Should successful sync package and do nothing when package was deleted`, async () => {
-      const inputId = testObj.identifierGenerator.generateId();
-      const outputPackageModel = new PackageModel();
-      outputPackageModel.id = testObj.identifierGenerator.generateId();
-      outputPackageModel.username = 'user1';
-      outputPackageModel.deleteDate = new Date();
-      testObj.packageRepository.getById.resolves([null, outputPackageModel]);
-      const outputUserModel = new UserModel();
-      outputUserModel.isEnable = true;
-      testObj.userService.getAll.resolves([null, [outputUserModel]]);
-
-      const [error] = await testObj.packageService.syncPackageById(inputId);
-
-      testObj.packageRepository.getById.should.have.callCount(1);
-      testObj.userService.getAll.should.have.callCount(1);
-      testObj.packageFileRepository.update.should.have.callCount(0);
-      expect(error).to.be.a('null');
-    });
-
     test(`Should error sync package when update package file`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputPackageModel = new PackageModel();

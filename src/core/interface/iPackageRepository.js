@@ -6,11 +6,12 @@ class IPackageRepository {
   /**
    *
    * @param {string} id
+   * @param {boolean=false} isFetchDelete
    * @return {Promise<(Error|PackageModel|null)[]>}
    */
-  async getById(id) {
+  async getById(id, isFetchDelete = false) {
     const error = new Error('The method has to be overridden by subclasses.');
-    error['args'] = { id };
+    error['args'] = { id, isFetchDelete };
     throw error;
   }
 

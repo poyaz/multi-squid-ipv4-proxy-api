@@ -261,16 +261,12 @@ class PackageService extends IPackageService {
     if (errorFetchUser) {
       return [errorFetchUser];
     }
-    if (
-      (dataFetchPackage.expireDate instanceof Date &&
-        dataFetchPackage.expireDate.getTime() <= new Date().getTime()) ||
-      dataFetchPackage.deleteDate ||
-      !dataFetchUser.isEnable
-    ) {
-      return [null];
+    if (!dataFetchUser.isEnable) {
+      dataFetchPackage.deleteDate = new Date();
+    } else {
+      dataFetchPackage.deleteDate = null;
     }
 
-    dataFetchPackage.deleteDate = null;
     const [error] = await this.#packageFileRepository.update(dataFetchPackage);
     if (error) {
       return [error];

@@ -37,21 +37,21 @@ class PackagePgRepository extends IPackageRepository {
     this.#identifierGenerator = identifierGenerator;
   }
 
-  async getById(id) {
+  async getById(id, isFetchDelete = false) {
     const fetchQuery = {
       text: singleLine`
           SELECT DISTINCT ON (p.id) p.id,
-                                    u.id                                                        AS user_id,
+                                    u.id                                                            AS user_id,
                                     u.username,
                                     u.password,
-                                    p.status,
+                                    CASE WHEN p.delete_date NOTNULL THEN 'delete' ELSE p.status END AS status,
                                     p.expire_date,
                                     p.insert_date,
                                     p.renewal_date,
-                                    count(*)                                                    AS count_ip,
-                                    (array_agg(DISTINCT ba.proxy_type))[1]                      AS proxy_type,
-                                    (array_agg(DISTINCT ba.country_code))[1]                    AS country_code,
-                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port)) AS ip_list
+                                    count(*)                                                        AS count_ip,
+                                    (array_agg(DISTINCT ba.proxy_type))[1]                          AS proxy_type,
+                                    (array_agg(DISTINCT ba.country_code))[1]                        AS country_code,
+                                    jsonb_agg(jsonb_build_object('ip', ba.ip, 'port', ba.port))     AS ip_list
           FROM public.users u,
                public.packages p,
                public.map_bind_address_package mbdp,
@@ -62,13 +62,13 @@ class PackagePgRepository extends IPackageRepository {
             AND u.is_enable = true
             AND ba.is_enable = true
             AND u.delete_date ISNULL
-            AND p.delete_date ISNULL
+            AND p.delete_date IS ?
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND p.id = $1
           GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date, p.renewal_date
       `,
-      values: [id],
+      values: [id, !isFetchDelete ? 'NULL' : 'NOT NULL'],
     };
 
     try {
@@ -406,7 +406,7 @@ class PackagePgRepository extends IPackageRepository {
     model.type = row['proxy_type'];
     model.country = row['country_code'] ? row['country_code'].toUpperCase() : row['country_code'];
     model.ipList = row['ip_list'];
-    model.status = row['status'];
+    model.status = row['status'] === 'delete' ? PackageModel.STATUS_DELETE : row['status'];
     model.expireDate = row['expire_date']
       ? this.#dateTime.gregorianDateWithTimezone(row['expire_date'])
       : null;
