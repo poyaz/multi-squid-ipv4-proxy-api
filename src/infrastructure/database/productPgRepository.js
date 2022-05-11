@@ -57,8 +57,6 @@ class ProductPgRepository extends IProductRepository {
                    LEFT JOIN public.external_product_price epp
                              ON es.id = epp.external_store_id AND epp.delete_date ISNULL
           WHERE p.delete_date ISNULL
-          GROUP BY p.id, p.count, p.price, p.expire_day, p.is_enable, p.insert_date, p.update_date,
-                   p.delete_date, es.id, es.type, es.id, es.serial, es.insert_date
       `,
       values: [],
     };
@@ -71,6 +69,8 @@ class ProductPgRepository extends IProductRepository {
     if (filterConditions.length > 0) {
       getAllQuery.text += ` AND ${filterConditions.join(' AND ')}`;
     }
+
+    getAllQuery.text += ` GROUP BY p.id, p.count, p.price, p.expire_day, p.is_enable, p.insert_date, p.update_date, p.delete_date, es.id, es.type, es.id, es.serial, es.insert_date`;
 
     try {
       const { rowCount, rows } = await this.#db.query(getAllQuery);
