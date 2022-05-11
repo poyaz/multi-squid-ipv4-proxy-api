@@ -62,7 +62,7 @@ class PackagePgRepository extends IPackageRepository {
             AND u.is_enable = true
             AND ba.is_enable = true
             AND u.delete_date ISNULL
-            AND (p.delete_date IS ? OR p.delete_date IS ?)
+            AND (p.delete_date IS $2 OR p.delete_date IS $3)
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND p.id = $1
