@@ -1052,6 +1052,24 @@ function fakePaymentService() {
   return { packageServiceDisable, packageServiceEnableEmpty, packageServiceEnable };
 }
 
+function fakeAclService() {
+  const IPackageRepository = require('~src/core/interface/iPackageRepository');
+  const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const AclService = require('~src/core/service/aclService');
+
+  const packageRepository = sinon.createStubInstance(IPackageRepository);
+
+  const orderRepository = sinon.createStubInstance(IOrderRepository);
+
+  const aclService = new AclService(packageRepository, orderRepository);
+
+  return {
+    packageRepository,
+    orderRepository,
+    aclService,
+  };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -1108,4 +1126,5 @@ module.exports = {
   fakeExternalProductApiRepository,
   fakePaymentController,
   fakePaymentService,
+  fakeAclService,
 };
