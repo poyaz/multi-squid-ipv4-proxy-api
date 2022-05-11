@@ -38,6 +38,7 @@ const FastspringApiRepository = require('~src/infrastructure/api/fastspringApiRe
 const ProxyServerApiRepository = require('~src/infrastructure/api/proxyServerApiRepository');
 const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
 
+const AclService = require('~src/core/service/aclService');
 const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
 const FastspringOrderParse = require('~src/core/service/fastspringOrderParse');
 const FastspringPackageService = require('~src/core/service/fastspringPackageService');
@@ -59,6 +60,7 @@ const UserService = require('~src/core/service/userService');
 
 const AccessMiddlewareFactory = require('~src/api/http/accessMiddlewareFactory');
 const RoleAccessMiddlewareFactory = require('~src/api/http/roleAccessMiddlewareFactory');
+const UrlAccessMiddlewareFactory = require('~src/api/http/urlAccessMiddlewareFactory');
 
 const JobControllerFactory = require('~src/api/http/job/controller/jobControllerFactory');
 
@@ -221,6 +223,7 @@ class Loader {
     // Service
     // -------
 
+    const aclService = new AclService(packagePgRepository, orderRepository);
     const jobService = new JobService(jobRepository);
     const userService = new UserService(
       userPgRepository,
@@ -305,6 +308,7 @@ class Loader {
 
     const accessMiddlewareFactory = new AccessMiddlewareFactory(jwt);
     const roleAccessMiddlewareFactory = new RoleAccessMiddlewareFactory();
+    const urlAccessMiddlewareFactory = new UrlAccessMiddlewareFactory(aclService);
 
     const jobControllerFactory = new JobControllerFactory(jobService, dateTime);
 
@@ -392,6 +396,7 @@ class Loader {
 
     this._dependency.accessMiddlewareFactory = accessMiddlewareFactory;
     this._dependency.roleAccessMiddlewareFactory = roleAccessMiddlewareFactory;
+    this._dependency.urlAccessMiddlewareFactory = urlAccessMiddlewareFactory;
 
     this._dependency.jobHttpApi = {
       jobControllerFactory,

@@ -143,6 +143,7 @@ class ExpressApi extends IRunner {
     router.get(
       '/v1/user/:userId',
       this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const middleware = userHttpApi.selfUserAccessMiddlewareFactory.create(req, res, [
@@ -227,6 +228,7 @@ class ExpressApi extends IRunner {
     router.put(
       '/v1/user/:username/password',
       this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const middleware = userHttpApi.changePasswordUserValidationMiddlewareFactory.create(
@@ -336,6 +338,7 @@ class ExpressApi extends IRunner {
     router.get(
       `/v1/user/:userId/order`,
       this._middlewareRoleAccess(['user']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const orderController = orderHttpApi.orderControllerFactory.create(req, res);
@@ -353,6 +356,7 @@ class ExpressApi extends IRunner {
     router.get(
       `/v1/user/:userId/order/:orderId/subscription`,
       this._middlewareRoleAccess(['user']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const orderController = orderHttpApi.orderControllerFactory.create(req, res);
@@ -370,6 +374,7 @@ class ExpressApi extends IRunner {
     router.post(
       `/v1/user/:userId/order`,
       this._middlewareRoleAccess(['user']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const middleware = orderHttpApi.addOrderValidationMiddlewareFactory.create(req, res);
@@ -402,6 +407,7 @@ class ExpressApi extends IRunner {
     router.get(
       '/v1/package/user/:username',
       this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const packageController = packageHttpApi.packageControllerFactory.create(req, res);
@@ -418,7 +424,7 @@ class ExpressApi extends IRunner {
 
     router.post(
       '/v1/package',
-      this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareRoleAccess(['admin']),
       async (req, res, next) => {
         try {
           const middleware = packageHttpApi.createPackageValidationMiddlewareFactory.create(
@@ -450,6 +456,7 @@ class ExpressApi extends IRunner {
     router.put(
       '/v1/package/:packageId/renew',
       this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const middleware = packageHttpApi.renewPackageValidatorMiddlewareFactory.create(req, res);
@@ -478,6 +485,7 @@ class ExpressApi extends IRunner {
     router.put(
       '/v1/package/:packageId/cancel',
       this._middlewareRoleAccess(['user', 'admin']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const packageController = packageHttpApi.packageControllerFactory.create(req, res);
@@ -953,6 +961,7 @@ class ExpressApi extends IRunner {
     router.post(
       '/v1/order/:orderId/package',
       this._middlewareRoleAccess(['user']),
+      this._middlewareUrlAccess(),
       async (req, res, next) => {
         try {
           const middleware = orderHttpApi.verifyOrderValidationMiddlewareFactory.create(req, res);
@@ -1239,6 +1248,19 @@ class ExpressApi extends IRunner {
           roles,
         );
         await userAccessMiddleware.act();
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    };
+  }
+
+  _middlewareUrlAccess() {
+    return async (req, res, next) => {
+      try {
+        const urlAccessMiddleware = this._dependency.urlAccessMiddlewareFactory.create(req, res);
+        await urlAccessMiddleware.act();
 
         return next(null);
       } catch (error) {
