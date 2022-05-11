@@ -1028,6 +1028,30 @@ function fakeExternalProductApiRepository() {
   return { productRepository, fastspringApiRepository, externalProductApiRepository };
 }
 
+function fakePaymentController(req, res) {
+  const IPaymentService = require('~src/core/interface/iPaymentService');
+  const PaymentController = require('~src/api/http/payment/controller/paymentController');
+
+  const paymentService = sinon.createStubInstance(IPaymentService);
+
+  const paymentController = new PaymentController(req, res, paymentService);
+
+  return {
+    paymentService,
+    paymentController,
+  };
+}
+
+function fakePaymentService() {
+  const PaymentService = require('~src/core/service/paymentService');
+
+  const packageServiceDisable = new PaymentService(false, '');
+  const packageServiceEnableEmpty = new PaymentService(true, '');
+  const packageServiceEnable = new PaymentService(true, 'test.fastspring.com');
+
+  return { packageServiceDisable, packageServiceEnableEmpty, packageServiceEnable };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -1082,4 +1106,6 @@ module.exports = {
   fakeFastspringPackageService,
   fakeFastspringApiRepository,
   fakeExternalProductApiRepository,
+  fakePaymentController,
+  fakePaymentService,
 };
