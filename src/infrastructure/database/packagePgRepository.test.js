@@ -81,7 +81,7 @@ suite(`PackagePgRepository`, () => {
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.postgresDb.query.should.have.calledWith(
-        sinon.match.has('values', sinon.match.array.deepEquals([inputId, 'NULL'])),
+        sinon.match.has('values', sinon.match.array.deepEquals([inputId, 'NULL', 'NULL'])),
       );
       testObj.fillModelSpy.should.have.callCount(0);
       expect(error).to.be.a('null');
@@ -119,7 +119,7 @@ suite(`PackagePgRepository`, () => {
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.postgresDb.query.should.have.calledWith(
-        sinon.match.has('values', sinon.match.array.deepEquals([inputId, 'NULL'])),
+        sinon.match.has('values', sinon.match.array.deepEquals([inputId, 'NULL', 'NULL'])),
       );
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');

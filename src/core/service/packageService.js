@@ -248,7 +248,7 @@ class PackageService extends IPackageService {
   }
 
   async syncPackageById(id) {
-    const [errorFetchPackage, dataFetchPackage] = await this.#packageRepository.getById(id);
+    const [errorFetchPackage, dataFetchPackage] = await this.#packageRepository.getById(id, true);
     if (errorFetchPackage) {
       return [errorFetchPackage];
     }
