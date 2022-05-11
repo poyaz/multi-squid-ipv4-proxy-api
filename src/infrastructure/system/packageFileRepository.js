@@ -108,33 +108,20 @@ class PackageFileRepository extends IPackageRepository {
     }
 
     let updatePattern = '';
-    switch (true) {
-      case model.expireDate instanceof Date && model.ipList.length > 0: {
-        const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
-        updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
-        break;
-      }
-      case !model.expireDate && model.status !== PackageModel.STATUS_ENABLE: {
-        if (model.ipList.length === 0) {
-          break;
-        }
-
-        const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
-        updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
-        break;
-      }
-      /**
-       * Disable all user proxy
-       */
-      case model.deleteDate instanceof Date:
+    if (
+      model.ipList.length > 0 &&
+      (model.expireDate instanceof Date ||
+        (!model.expireDate && model.status !== PackageModel.STATUS_ENABLE))
+    ) {
+      const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
+      updatePattern = `/^#\\?\\(${ipList}\\) ${model.username}$/d`;
+    } else {
+      if (model.deleteDate instanceof Date) {
         updatePattern = `s/^\\([^#]\\+ ${model.username}\\)$/#\\1/g`;
-        break;
-      /**
-       * Enable all user proxy
-       */
-      case !model.deleteDate:
+      }
+      if (!model.deleteDate) {
         updatePattern = `s/^#\\(.\\+ ${model.username}\\)$/\\1/g`;
-        break;
+      }
     }
 
     try {
