@@ -917,10 +917,6 @@ class ExpressApi extends IRunner {
     });
   }
 
-  /**
-   *
-   * @todo get order data
-   */
   _orderRoute() {
     const orderHttpApi = this._dependency.orderHttpApi;
 
