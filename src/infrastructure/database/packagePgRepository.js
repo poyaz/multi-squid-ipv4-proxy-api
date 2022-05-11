@@ -62,13 +62,13 @@ class PackagePgRepository extends IPackageRepository {
             AND u.is_enable = true
             AND ba.is_enable = true
             AND u.delete_date ISNULL
-            AND (p.delete_date IS $2 OR p.delete_date IS $3)
+            AND (p.delete_date IS NULL OR p.delete_date IS ${!isFetchDelete ? 'NULL' : 'NOT NULL'})
             AND mbdp.delete_date ISNULL
             AND ba.delete_date ISNULL
             AND p.id = $1
           GROUP BY p.id, u.id, u.username, p.status, p.expire_date, p.insert_date, p.renewal_date
       `,
-      values: [id, 'NULL', !isFetchDelete ? 'NULL' : 'NOT NULL'],
+      values: [id],
     };
 
     try {
