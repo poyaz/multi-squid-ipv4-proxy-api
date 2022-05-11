@@ -2103,3 +2103,47 @@ curl \
   }
 }
 ```
+
+## Get payment method
+
+Get all payment method for anonymous
+
+### Information:
+
+* Method: `GET`
+* URL: `api/v1/payment/list`
+* Authorized type: `anonymous`
+
+```bash
+curl \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <your-token>' \
+  '<your-hostname-or-ip>/api/v1/payment/list'
+```
+
+### Example:
+
+```bash
+curl \
+    -X GET \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer token' \
+    '<your-hostname-or-ip>/api/v1/payment/list'
+```
+
+### Output:
+
+```json5
+{
+  "status": "success",
+  "totalItem": 1,
+  "data": [
+    {
+      "serviceName": "fastspring",
+      "mode": "test",
+      "address": "venomsupply.test.onfastspring.com/popup-venomsupply"
+    }
+  ]
+}
+```

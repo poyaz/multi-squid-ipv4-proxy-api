@@ -48,6 +48,7 @@ const FindClusterUserService = require('~src/core/service/findClusterUserService
 const JobService = require('~src/core/service/jobService');
 const OrderService = require('~src/core/service/orderService');
 const PackageService = require('~src/core/service/packageService');
+const PaymentService = require('~src/core/service/paymentService');
 const ProductService = require('~src/core/service/productService');
 const ProxyServerJobService = require('~src/core/service/proxyServerJobService');
 const ProxyServerRegenerateJobService = require('~src/core/service/proxyServerRegenerateJobService');
@@ -70,6 +71,8 @@ const OrderControllerFactory = require('~src/api/http/order/controller/orderCont
 const CreatePackageValidationMiddlewareFactory = require('~src/api/http/package/middleware/createPackageValidationMiddlewareFactory');
 const RenewPackageValidatorMiddlewareFactory = require('~src/api/http/package/middleware/renewPackageValidatorMiddlewareFactory');
 const PackageControllerFactory = require('~src/api/http/package/controller/packageControllerFactory');
+
+const PaymentControllerFactory = require('~src/api/http/payment/controller/paymentControllerFactory');
 
 const DeleteProxyIpValidatorMiddlewareFactory = require('~src/api/http/proxy/middleware/deleteProxyIpValidatorMiddlewareFactory');
 const GenerateProxyValidatorMiddlewareFactory = require('~src/api/http/proxy/middleware/generateProxyValidatorMiddlewareFactory');
@@ -163,6 +166,7 @@ class Loader {
       username: this._config.getStr('custom.payment.service.fastspring.auth.username'),
       password: this._config.getStr('custom.payment.service.fastspring.auth.password'),
       domain: this._config.getStr('custom.payment.service.fastspring.apiAddress'),
+      storeAddress: this._config.getStr('custom.payment.service.fastspring.storePopupAddress'),
     };
 
     // Repository
@@ -230,6 +234,7 @@ class Loader {
       packageFileRepository,
       squidServerRepository,
     );
+    const paymentService = new PaymentService(isPaymentEnable, fastspringConfig.storeAddress);
     const productService = new ProductService(productRepository);
     const urlAccessService = new UrlAccessService(
       userService,
@@ -329,6 +334,8 @@ class Loader {
       dateTime,
     );
 
+    const paymentControllerFactory = new PaymentControllerFactory(paymentService);
+
     const productMiddleware = {
       addProductValidation: new AddProductValidationMiddlewareFactory(),
       updateProductValidation: new UpdateProductValidationMiddlewareFactory(),
@@ -406,14 +413,19 @@ class Loader {
       packageControllerFactory,
     };
 
+    this._dependency.paymentHttpApi = {
+      paymentControllerFactory,
+    };
+
     this._dependency.productHttpApi = {
       addProductValidationMiddlewareFactory: productMiddleware.addProductValidation,
       updateProductValidationMiddlewareFactory: productMiddleware.updateProductValidation,
       addExternalStoreValidationMiddlewareFactory: productMiddleware.addExternalStoreValidation,
-      updateExternalStoreValidationMiddlewareFactory:
-      productMiddleware.updateExternalStoreValidation,
+      updateExternalStoreValidationMiddlewareFactory: null,
       productControllerFactory,
     };
+    this._dependency.productHttpApi.updateExternalStoreValidationMiddlewareFactory =
+      productMiddleware.updateExternalStoreValidation;
 
     this._dependency.proxyHttpApi = {
       deleteProxyIpValidatorMiddlewareFactory: proxyMiddleware.deleteProxyIpValidation,

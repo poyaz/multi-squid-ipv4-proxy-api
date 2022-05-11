@@ -103,6 +103,7 @@ class ExpressApi extends IRunner {
     this._logRoute();
     this._orderRoute();
     this._productRoute();
+    this._paymentRoute();
   }
 
   _jobRoute() {
@@ -983,6 +984,8 @@ class ExpressApi extends IRunner {
 
     router.post('/v1/order/process/service/:paymentService', async (req, res, next) => {
       try {
+        console.log(JSON.stringify(req.body));
+
         const orderController = orderHttpApi.orderControllerFactory.create(req, res);
         const response = await orderController.processOrder();
 
@@ -1212,6 +1215,23 @@ class ExpressApi extends IRunner {
         }
       },
     );
+  }
+
+  _paymentRoute() {
+    const paymentHttpApi = this._dependency.paymentHttpApi;
+
+    router.get(`/v1/payment/list`, async (req, res, next) => {
+      try {
+        const paymentController = paymentHttpApi.paymentControllerFactory.create(req, res);
+        const response = await paymentController.getAllPaymentMethod();
+
+        this._sendResponse(req, res, response);
+
+        return next(null);
+      } catch (error) {
+        return next(error);
+      }
+    });
   }
 
   _middlewareRoleAccess(roles) {
