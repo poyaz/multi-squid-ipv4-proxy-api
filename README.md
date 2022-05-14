@@ -534,10 +534,13 @@ The output of this API is a token, and you can this token in below API list:
 
 * `GET /v1/user/:userId`
 * `PUT /v1/user/:username/password`
-* `POST /v1/package`
+* `GET /v1/user/:userId/order`
+* `GET /v1/user/:userId/order/:orderId/subscription`
+* `GET /v1/user/:userId/order`
+* `GET /v1/package/user/:username`
 * `PUT /v1/package/:packageId/renew`
 * `PUT /v1/package/:packageId/cancel`
-* `GET /v1/package/user/:username`
+* `POST /v1/order/:orderId/package`
 
 ### Information:
 
@@ -790,7 +793,7 @@ Create new package for users
 * Method: `POST`
 * URL: `api/v1/package`
 * Body: `{"username": "<your-username>", "count": <total-ip-need-use>, "expire": "<expire-date>"}`
-* Authorized type: `admin` and `normal user`
+* Authorized type: `admin`
 
 ### Body format
 

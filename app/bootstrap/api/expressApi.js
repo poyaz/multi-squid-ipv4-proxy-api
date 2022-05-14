@@ -989,8 +989,6 @@ class ExpressApi extends IRunner {
 
     router.post('/v1/order/process/service/:paymentService', async (req, res, next) => {
       try {
-        console.log(JSON.stringify(req.body));
-
         const orderController = orderHttpApi.orderControllerFactory.create(req, res);
         const response = await orderController.processOrder();
 
