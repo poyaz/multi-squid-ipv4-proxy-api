@@ -3,7 +3,7 @@ class UnknownException extends Error {
     super('Unknown error in operation.');
 
     this.name = 'UnknownError';
-    this.isOperation = true;
+    this.isOperation = false;
     this.httpCode = 400;
   }
 }

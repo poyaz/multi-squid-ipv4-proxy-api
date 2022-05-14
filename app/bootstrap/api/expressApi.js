@@ -1305,7 +1305,12 @@ class ExpressApi extends IRunner {
   }
 
   _sendFail(res, error, statusCode = 400) {
-    console.error(error);
+    if (
+      !Object.hasOwnProperty.call(error, 'isOperation') ||
+      (Object.hasOwnProperty.call(error, 'isOperation') && !error.isOperation)
+    ) {
+      console.error(error);
+    }
 
     const obj = {
       status: 'error',

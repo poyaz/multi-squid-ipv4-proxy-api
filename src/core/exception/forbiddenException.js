@@ -3,7 +3,7 @@ class ForbiddenException extends Error {
     super('Forbidden access.');
 
     this.name = 'ForbiddenError';
-    this.isOperation = false;
+    this.isOperation = true;
     this.httpCode = 403;
     this.errorInfo = error;
   }

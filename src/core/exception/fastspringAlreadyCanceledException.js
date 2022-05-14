@@ -3,7 +3,7 @@ class FastspringAlreadyCanceledException extends Error {
     super('The subscription is already canceled.');
 
     this.name = 'FastspringAlreadyCanceledError';
-    this.isOperation = false;
+    this.isOperation = true;
     this.httpCode = 400;
     this.errorInfo = error;
   }

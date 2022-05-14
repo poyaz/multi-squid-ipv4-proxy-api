@@ -3,7 +3,7 @@ class UserDisableException extends Error {
     super('Your username has been disable. Please contact with admin');
 
     this.name = 'UserDisableError';
-    this.isOperation = false;
+    this.isOperation = true;
     this.httpCode = 400;
     this.errorInfo = error;
   }

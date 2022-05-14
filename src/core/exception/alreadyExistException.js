@@ -3,7 +3,7 @@ class AlreadyExistException extends Error {
     super('The record already exist.');
 
     this.name = 'AlreadyExistError';
-    this.isOperation = false;
+    this.isOperation = true;
     this.httpCode = 400;
     this.additionalInfo = [{ message: existMessage }];
   }
