@@ -39,6 +39,19 @@ class IPackageRepository {
 
   /**
    *
+   * @param {string} userId
+   * @param {string} proxyType
+   * @param {string} proxyCountry
+   * @return {Promise<(Error|number|number)[]>}
+   */
+  async countOfIpExist(userId, proxyType, proxyCountry) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { userId, proxyType, proxyCountry };
+    throw error;
+  }
+
+  /**
+   *
    * @param {PackageModel} model
    * @return {Promise<(Error|PackageModel|[])[]>}
    */

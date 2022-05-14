@@ -301,6 +301,30 @@ suite(`OrderService`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
+    test(`Should error add new order when check generate proxy by count number`, async () => {
+      const inputModel = testObj.inputModel;
+      const outputProductModel = new ProductModel();
+      outputProductModel.id = testObj.identifierGenerator.generateId();
+      outputProductModel.count = 3;
+      outputProductModel.isEnable = true;
+      testObj.productService.getById.resolves([null, outputProductModel]);
+      testObj.packageService.checkIpExistForCreatePackage.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderService.add(inputModel);
+
+      testObj.productService.getById.should.have.callCount(1);
+      testObj.packageService.checkIpExistForCreatePackage.should.have.callCount(1);
+      testObj.packageService.checkIpExistForCreatePackage.should.have.calledWith(
+        sinon.match
+          .has('userId', testObj.identifierGenerator.generateId())
+          .and(sinon.match.hasNested('countIp', 3))
+          .and(sinon.match.hasNested('type', 'isp'))
+          .and(sinon.match.hasNested('country', 'US')),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
     test(`Should error add new order`, async () => {
       const inputModel = testObj.inputModel;
       const outputProductModel = new ProductModel();
@@ -309,11 +333,20 @@ suite(`OrderService`, () => {
       outputProductModel.expireDay = 30;
       outputProductModel.isEnable = true;
       testObj.productService.getById.resolves([null, outputProductModel]);
+      testObj.packageService.checkIpExistForCreatePackage.resolves([null]);
       testObj.orderRepository.add.resolves([new UnknownException()]);
 
       const [error] = await testObj.orderService.add(inputModel);
 
       testObj.productService.getById.should.have.callCount(1);
+      testObj.packageService.checkIpExistForCreatePackage.should.have.callCount(1);
+      testObj.packageService.checkIpExistForCreatePackage.should.have.calledWith(
+        sinon.match
+          .has('userId', testObj.identifierGenerator.generateId())
+          .and(sinon.match.hasNested('countIp', 3))
+          .and(sinon.match.hasNested('type', 'isp'))
+          .and(sinon.match.hasNested('country', 'US')),
+      );
       testObj.orderRepository.add.should.have.callCount(1);
       testObj.orderRepository.add.should.have.calledWith(
         sinon.match
@@ -333,12 +366,21 @@ suite(`OrderService`, () => {
       outputProductModel.expireDay = 30;
       outputProductModel.isEnable = true;
       testObj.productService.getById.resolves([null, outputProductModel]);
+      testObj.packageService.checkIpExistForCreatePackage.resolves([null]);
       const outputModel = testObj.outputOrderModel;
       testObj.orderRepository.add.resolves([null, outputModel]);
 
       const [error, result] = await testObj.orderService.add(inputModel);
 
       testObj.productService.getById.should.have.callCount(1);
+      testObj.packageService.checkIpExistForCreatePackage.should.have.callCount(1);
+      testObj.packageService.checkIpExistForCreatePackage.should.have.calledWith(
+        sinon.match
+          .has('userId', testObj.identifierGenerator.generateId())
+          .and(sinon.match.hasNested('countIp', 3))
+          .and(sinon.match.hasNested('type', 'isp'))
+          .and(sinon.match.hasNested('country', 'US')),
+      );
       testObj.orderRepository.add.should.have.callCount(1);
       testObj.orderRepository.add.should.have.calledWith(
         sinon.match

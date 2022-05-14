@@ -1,6 +1,6 @@
 class NoUniqueIpException extends Error {
   constructor() {
-    super('Not exist unique ip for create package for user');
+    super('Not exist any unique ip');
 
     this.name = 'NoUniqueIpError';
     this.isOperation = true;

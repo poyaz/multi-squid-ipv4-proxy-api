@@ -95,6 +95,10 @@ class FindClusterPackageService extends IPackageService {
     return [null, dataPackageList];
   }
 
+  async checkIpExistForCreatePackage(model) {
+    return this.#packageService.checkIpExistForCreatePackage(model);
+  }
+
   async add(model) {
     const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
     if (errorAllServer) {

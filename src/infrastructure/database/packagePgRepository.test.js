@@ -33,21 +33,25 @@ suite(`PackagePgRepository`, () => {
       postgresDb,
       postgresDbClient,
       identifierGenerator,
+      dateTime,
       packageRepository,
     } = helper.fakePackagePgRepository();
 
     testObj.postgresDb = postgresDb;
     testObj.postgresDbClient = postgresDbClient;
     testObj.identifierGeneratorSystem = identifierGenerator;
+    testObj.dateTime = dateTime;
     testObj.packageRepository = packageRepository;
 
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
 
     testObj.fillModelSpy = sinon.spy(testObj.packageRepository, '_fillModel');
+    testObj.getCurrentTime = sinon.stub(testObj.dateTime, 'gregorianCurrentDateWithTimezoneString');
   });
 
   teardown(() => {
     testObj.fillModelSpy.restore();
+    testObj.getCurrentTime.restore();
   });
 
   suite(`Get by id`, () => {
@@ -81,7 +85,7 @@ suite(`PackagePgRepository`, () => {
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.postgresDb.query.should.have.calledWith(
-        sinon.match.has('values', sinon.match.array.deepEquals([inputId, 'NULL', 'NULL'])),
+        sinon.match.has('values', sinon.match.array.deepEquals([inputId])),
       );
       testObj.fillModelSpy.should.have.callCount(0);
       expect(error).to.be.a('null');
@@ -119,7 +123,7 @@ suite(`PackagePgRepository`, () => {
 
       testObj.postgresDb.query.should.have.callCount(1);
       testObj.postgresDb.query.should.have.calledWith(
-        sinon.match.has('values', sinon.match.array.deepEquals([inputId, 'NULL', 'NULL'])),
+        sinon.match.has('values', sinon.match.array.deepEquals([inputId])),
       );
       testObj.fillModelSpy.should.have.callCount(1);
       expect(error).to.be.a('null');
@@ -525,6 +529,92 @@ suite(`PackagePgRepository`, () => {
     });
   });
 
+  suite(`Is exist ip for create package`, () => {
+    test(`Should error check exist ip for create package`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const inputProxyType = 'dc';
+      const inputProxyCountry = 'gb';
+      testObj.getCurrentTime.returns('date');
+      testObj.postgresDb.query.onCall(0).resolves();
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.onCall(1).throws(queryError);
+
+      const [error] = await testObj.packageRepository.countOfIpExist(
+        inputUserId,
+        inputProxyType,
+        inputProxyCountry,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(2);
+      const sinonMatch0 = sinon.match.has(
+        'values',
+        sinon.match.array.deepEquals([inputProxyType, inputProxyCountry.toUpperCase()]),
+      );
+      testObj.postgresDb.query.getCall(0).should.have.calledWith(sinonMatch0);
+      const sinonMatch1 = sinon.match.has(
+        'values',
+        sinon.match.array.deepEquals([
+          inputProxyType,
+          inputProxyCountry.toUpperCase(),
+          inputUserId,
+          'date',
+          PackageModel.STATUS_ENABLE,
+        ]),
+      );
+      testObj.postgresDb.query.getCall(1).should.have.calledWith(sinonMatch1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully check exist ip for create package`, async () => {
+      const inputUserId = testObj.identifierGenerator.generateId();
+      const inputProxyType = 'dc';
+      const inputProxyCountry = 'gb';
+      testObj.getCurrentTime.returns('date');
+      const fetchIpCountQuery = {
+        get rowCount() {
+          return 1;
+        },
+      };
+      testObj.postgresDb.query.onCall(0).resolves(fetchIpCountQuery);
+      const fetchUserIpCountQuery = {
+        get rowCount() {
+          return 1;
+        },
+      };
+      testObj.postgresDb.query.onCall(1).resolves(fetchUserIpCountQuery);
+
+      const [error, countIp, countUserIp] = await testObj.packageRepository.countOfIpExist(
+        inputUserId,
+        inputProxyType,
+        inputProxyCountry,
+      );
+
+      testObj.postgresDb.query.should.have.callCount(2);
+      const sinonMatch0 = sinon.match.has(
+        'values',
+        sinon.match.array.deepEquals([inputProxyType, inputProxyCountry.toUpperCase()]),
+      );
+      testObj.postgresDb.query.getCall(0).should.have.calledWith(sinonMatch0);
+      const sinonMatch1 = sinon.match.has(
+        'values',
+        sinon.match.array.deepEquals([
+          inputProxyType,
+          inputProxyCountry.toUpperCase(),
+          inputUserId,
+          'date',
+          PackageModel.STATUS_ENABLE,
+        ]),
+      );
+      testObj.postgresDb.query.getCall(1).should.have.calledWith(sinonMatch1);
+      expect(error).to.be.a('null');
+      expect(countIp).to.be.equal(1);
+      expect(countUserIp).to.be.equal(1);
+    });
+  });
+
   suite(`Add new package`, () => {
     setup(() => {
       const inputModel = new PackageModel();
@@ -683,7 +773,7 @@ suite(`PackagePgRepository`, () => {
           ),
       );
       testObj.postgresDbClient.query.getCall(1).should.calledWith(sinonMatch1);
-      const sinonMatch2 = sinon.match.has('values', sinon.match.has('length', 6));
+      const sinonMatch2 = sinon.match.has('values', sinon.match.has('length', 7));
       testObj.postgresDbClient.query.getCall(2).should.calledWith(sinonMatch2);
       testObj.postgresDbClient.query.getCall(3).should.calledWith('END');
       testObj.fillModelSpy.should.have.callCount(1);

@@ -13,9 +13,12 @@ const UserModel = require('~src/core/model/userModel');
 const PackageModel = require('~src/core/model/packageModel');
 const UnknownException = require('~src/core/exception/unknownException');
 const NotFoundException = require('~src/core/exception/notFoundException');
+const NoUniqueIpException = require('~src/core/exception/noUniqueIpException');
+const NoUniqueUserIpException = require('~src/core/exception/noUniqueUserIpException');
 const ItemDisableException = require('~src/core/exception/itemDisableException');
 const DisableUserException = require('~src/core/exception/disableUserException');
 const AlreadyExpireException = require('~src/core/exception/alreadyExpireException');
+const RequestIpMoreThanExistIpException = require('~src/core/exception/requestIpMoreThanExistIpException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -256,7 +259,7 @@ suite(`PackageService`, () => {
       testObj.packageFileRepository.getAllByUsername.should.have.calledWith(
         sinon.match(inputUsername),
       );
-      expect(error).to.be.a('null');console.log(result)
+      expect(error).to.be.a('null');
       expect(result).to.be.length(2);
       expect(result[0]).to.be.an.instanceof(PackageModel);
       expect(result[0].countIp).to.be.equal(1);
@@ -265,6 +268,140 @@ suite(`PackageService`, () => {
       expect(result[1].countIp).to.be.equal(2);
       expect(result[1].ipList[0]).to.have.include({ ip: '192.168.1.5', port: 8080 });
       expect(result[1].ipList[1]).to.have.include({ ip: '192.168.1.6', port: 8080 });
+    });
+  });
+
+  suite(`Check ip exist for create package for user`, () => {
+    test(`Should error check ip exist for create package for user when check user status`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      testObj.userService.getUserById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check ip exist for create package for user when user is disable`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.isEnable = false;
+      testObj.userService.getUserById.resolves([null, outputUserModel]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DisableUserException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check ip exist for create package for user when check count ip status`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.isEnable = true;
+      testObj.userService.getUserById.resolves([null, outputUserModel]);
+      testObj.packageRepository.countOfIpExist.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      testObj.packageRepository.countOfIpExist.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check ip exist for create package for user when not found any ip with execute condition`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.isEnable = true;
+      testObj.userService.getUserById.resolves([null, outputUserModel]);
+      testObj.packageRepository.countOfIpExist.resolves([null, 0, 1]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      testObj.packageRepository.countOfIpExist.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NoUniqueIpException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error check ip exist for create package for user when not found any ip for user`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.isEnable = true;
+      testObj.userService.getUserById.resolves([null, outputUserModel]);
+      testObj.packageRepository.countOfIpExist.resolves([null, 1, 0]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      testObj.packageRepository.countOfIpExist.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NoUniqueUserIpException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error check ip exist for create package for user when request ip more than total ip exist in system or can collect by user`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.isEnable = true;
+      testObj.userService.getUserById.resolves([null, outputUserModel]);
+      testObj.packageRepository.countOfIpExist.resolves([null, 1, 1]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      testObj.packageRepository.countOfIpExist.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(RequestIpMoreThanExistIpException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully check ip exist for create package for user`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.isEnable = true;
+      testObj.userService.getUserById.resolves([null, outputUserModel]);
+      testObj.packageRepository.countOfIpExist.resolves([null, 4, 4]);
+
+      const [error] = await testObj.packageService.checkIpExistForCreatePackage(inputModel);
+
+      testObj.userService.getUserById.should.have.callCount(1);
+      testObj.packageRepository.countOfIpExist.should.have.callCount(1);
+      expect(error).to.be.a('null');
     });
   });
 

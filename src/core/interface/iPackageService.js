@@ -17,6 +17,17 @@ class IPackageService {
   /**
    *
    * @param {PackageModel} model
+   * @return {Promise<(Error)[]>}
+   */
+  async checkIpExistForCreatePackage(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+
+  /**
+   *
+   * @param {PackageModel} model
    * @return {Promise<(Error|PackageModel)[]>}
    */
   async add(model) {

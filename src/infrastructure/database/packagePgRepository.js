@@ -204,6 +204,66 @@ class PackagePgRepository extends IPackageRepository {
     }
   }
 
+  async countOfIpExist(userId, proxyType, proxyCountry) {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+    const type = proxyType || '-';
+    const country = proxyCountry ? proxyCountry.toUpperCase() : '-';
+
+    const totalIpFindQuery = {
+      text: singleLine`
+          SELECT ba.id, ba.ip, ba.port
+          FROM public.bind_address ba
+          WHERE delete_date ISNULL
+            AND ba.is_enable = true
+            AND ba.proxy_type = $1
+            AND ba.country_code = $2
+      `,
+      values: [type, country],
+    };
+    const totalIpFindForUserQuery = {
+      text: singleLine`
+          SELECT ba.id, ba.ip, ba.port
+          FROM public.bind_address ba
+          WHERE delete_date ISNULL
+            AND ba.is_enable = true
+            AND ba.proxy_type = $1
+            AND ba.country_code = $2
+              EXCEPT
+          SELECT DISTINCT ba.id, ba.ip, ba.port
+          FROM public.users u,
+               public.packages p,
+               public.map_bind_address_package mbdp,
+               public.bind_address ba
+          WHERE u.id = p.user_id
+            AND p.id = mbdp.package_id
+            AND mbdp.bind_address_id = ba.id
+            AND u.is_enable = true
+            AND ba.is_enable = true
+            AND u.delete_date ISNULL
+            AND p.delete_date ISNULL
+            AND mbdp.delete_date ISNULL
+            AND ba.delete_date ISNULL
+            AND ba.proxy_type = $1
+            AND ba.country_code = $2
+            AND u.id = $3
+            AND p.expire_date < $4
+            AND p.status = $5
+      `,
+      values: [type, country, userId, now, PackageModel.STATUS_ENABLE],
+    };
+
+    try {
+      const [{ rowCount: rowCountIp }, { rowCount: rowCountUserIp }] = await Promise.all([
+        this.#db.query(totalIpFindQuery),
+        this.#db.query(totalIpFindForUserQuery),
+      ]);
+
+      return [null, rowCountIp, rowCountUserIp];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
   async add(model) {
     const [errorClient, client] = await this._getDatabaseClient();
     if (errorClient) {
@@ -256,7 +316,8 @@ class PackagePgRepository extends IPackageRepository {
                 AND u.id = $1
                 AND p.expire_date < $2
                 AND ba.proxy_type = $5
-                AND ba.country_code = $6)
+                AND ba.country_code = $6
+                AND p.status = $7)
           INSERT
           INTO public.map_bind_address_package (id, bind_address_id, package_id)
           SELECT public.uuid_generate_v4(), id, $3
@@ -265,7 +326,15 @@ class PackagePgRepository extends IPackageRepository {
           LIMIT $4
           RETURNING (SELECT ip FROM public.bind_address ba WHERE ba.id = bind_address_id), (SELECT port FROM public.bind_address ba WHERE ba.id = bind_address_id)
       `,
-      values: [model.userId, expireDate, packageId, model.countIp, proxyType, countryCode],
+      values: [
+        model.userId,
+        expireDate,
+        packageId,
+        model.countIp,
+        proxyType,
+        countryCode,
+        PackageModel.STATUS_ENABLE,
+      ],
     };
 
     const transaction = { isStart: false };

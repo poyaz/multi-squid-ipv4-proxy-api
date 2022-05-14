@@ -137,6 +137,41 @@ suite(`FastspringPackageService`, () => {
     });
   });
 
+  suite(`Check ip exist for create package for user`, () => {
+    test(`Should error check ip exist for create package for user when execute`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      testObj.packageService.checkIpExistForCreatePackage.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringPackageService.checkIpExistForCreatePackage(
+        inputModel,
+      );
+
+      testObj.packageService.checkIpExistForCreatePackage.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully check ip exist for create package for user`, async () => {
+      const inputModel = new PackageModel();
+      inputModel.userId = testObj.identifierGenerator.generateId();
+      inputModel.countIp = 4;
+      inputModel.proxyType = 'dc';
+      inputModel.country = 'GB';
+      testObj.packageService.checkIpExistForCreatePackage.resolves([null]);
+
+      const [error] = await testObj.fastspringPackageService.checkIpExistForCreatePackage(
+        inputModel,
+      );
+
+      testObj.packageService.checkIpExistForCreatePackage.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
   suite(`Add new package`, () => {
     test(`Should error add new package`, async () => {
       const inputModel = new PackageModel();

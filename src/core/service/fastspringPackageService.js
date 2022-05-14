@@ -49,6 +49,10 @@ class FastspringPackageService extends IPackageService {
     return this.#packageService.getAllByUsername(username, filterModel);
   }
 
+  async checkIpExistForCreatePackage(model) {
+    return this.#packageService.checkIpExistForCreatePackage(model);
+  }
+
   async add(model) {
     return this.#packageService.add(model);
   }

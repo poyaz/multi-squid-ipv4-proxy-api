@@ -9,6 +9,9 @@ const NotFoundException = require('~src/core/exception/notFoundException');
 const ItemDisableException = require('~src/core/exception/itemDisableException');
 const DisableUserException = require('~src/core/exception/disableUserException');
 const AlreadyExpireException = require('~src/core/exception/alreadyExpireException');
+const NoUniqueIpException = require('~src/core/exception/noUniqueIpException');
+const NoUniqueUserIpException = require('~src/core/exception/noUniqueUserIpException');
+const RequestIpMoreThanExistIpException = require('~src/core/exception/requestIpMoreThanExistIpException');
 
 class PackageService extends IPackageService {
   /**
@@ -100,6 +103,36 @@ class PackageService extends IPackageService {
     }
 
     return [null, result];
+  }
+
+  async checkIpExistForCreatePackage(model) {
+    const [userError, userData] = await this.#userService.getUserById(model.userId);
+    if (userError) {
+      return [userError];
+    }
+    if (!userData.isEnable) {
+      return [new DisableUserException()];
+    }
+
+    const [error, countIp, countUserIp] = await this.#packageRepository.countOfIpExist(
+      model.userId,
+      model.proxyType,
+      model.country,
+    );
+    if (error) {
+      return [error];
+    }
+    if (countIp === 0) {
+      return [new NoUniqueIpException()];
+    }
+    if (countUserIp === 0) {
+      return [new NoUniqueUserIpException()];
+    }
+    if (model.countIp > countIp || model.countIp > countUserIp) {
+      return [new RequestIpMoreThanExistIpException()];
+    }
+
+    return [null];
   }
 
   async add(model) {

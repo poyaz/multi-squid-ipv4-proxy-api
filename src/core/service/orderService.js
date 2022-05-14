@@ -92,6 +92,15 @@ class OrderService extends IOrderService {
     if (!productData.isEnable) {
       return [new ItemDisableException()];
     }
+    const packageModel = new PackageModel();
+    packageModel.userId = model.userId;
+    packageModel.countIp = productData.count;
+    packageModel.type = model.prePackageOrderInfo.proxyType;
+    packageModel.country = model.prePackageOrderInfo.countryCode;
+    const [packageError] = await this.#packageService.checkIpExistForCreatePackage(packageModel);
+    if (packageError) {
+      return [packageError];
+    }
 
     model.prePackageOrderInfo.count = productData.count;
     model.prePackageOrderInfo.expireDay = productData.expireDay;

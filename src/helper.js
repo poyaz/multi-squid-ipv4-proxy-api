@@ -259,7 +259,7 @@ function fakePackagePgRepository() {
 
   const packageRepository = new PackagePgRepository(postgresDb, dateTime, identifierGenerator);
 
-  return { postgresDb, postgresDbClient, identifierGenerator, packageRepository };
+  return { postgresDb, postgresDbClient, identifierGenerator, dateTime, packageRepository };
 }
 
 function fakePackageFileRepository() {
