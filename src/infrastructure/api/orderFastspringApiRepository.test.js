@@ -36,10 +36,12 @@ suite(`OrderFastspringApiRepository`, () => {
   setup(() => {
     const {
       orderRepository,
+      fastspringApiRepository,
       orderFastspringApiRepository,
     } = helper.fakeOrderFastspringApiRepository();
 
     testObj.orderRepository = orderRepository;
+    testObj.fastspringApiRepository = fastspringApiRepository;
     testObj.orderFastspringApiRepository = orderFastspringApiRepository;
 
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
@@ -69,14 +71,32 @@ suite(`OrderFastspringApiRepository`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
+    test(`Should error get order by id when order find and error on get info from API`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputModel = new OrderModel();
+      outputModel.orderSerial = 'order serial';
+      testObj.orderRepository.getById.resolves([null, outputModel]);
+      testObj.fastspringApiRepository.getOrder.resolves([new UnknownException()]);
+
+      const [error] = await testObj.orderFastspringApiRepository.getById(inputId);
+
+      testObj.orderRepository.getById.should.have.callCount(1);
+      testObj.fastspringApiRepository.getOrder.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
     test(`Should successfully get order by id`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const outputModel = new OrderModel();
+      outputModel.orderSerial = 'order serial';
       testObj.orderRepository.getById.resolves([null, outputModel]);
+      testObj.fastspringApiRepository.getOrder.resolves([null]);
 
       const [error, result] = await testObj.orderFastspringApiRepository.getById(inputId);
 
       testObj.orderRepository.getById.should.have.callCount(1);
+      testObj.fastspringApiRepository.getOrder.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.instanceOf(OrderModel);
     });

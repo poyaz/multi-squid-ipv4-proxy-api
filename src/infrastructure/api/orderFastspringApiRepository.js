@@ -17,6 +17,10 @@ class OrderFastspringApiRepository extends IOrderRepository {
    */
   #orderRepository;
   /**
+   * @type {IFastspringApiRepository}
+   */
+  #fastspringApiRepository;
+  /**
    * @type {string}
    */
   #apiDomain;
@@ -25,10 +29,11 @@ class OrderFastspringApiRepository extends IOrderRepository {
    */
   #reqOption;
 
-  constructor(orderRepository, apiUsername, apiPassword, apiDomain) {
+  constructor(orderRepository, fastspringApiRepository, apiUsername, apiPassword, apiDomain) {
     super();
 
     this.#orderRepository = orderRepository;
+    this.#fastspringApiRepository = fastspringApiRepository;
     this.#apiDomain = apiDomain;
     this.#reqOption = {
       headers: {
@@ -42,7 +47,20 @@ class OrderFastspringApiRepository extends IOrderRepository {
   }
 
   async getById(orderId) {
-    return this.#orderRepository.getById(orderId);
+    const [fetchError, fetchData] = await this.#orderRepository.getById(orderId);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (!fetchData || (fetchData && !fetchData.orderSerial)) {
+      return [null, fetchData];
+    }
+
+    const [fastspringError] = await this.#fastspringApiRepository.getOrder(orderId);
+    if (fastspringError) {
+      return [fastspringError];
+    }
+
+    return [null, fetchData];
   }
 
   async getAll(filterModel) {

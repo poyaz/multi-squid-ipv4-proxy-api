@@ -923,18 +923,22 @@ function fakeOrderPgRepository() {
 
 function fakeOrderFastspringApiRepository() {
   const IOrderRepository = require('~src/core/interface/iOrderRepository');
+  const IFastspringApiRepository = require('~src/core/interface/iFastspringApiRepository');
   const OrderFastspringApiRepository = require('~src/infrastructure/api/orderFastspringApiRepository');
 
   const orderRepository = sinon.createStubInstance(IOrderRepository);
 
+  const fastspringApiRepository = sinon.createStubInstance(IFastspringApiRepository);
+
   const orderFastspringApiRepository = new OrderFastspringApiRepository(
     orderRepository,
+    fastspringApiRepository,
     'username',
     'password',
     'https://example.com',
   );
 
-  return { orderRepository, orderFastspringApiRepository };
+  return { orderRepository, fastspringApiRepository, orderFastspringApiRepository };
 }
 
 function fakeFastspringOrderParse() {

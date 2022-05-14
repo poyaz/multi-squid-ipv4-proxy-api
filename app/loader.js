@@ -208,6 +208,7 @@ class Loader {
     const proxyServerApiRepository = new ProxyServerApiRepository(dateTime, apiToken);
     const orderFastspringApiRepository = new OrderFastspringApiRepository(
       orderPgRepository,
+      fastspringApiRepository,
       fastspringConfig.username,
       fastspringConfig.password,
       fastspringConfig.domain,
