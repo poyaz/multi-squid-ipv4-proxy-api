@@ -121,6 +121,39 @@ class UserService extends IUserService {
     return [null, addData];
   }
 
+  async addAdmin(model) {
+    const [checkExistError, checkExistData] = await this.#userRepository.isUserExist(
+      model.username,
+    );
+    if (checkExistError) {
+      return [checkExistError];
+    }
+
+    const [checkProxyExistError, checkProxyExistData] = await this.#userSquidRepository.isUserExist(
+      model.username,
+    );
+    if (checkProxyExistError) {
+      return [checkProxyExistError];
+    }
+
+    if (checkExistData && checkProxyExistData) {
+      return [new UserExistException()];
+    }
+
+    model.role = 'admin';
+    const [addError, addData] = await this.#userRepository.add(model);
+    if (addError) {
+      return [addError];
+    }
+
+    const [addProxyError] = await this.#userSquidRepository.add(model);
+    if (addProxyError) {
+      return [addProxyError];
+    }
+
+    return [null, addData];
+  }
+
   async changePassword(username, password) {
     const filterModel = new UserModel();
     filterModel.username = username;

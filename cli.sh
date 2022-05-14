@@ -43,6 +43,7 @@ function _usage() {
   echo -e "      --init\t\t\tInit webserver and database"
   echo -e "      --restart\t\t\tRestart all service"
   echo -e "      --token\t\t\tGet token"
+  echo -e "      --admin-user\t\t\tGet admin user"
   echo -e "      --init-cluster\t\tCreate server with cluster"
   echo -e "      --join-cluster\t\tJoin new server to exist cluster"
   echo -e "      --fetch-cluster\t\tFetch cluster token from exist node"
@@ -247,6 +248,11 @@ while [[ $# -gt 0 ]]; do
 
   --token)
     execute_mode="token"
+    shift
+    ;;
+
+  --admin-user)
+    execute_mode="admin-user"
     shift
     ;;
 
@@ -519,6 +525,17 @@ if [[ $execute_mode == "token" ]]; then
 
   token=$(docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml exec node sh -c 'node scripts/cli.js generate-token' 2>/dev/null)
   echo $token
+  exit
+fi
+
+if [[ $execute_mode == "admin-user" ]]; then
+  if ! [[ -f $DEFAULT_NODE_ENV_FILE ]]; then
+    echo "[ERR] Please init service! Usage: bash $0 --init"
+    exit
+  fi
+
+  add_admin=$(docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml exec node sh -c 'node scripts/cli.js add-admin' 2>/dev/null)
+  echo "$add_admin"
   exit
 fi
 

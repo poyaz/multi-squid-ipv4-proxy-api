@@ -85,6 +85,41 @@ class FindClusterUserService extends IUserService {
     return [null, dataAddUser];
   }
 
+  async addAdmin(model) {
+    const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
+    if (errorAllServer) {
+      return [errorAllServer];
+    }
+
+    const [errorAddUser, dataAddUser] = await this.#userService.addAdmin(model);
+    if (errorAddUser) {
+      return [errorAddUser];
+    }
+
+    if (dataAllServer.length === 0) {
+      return [null, dataAddUser];
+    }
+
+    const tasks = [];
+    for (let i = 0; i < dataAllServer.length; i++) {
+      const serverModel = dataAllServer[i];
+      if (serverModel.isEnable && serverModel.hostIpAddress !== this.#currentInstanceIp) {
+        tasks.push(this.#serverApiRepository.addUser(model, serverModel));
+      }
+    }
+
+    const resultTasks = await Promise.all(tasks);
+
+    for (let i = 0; i < resultTasks.length; i++) {
+      const [errorExecute] = resultTasks[i];
+      if (errorExecute) {
+        return [errorExecute];
+      }
+    }
+
+    return [null, dataAddUser];
+  }
+
   async changePassword(username, password) {
     const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
     if (errorAllServer) {

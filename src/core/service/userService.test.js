@@ -418,6 +418,87 @@ suite(`UserService`, () => {
     });
   });
 
+  suite(`Add admin user`, () => {
+    test(`Should error add new admin user when check user exist in database`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'username';
+      inputModel.password = 'password';
+      testObj.userRepository.isUserExist.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.addAdmin(inputModel);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.isUserExist.should.have.calledWith(sinon.match(inputModel.username));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error add new admin user if user can't create in proxy`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'username';
+      inputModel.password = 'password';
+      const outputModel = new UserModel();
+      testObj.userRepository.isUserExist.resolves([null, false]);
+      testObj.userSquidRepository.isUserExist.resolves([null, false]);
+      testObj.userRepository.add.resolves([null, outputModel]);
+      testObj.userSquidRepository.add.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.addAdmin(inputModel);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.isUserExist.should.have.calledWith(sinon.match(inputModel.username));
+      testObj.userSquidRepository.isUserExist.should.have.callCount(1);
+      testObj.userSquidRepository.isUserExist.should.have.calledWith(
+        sinon.match(inputModel.username),
+      );
+      testObj.userRepository.add.should.have.callCount(1);
+      testObj.userRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('role', 'admin'))
+          .and(sinon.match.has('externalOauthData', sinon.match.object)),
+      );
+      testObj.userSquidRepository.add.should.have.callCount(1);
+      testObj.userSquidRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully add new admin user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.username = 'username';
+      inputModel.password = 'password';
+      const outputModel = new UserModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      testObj.userRepository.isUserExist.resolves([null, false]);
+      testObj.userSquidRepository.isUserExist.resolves([null, false]);
+      testObj.userRepository.add.resolves([null, outputModel]);
+      testObj.userSquidRepository.add.resolves([null]);
+
+      const [error, result] = await testObj.userService.addAdmin(inputModel);
+
+      testObj.userRepository.isUserExist.should.have.callCount(1);
+      testObj.userRepository.isUserExist.should.have.calledWith(sinon.match(inputModel.username));
+      testObj.userSquidRepository.isUserExist.should.have.callCount(1);
+      testObj.userSquidRepository.isUserExist.should.have.calledWith(
+        sinon.match(inputModel.username),
+      );
+      testObj.userRepository.add.should.have.callCount(1);
+      testObj.userRepository.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('role', 'admin'))
+          .and(sinon.match.has('externalOauthData', sinon.match.object)),
+      );
+      testObj.userSquidRepository.add.should.have.callCount(1);
+      testObj.userSquidRepository.add.should.have.calledWith(sinon.match.instanceOf(UserModel));
+      expect(error).to.be.a('null');
+      expect(result)
+        .to.have.instanceOf(UserModel)
+        .and.have.property('id', testObj.identifierGenerator.generateId());
+    });
+  });
+
   suite(`Change password`, () => {
     test(`Should error change password when fetch user`, async () => {
       const inputUsername = 'user1';

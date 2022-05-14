@@ -16,6 +16,17 @@ class IUserService {
 
   /**
    *
+   * @param {UserModel} model
+   * @return {Promise<(Error|UserModel|[])[]>}
+   */
+  async addAdmin(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
+
+  /**
+   *
    * @param {UserModel} filterModel
    * @return {Promise<(Error|Array<UserModel>|[])[]>}
    */

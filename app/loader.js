@@ -394,6 +394,8 @@ class Loader {
     this._dependency.identifierGenerator = identifierGenerator;
     this._dependency.dateTime = dateTime;
 
+    this._dependency.findClusterUserService = findClusterUserService;
+
     this._dependency.accessMiddlewareFactory = accessMiddlewareFactory;
     this._dependency.roleAccessMiddlewareFactory = roleAccessMiddlewareFactory;
     this._dependency.urlAccessMiddlewareFactory = urlAccessMiddlewareFactory;
