@@ -43,7 +43,7 @@ function _usage() {
   echo -e "      --init\t\t\tInit webserver and database"
   echo -e "      --restart\t\t\tRestart all service"
   echo -e "      --token\t\t\tGet token"
-  echo -e "      --admin-user\t\t\tGet admin user"
+  echo -e "      --admin-user\t\tGet admin user"
   echo -e "      --init-cluster\t\tCreate server with cluster"
   echo -e "      --join-cluster\t\tJoin new server to exist cluster"
   echo -e "      --fetch-cluster\t\tFetch cluster token from exist node"

@@ -17,6 +17,7 @@ Options:
       --init                    Init webserver and database
       --restart                 Restart all service
       --token                   Get token
+      --admin-user              Get admin user
       --init-cluster            Create server with cluster
       --join-cluster            Join new server to exist cluster
       --fetch-cluster           Fetch cluster token from exist node
