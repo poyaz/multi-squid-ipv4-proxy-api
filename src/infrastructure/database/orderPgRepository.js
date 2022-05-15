@@ -118,6 +118,11 @@ class OrderPgRepository extends IOrderRepository {
       getAllQuery.values.push(filterModel.packageId);
       filterConditions.push(`package_id = $${getAllQuery.values.length}`);
     }
+    if (typeof filterModel.userId !== 'undefined') {
+      getAllQuery.values.push(filterModel.userId);
+      filterConditions.push(`user_id = $${getAllQuery.values.length}`);
+    }
+
 
     if (filterConditions.length > 0) {
       getAllQuery.text += ` AND ${filterConditions.join(' AND ')}`;
