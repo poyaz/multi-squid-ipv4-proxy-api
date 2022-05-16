@@ -21,6 +21,10 @@ class UrlAccessMiddleware extends IHttpMiddleware {
   }
 
   async act() {
+    if (this.#req.user.role === 'admin') {
+      return;
+    }
+    
     const [error] = await this.#aclService.isAccessToUrl(this.#req.user, this.#req.params);
     if (error) {
       throw error;
