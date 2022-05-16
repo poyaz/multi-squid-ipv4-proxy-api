@@ -116,7 +116,7 @@ class PackageService extends IPackageService {
 
     const [error, countIp, countUserIp] = await this.#packageRepository.countOfIpExist(
       model.userId,
-      model.proxyType,
+      model.type,
       model.country,
     );
     if (error) {
