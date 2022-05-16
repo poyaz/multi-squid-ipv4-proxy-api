@@ -3,7 +3,7 @@ class AuthenticateFailException extends Error {
     super('Username or password has incorrect.');
 
     this.name = 'AuthenticateFailError';
-    this.isOperation = false;
+    this.isOperation = true;
     this.httpCode = 400;
     this.errorInfo = error;
   }
