@@ -108,7 +108,7 @@ class SquidServerRepository extends IProxyServerRepository {
     this.#defaultConfig = [
       `visible_hostname localhost`,
       ``,
-      `access_log tcp://127.0.0.1:1514`,
+      `#access_log tcp://127.0.0.1:1514`,
       ``,
       `dns_nameservers 1.1.1.1`,
       `dns_v4_first on`,
@@ -120,6 +120,7 @@ class SquidServerRepository extends IProxyServerRepository {
       `auth_param basic program /usr/lib/squid/basic_ncsa_auth ${squidOtherConfDir}/squid-pwd.htpasswd`,
       `auth_param basic children 100`,
       `auth_param basic credentialsttl 10 seconds`,
+      `auth_param basic casesensitive on`
       ``,
       `external_acl_type user_ip_access %MYADDR %LOGIN /usr/lib/squid/ext_file_userip_acl -f ${squidOtherConfDir}/squid-user-ip.conf`,
       `external_acl_type user_block_url ttl=0 negative_ttl=0 %LOGIN %DST /tmp/squid-block-url.sh`,
