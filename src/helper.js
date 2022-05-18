@@ -1001,15 +1001,19 @@ function fakeFastspringPackageService() {
 }
 
 function fakeFastspringApiRepository() {
+  const IPaymentService = require('~src/core/interface/iPaymentService');
   const FastspringApiRepository = require('~src/infrastructure/api/fastspringApiRepository');
 
+  const paymentService = sinon.createStubInstance(IPaymentService);
+
   const fastspringApiRepository = new FastspringApiRepository(
+    paymentService,
     'username',
     'password',
     'https://example.com',
   );
 
-  return { fastspringApiRepository };
+  return { paymentService, fastspringApiRepository };
 }
 
 function fakeExternalProductApiRepository() {

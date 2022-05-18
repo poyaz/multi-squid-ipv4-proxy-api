@@ -9,12 +9,18 @@ const ApiCallException = require('~src/core/exception/apiCallException');
 const NotFoundException = require('~src/core/exception/notFoundException');
 const UnauthorizedException = require('~src/core/exception/unauthorizedException');
 const ForbiddenException = require('~src/core/exception/forbiddenException');
+const InvalidOrderPaymentException = require('~src/core/exception/invalidOrderPaymentException');
 const FastspringAlreadyCanceledException = require('~src/core/exception/fastspringAlreadyCanceledException');
 const OrderModel = require('~src/core/model/orderModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
+const PaymentServiceModel = require('~src/core/model/paymentServiceModel');
 
 class FastspringApiRepository extends IFastspringApiRepository {
+  /**
+   * @type {IPaymentService}
+   */
+  #paymentService;
   /**
    * @type {string}
    */
@@ -24,9 +30,10 @@ class FastspringApiRepository extends IFastspringApiRepository {
    */
   #reqOption;
 
-  constructor(apiUsername, apiPassword, apiDomain) {
+  constructor(paymentService, apiUsername, apiPassword, apiDomain) {
     super();
 
+    this.#paymentService = paymentService;
     this.#apiDomain = apiDomain;
     this.#reqOption = {
       headers: {
@@ -42,6 +49,22 @@ class FastspringApiRepository extends IFastspringApiRepository {
   async getOrder(orderSerial) {
     try {
       const response = await axios.get(`${this.#apiDomain}/orders/${orderSerial}`, this.#reqOption);
+
+      const [error, data] = await this.#paymentService.getAllPaymentMethod();
+      if (error) {
+        return [error];
+      }
+
+      const serviceMode = data.filter(
+        (v) => v.serviceName === ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+      )[0];
+      if (
+        serviceMode &&
+        serviceMode.mode === PaymentServiceModel.MODE_PRODUCT &&
+        response.data['payment']['type'] === 'test'
+      ) {
+        return [new InvalidOrderPaymentException()];
+      }
 
       const model = new OrderModel();
       model.id = response.data['tags']['orderId'];

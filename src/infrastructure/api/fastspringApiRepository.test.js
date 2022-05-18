@@ -18,7 +18,10 @@ const helper = require('~src/helper');
 const OrderModel = require('~src/core/model/orderModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
+const PaymentServiceModel = require('~src/core/model/paymentServiceModel');
+const UnknownException = require('~src/core/exception/unknownException');
 const ApiCallException = require('~src/core/exception/apiCallException');
+const InvalidOrderPaymentException = require('~src/core/exception/invalidOrderPaymentException');
 const FastspringAlreadyCanceledException = require('~src/core/exception/fastspringAlreadyCanceledException');
 
 chai.should();
@@ -34,8 +37,9 @@ const testObj = {};
 
 suite(`FastspringApiRepository`, () => {
   setup(() => {
-    const { fastspringApiRepository } = helper.fakeFastspringApiRepository();
+    const { paymentService, fastspringApiRepository } = helper.fakeFastspringApiRepository();
 
+    testObj.paymentService = paymentService;
     testObj.fastspringApiRepository = fastspringApiRepository;
 
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
@@ -66,7 +70,7 @@ suite(`FastspringApiRepository`, () => {
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successfully get order`, async () => {
+    test(`Should error get order when get payment list`, async () => {
       const inputSerial = 'order serial';
       axiosGetStub.resolves({
         data: {
@@ -298,10 +302,751 @@ suite(`FastspringApiRepository`, () => {
           ],
         },
       });
+      testObj.paymentService.getAllPaymentMethod.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringApiRepository.getOrder(inputSerial);
+
+      axiosGetStub.should.have.callCount(1);
+      testObj.paymentService.getAllPaymentMethod.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error get order when payment type is test but server run in product`, async () => {
+      const inputSerial = 'order serial';
+      axiosGetStub.resolves({
+        data: {
+          order: 'order serial',
+          id: 'order serial',
+          reference: 'DESAINEGMBH220510-3308-55135',
+          buyerReference: null,
+          ipAddress: '5.9.190.214',
+          completed: true,
+          changed: 1652170576496,
+          changedValue: 1652170576496,
+          changedInSeconds: 1652170576,
+          changedDisplay: '5/10/22',
+          changedDisplayISO8601: '2022-05-10',
+          language: 'en',
+          live: false,
+          currency: 'USD',
+          payoutCurrency: 'USD',
+          quote: null,
+          invoiceUrl:
+            'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
+          account: '4w0LKG1mSE6-HEnGCt5xkA',
+          total: 193.05,
+          totalDisplay: '$193.05',
+          totalInPayoutCurrency: 193.05,
+          totalInPayoutCurrencyDisplay: '$193.05',
+          tax: 13.05,
+          taxDisplay: '$13.05',
+          taxInPayoutCurrency: 13.05,
+          taxInPayoutCurrencyDisplay: '$13.05',
+          subtotal: 180,
+          subtotalDisplay: '$180.00',
+          subtotalInPayoutCurrency: 180,
+          subtotalInPayoutCurrencyDisplay: '$180.00',
+          discount: 0,
+          discountDisplay: '$0.00',
+          discountInPayoutCurrency: 0,
+          discountInPayoutCurrencyDisplay: '$0.00',
+          discountWithTax: 0,
+          discountWithTaxDisplay: '$0.00',
+          discountWithTaxInPayoutCurrency: 0,
+          discountWithTaxInPayoutCurrencyDisplay: '$0.00',
+          billDescriptor: 'FS* venomsupply.io',
+          payment: {
+            type: 'test',
+            cardEnding: '4242',
+          },
+          customer: {
+            first: 'John',
+            last: 'Doe',
+            email: 'tovaki7446@azteen.com',
+            company: 'Company Name',
+            phone: '555-555-5555',
+            subscribed: true,
+          },
+          address: {
+            city: 'Lincoln',
+            regionCode: 'NE',
+            regionDisplay: 'Nebraska',
+            region: 'Nebraska',
+            postalCode: '68510',
+            country: 'US',
+            display: 'Lincoln, Nebraska, 68510, US',
+          },
+          recipients: [
+            {
+              recipient: {
+                first: 'John',
+                last: 'Doe',
+                email: 'tovaki7446@azteen.com',
+                company: 'Company Name',
+                phone: '555-555-5555',
+                subscribed: true,
+                account: '4w0LKG1mSE6-HEnGCt5xkA',
+                address: {
+                  city: 'Lincoln',
+                  regionCode: 'NE',
+                  regionDisplay: 'Nebraska',
+                  region: 'Nebraska',
+                  postalCode: '68510',
+                  country: 'US',
+                  display: 'Lincoln, Nebraska, 68510, US',
+                },
+              },
+            },
+          ],
+          tags: {
+            orderId: testObj.identifierGenerator.generateId(),
+          },
+          notes: [],
+          items: [
+            {
+              product: 'at-datacenter-proxies-100',
+              quantity: 1,
+              display: 'AT Datacenter Proxies [100]',
+              sku: null,
+              imageUrl: null,
+              subtotal: 180,
+              subtotalDisplay: '$180.00',
+              subtotalInPayoutCurrency: 180,
+              subtotalInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              subscription: 'LeabxoVwSoWEgmr4NKFqtw',
+              fulfillments: {},
+              withholdings: {
+                taxWithholdings: false,
+              },
+            },
+          ],
+          action: 'order.get',
+          result: 'success',
+          orders: [
+            {
+              order: 'order serial',
+              id: 'order serial',
+              reference: 'DESAINEGMBH220510-3308-55135',
+              buyerReference: null,
+              ipAddress: '5.9.190.214',
+              completed: true,
+              changed: 1652170576496,
+              changedValue: 1652170576496,
+              changedInSeconds: 1652170576,
+              changedDisplay: '5/10/22',
+              changedDisplayISO8601: '2022-05-10',
+              language: 'en',
+              live: false,
+              currency: 'USD',
+              payoutCurrency: 'USD',
+              quote: null,
+              invoiceUrl:
+                'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
+              account: '4w0LKG1mSE6-HEnGCt5xkA',
+              total: 193.05,
+              totalDisplay: '$193.05',
+              totalInPayoutCurrency: 193.05,
+              totalInPayoutCurrencyDisplay: '$193.05',
+              tax: 13.05,
+              taxDisplay: '$13.05',
+              taxInPayoutCurrency: 13.05,
+              taxInPayoutCurrencyDisplay: '$13.05',
+              subtotal: 180,
+              subtotalDisplay: '$180.00',
+              subtotalInPayoutCurrency: 180,
+              subtotalInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              discountWithTax: 0,
+              discountWithTaxDisplay: '$0.00',
+              discountWithTaxInPayoutCurrency: 0,
+              discountWithTaxInPayoutCurrencyDisplay: '$0.00',
+              billDescriptor: 'FS* venomsupply.io',
+              payment: {
+                type: 'test',
+                cardEnding: '4242',
+              },
+              customer: {
+                first: 'John',
+                last: 'Doe',
+                email: 'tovaki7446@azteen.com',
+                company: 'Company Name',
+                phone: '555-555-5555',
+                subscribed: true,
+              },
+              address: {
+                city: 'Lincoln',
+                regionCode: 'NE',
+                regionDisplay: 'Nebraska',
+                region: 'Nebraska',
+                postalCode: '68510',
+                country: 'US',
+                display: 'Lincoln, Nebraska, 68510, US',
+              },
+              recipients: [
+                {
+                  recipient: {
+                    first: 'John',
+                    last: 'Doe',
+                    email: 'tovaki7446@azteen.com',
+                    company: 'Company Name',
+                    phone: '555-555-5555',
+                    subscribed: true,
+                    account: '4w0LKG1mSE6-HEnGCt5xkA',
+                    address: {
+                      city: 'Lincoln',
+                      regionCode: 'NE',
+                      regionDisplay: 'Nebraska',
+                      region: 'Nebraska',
+                      postalCode: '68510',
+                      country: 'US',
+                      display: 'Lincoln, Nebraska, 68510, US',
+                    },
+                  },
+                },
+              ],
+              tags: {
+                orderId: testObj.identifierGenerator.generateId(),
+              },
+              notes: [],
+              items: [
+                {
+                  product: 'at-datacenter-proxies-100',
+                  quantity: 1,
+                  display: 'AT Datacenter Proxies [100]',
+                  sku: null,
+                  imageUrl: null,
+                  subtotal: 180,
+                  subtotalDisplay: '$180.00',
+                  subtotalInPayoutCurrency: 180,
+                  subtotalInPayoutCurrencyDisplay: '$180.00',
+                  discount: 0,
+                  discountDisplay: '$0.00',
+                  discountInPayoutCurrency: 0,
+                  discountInPayoutCurrencyDisplay: '$0.00',
+                  subscription: 'LeabxoVwSoWEgmr4NKFqtw',
+                  fulfillments: {},
+                  withholdings: {
+                    taxWithholdings: false,
+                  },
+                },
+              ],
+              action: 'order.get',
+              result: 'success',
+            },
+          ],
+        },
+      });
+      const outputPaymentModel = new PaymentServiceModel();
+      outputPaymentModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputPaymentModel.mode = PaymentServiceModel.MODE_PRODUCT;
+      testObj.paymentService.getAllPaymentMethod.resolves([null, [outputPaymentModel]]);
+
+      const [error] = await testObj.fastspringApiRepository.getOrder(inputSerial);
+
+      axiosGetStub.should.have.callCount(1);
+      testObj.paymentService.getAllPaymentMethod.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(InvalidOrderPaymentException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully get order (test mode)`, async () => {
+      const inputSerial = 'order serial';
+      axiosGetStub.resolves({
+        data: {
+          order: 'order serial',
+          id: 'order serial',
+          reference: 'DESAINEGMBH220510-3308-55135',
+          buyerReference: null,
+          ipAddress: '5.9.190.214',
+          completed: true,
+          changed: 1652170576496,
+          changedValue: 1652170576496,
+          changedInSeconds: 1652170576,
+          changedDisplay: '5/10/22',
+          changedDisplayISO8601: '2022-05-10',
+          language: 'en',
+          live: false,
+          currency: 'USD',
+          payoutCurrency: 'USD',
+          quote: null,
+          invoiceUrl:
+            'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
+          account: '4w0LKG1mSE6-HEnGCt5xkA',
+          total: 193.05,
+          totalDisplay: '$193.05',
+          totalInPayoutCurrency: 193.05,
+          totalInPayoutCurrencyDisplay: '$193.05',
+          tax: 13.05,
+          taxDisplay: '$13.05',
+          taxInPayoutCurrency: 13.05,
+          taxInPayoutCurrencyDisplay: '$13.05',
+          subtotal: 180,
+          subtotalDisplay: '$180.00',
+          subtotalInPayoutCurrency: 180,
+          subtotalInPayoutCurrencyDisplay: '$180.00',
+          discount: 0,
+          discountDisplay: '$0.00',
+          discountInPayoutCurrency: 0,
+          discountInPayoutCurrencyDisplay: '$0.00',
+          discountWithTax: 0,
+          discountWithTaxDisplay: '$0.00',
+          discountWithTaxInPayoutCurrency: 0,
+          discountWithTaxInPayoutCurrencyDisplay: '$0.00',
+          billDescriptor: 'FS* venomsupply.io',
+          payment: {
+            type: 'test',
+            cardEnding: '4242',
+          },
+          customer: {
+            first: 'John',
+            last: 'Doe',
+            email: 'tovaki7446@azteen.com',
+            company: 'Company Name',
+            phone: '555-555-5555',
+            subscribed: true,
+          },
+          address: {
+            city: 'Lincoln',
+            regionCode: 'NE',
+            regionDisplay: 'Nebraska',
+            region: 'Nebraska',
+            postalCode: '68510',
+            country: 'US',
+            display: 'Lincoln, Nebraska, 68510, US',
+          },
+          recipients: [
+            {
+              recipient: {
+                first: 'John',
+                last: 'Doe',
+                email: 'tovaki7446@azteen.com',
+                company: 'Company Name',
+                phone: '555-555-5555',
+                subscribed: true,
+                account: '4w0LKG1mSE6-HEnGCt5xkA',
+                address: {
+                  city: 'Lincoln',
+                  regionCode: 'NE',
+                  regionDisplay: 'Nebraska',
+                  region: 'Nebraska',
+                  postalCode: '68510',
+                  country: 'US',
+                  display: 'Lincoln, Nebraska, 68510, US',
+                },
+              },
+            },
+          ],
+          tags: {
+            orderId: testObj.identifierGenerator.generateId(),
+          },
+          notes: [],
+          items: [
+            {
+              product: 'at-datacenter-proxies-100',
+              quantity: 1,
+              display: 'AT Datacenter Proxies [100]',
+              sku: null,
+              imageUrl: null,
+              subtotal: 180,
+              subtotalDisplay: '$180.00',
+              subtotalInPayoutCurrency: 180,
+              subtotalInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              subscription: 'LeabxoVwSoWEgmr4NKFqtw',
+              fulfillments: {},
+              withholdings: {
+                taxWithholdings: false,
+              },
+            },
+          ],
+          action: 'order.get',
+          result: 'success',
+          orders: [
+            {
+              order: 'order serial',
+              id: 'order serial',
+              reference: 'DESAINEGMBH220510-3308-55135',
+              buyerReference: null,
+              ipAddress: '5.9.190.214',
+              completed: true,
+              changed: 1652170576496,
+              changedValue: 1652170576496,
+              changedInSeconds: 1652170576,
+              changedDisplay: '5/10/22',
+              changedDisplayISO8601: '2022-05-10',
+              language: 'en',
+              live: false,
+              currency: 'USD',
+              payoutCurrency: 'USD',
+              quote: null,
+              invoiceUrl:
+                'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
+              account: '4w0LKG1mSE6-HEnGCt5xkA',
+              total: 193.05,
+              totalDisplay: '$193.05',
+              totalInPayoutCurrency: 193.05,
+              totalInPayoutCurrencyDisplay: '$193.05',
+              tax: 13.05,
+              taxDisplay: '$13.05',
+              taxInPayoutCurrency: 13.05,
+              taxInPayoutCurrencyDisplay: '$13.05',
+              subtotal: 180,
+              subtotalDisplay: '$180.00',
+              subtotalInPayoutCurrency: 180,
+              subtotalInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              discountWithTax: 0,
+              discountWithTaxDisplay: '$0.00',
+              discountWithTaxInPayoutCurrency: 0,
+              discountWithTaxInPayoutCurrencyDisplay: '$0.00',
+              billDescriptor: 'FS* venomsupply.io',
+              payment: {
+                type: 'test',
+                cardEnding: '4242',
+              },
+              customer: {
+                first: 'John',
+                last: 'Doe',
+                email: 'tovaki7446@azteen.com',
+                company: 'Company Name',
+                phone: '555-555-5555',
+                subscribed: true,
+              },
+              address: {
+                city: 'Lincoln',
+                regionCode: 'NE',
+                regionDisplay: 'Nebraska',
+                region: 'Nebraska',
+                postalCode: '68510',
+                country: 'US',
+                display: 'Lincoln, Nebraska, 68510, US',
+              },
+              recipients: [
+                {
+                  recipient: {
+                    first: 'John',
+                    last: 'Doe',
+                    email: 'tovaki7446@azteen.com',
+                    company: 'Company Name',
+                    phone: '555-555-5555',
+                    subscribed: true,
+                    account: '4w0LKG1mSE6-HEnGCt5xkA',
+                    address: {
+                      city: 'Lincoln',
+                      regionCode: 'NE',
+                      regionDisplay: 'Nebraska',
+                      region: 'Nebraska',
+                      postalCode: '68510',
+                      country: 'US',
+                      display: 'Lincoln, Nebraska, 68510, US',
+                    },
+                  },
+                },
+              ],
+              tags: {
+                orderId: testObj.identifierGenerator.generateId(),
+              },
+              notes: [],
+              items: [
+                {
+                  product: 'at-datacenter-proxies-100',
+                  quantity: 1,
+                  display: 'AT Datacenter Proxies [100]',
+                  sku: null,
+                  imageUrl: null,
+                  subtotal: 180,
+                  subtotalDisplay: '$180.00',
+                  subtotalInPayoutCurrency: 180,
+                  subtotalInPayoutCurrencyDisplay: '$180.00',
+                  discount: 0,
+                  discountDisplay: '$0.00',
+                  discountInPayoutCurrency: 0,
+                  discountInPayoutCurrencyDisplay: '$0.00',
+                  subscription: 'LeabxoVwSoWEgmr4NKFqtw',
+                  fulfillments: {},
+                  withholdings: {
+                    taxWithholdings: false,
+                  },
+                },
+              ],
+              action: 'order.get',
+              result: 'success',
+            },
+          ],
+        },
+      });
+      const outputPaymentModel = new PaymentServiceModel();
+      outputPaymentModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputPaymentModel.mode = PaymentServiceModel.MODE_TEST;
+      testObj.paymentService.getAllPaymentMethod.resolves([null, [outputPaymentModel]]);
 
       const [error, result] = await testObj.fastspringApiRepository.getOrder(inputSerial);
 
       axiosGetStub.should.have.callCount(1);
+      testObj.paymentService.getAllPaymentMethod.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.an.instanceof(OrderModel).and.have.include({
+        id: testObj.identifierGenerator.generateId(),
+        orderSerial: 'order serial',
+        serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
+        status: OrderModel.STATUS_SUCCESS,
+      });
+    });
+
+    test(`Should successfully get order (test product)`, async () => {
+      const inputSerial = 'order serial';
+      axiosGetStub.resolves({
+        data: {
+          order: 'order serial',
+          id: 'order serial',
+          reference: 'DESAINEGMBH220510-3308-55135',
+          buyerReference: null,
+          ipAddress: '5.9.190.214',
+          completed: true,
+          changed: 1652170576496,
+          changedValue: 1652170576496,
+          changedInSeconds: 1652170576,
+          changedDisplay: '5/10/22',
+          changedDisplayISO8601: '2022-05-10',
+          language: 'en',
+          live: false,
+          currency: 'USD',
+          payoutCurrency: 'USD',
+          quote: null,
+          invoiceUrl:
+            'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
+          account: '4w0LKG1mSE6-HEnGCt5xkA',
+          total: 193.05,
+          totalDisplay: '$193.05',
+          totalInPayoutCurrency: 193.05,
+          totalInPayoutCurrencyDisplay: '$193.05',
+          tax: 13.05,
+          taxDisplay: '$13.05',
+          taxInPayoutCurrency: 13.05,
+          taxInPayoutCurrencyDisplay: '$13.05',
+          subtotal: 180,
+          subtotalDisplay: '$180.00',
+          subtotalInPayoutCurrency: 180,
+          subtotalInPayoutCurrencyDisplay: '$180.00',
+          discount: 0,
+          discountDisplay: '$0.00',
+          discountInPayoutCurrency: 0,
+          discountInPayoutCurrencyDisplay: '$0.00',
+          discountWithTax: 0,
+          discountWithTaxDisplay: '$0.00',
+          discountWithTaxInPayoutCurrency: 0,
+          discountWithTaxInPayoutCurrencyDisplay: '$0.00',
+          billDescriptor: 'FS* venomsupply.io',
+          payment: {
+            cardEnding: '4242',
+          },
+          customer: {
+            first: 'John',
+            last: 'Doe',
+            email: 'tovaki7446@azteen.com',
+            company: 'Company Name',
+            phone: '555-555-5555',
+            subscribed: true,
+          },
+          address: {
+            city: 'Lincoln',
+            regionCode: 'NE',
+            regionDisplay: 'Nebraska',
+            region: 'Nebraska',
+            postalCode: '68510',
+            country: 'US',
+            display: 'Lincoln, Nebraska, 68510, US',
+          },
+          recipients: [
+            {
+              recipient: {
+                first: 'John',
+                last: 'Doe',
+                email: 'tovaki7446@azteen.com',
+                company: 'Company Name',
+                phone: '555-555-5555',
+                subscribed: true,
+                account: '4w0LKG1mSE6-HEnGCt5xkA',
+                address: {
+                  city: 'Lincoln',
+                  regionCode: 'NE',
+                  regionDisplay: 'Nebraska',
+                  region: 'Nebraska',
+                  postalCode: '68510',
+                  country: 'US',
+                  display: 'Lincoln, Nebraska, 68510, US',
+                },
+              },
+            },
+          ],
+          tags: {
+            orderId: testObj.identifierGenerator.generateId(),
+          },
+          notes: [],
+          items: [
+            {
+              product: 'at-datacenter-proxies-100',
+              quantity: 1,
+              display: 'AT Datacenter Proxies [100]',
+              sku: null,
+              imageUrl: null,
+              subtotal: 180,
+              subtotalDisplay: '$180.00',
+              subtotalInPayoutCurrency: 180,
+              subtotalInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              subscription: 'LeabxoVwSoWEgmr4NKFqtw',
+              fulfillments: {},
+              withholdings: {
+                taxWithholdings: false,
+              },
+            },
+          ],
+          action: 'order.get',
+          result: 'success',
+          orders: [
+            {
+              order: 'order serial',
+              id: 'order serial',
+              reference: 'DESAINEGMBH220510-3308-55135',
+              buyerReference: null,
+              ipAddress: '5.9.190.214',
+              completed: true,
+              changed: 1652170576496,
+              changedValue: 1652170576496,
+              changedInSeconds: 1652170576,
+              changedDisplay: '5/10/22',
+              changedDisplayISO8601: '2022-05-10',
+              language: 'en',
+              live: false,
+              currency: 'USD',
+              payoutCurrency: 'USD',
+              quote: null,
+              invoiceUrl:
+                'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
+              account: '4w0LKG1mSE6-HEnGCt5xkA',
+              total: 193.05,
+              totalDisplay: '$193.05',
+              totalInPayoutCurrency: 193.05,
+              totalInPayoutCurrencyDisplay: '$193.05',
+              tax: 13.05,
+              taxDisplay: '$13.05',
+              taxInPayoutCurrency: 13.05,
+              taxInPayoutCurrencyDisplay: '$13.05',
+              subtotal: 180,
+              subtotalDisplay: '$180.00',
+              subtotalInPayoutCurrency: 180,
+              subtotalInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              discountWithTax: 0,
+              discountWithTaxDisplay: '$0.00',
+              discountWithTaxInPayoutCurrency: 0,
+              discountWithTaxInPayoutCurrencyDisplay: '$0.00',
+              billDescriptor: 'FS* venomsupply.io',
+              payment: {
+                type: 'test',
+                cardEnding: '4242',
+              },
+              customer: {
+                first: 'John',
+                last: 'Doe',
+                email: 'tovaki7446@azteen.com',
+                company: 'Company Name',
+                phone: '555-555-5555',
+                subscribed: true,
+              },
+              address: {
+                city: 'Lincoln',
+                regionCode: 'NE',
+                regionDisplay: 'Nebraska',
+                region: 'Nebraska',
+                postalCode: '68510',
+                country: 'US',
+                display: 'Lincoln, Nebraska, 68510, US',
+              },
+              recipients: [
+                {
+                  recipient: {
+                    first: 'John',
+                    last: 'Doe',
+                    email: 'tovaki7446@azteen.com',
+                    company: 'Company Name',
+                    phone: '555-555-5555',
+                    subscribed: true,
+                    account: '4w0LKG1mSE6-HEnGCt5xkA',
+                    address: {
+                      city: 'Lincoln',
+                      regionCode: 'NE',
+                      regionDisplay: 'Nebraska',
+                      region: 'Nebraska',
+                      postalCode: '68510',
+                      country: 'US',
+                      display: 'Lincoln, Nebraska, 68510, US',
+                    },
+                  },
+                },
+              ],
+              tags: {
+                orderId: testObj.identifierGenerator.generateId(),
+              },
+              notes: [],
+              items: [
+                {
+                  product: 'at-datacenter-proxies-100',
+                  quantity: 1,
+                  display: 'AT Datacenter Proxies [100]',
+                  sku: null,
+                  imageUrl: null,
+                  subtotal: 180,
+                  subtotalDisplay: '$180.00',
+                  subtotalInPayoutCurrency: 180,
+                  subtotalInPayoutCurrencyDisplay: '$180.00',
+                  discount: 0,
+                  discountDisplay: '$0.00',
+                  discountInPayoutCurrency: 0,
+                  discountInPayoutCurrencyDisplay: '$0.00',
+                  subscription: 'LeabxoVwSoWEgmr4NKFqtw',
+                  fulfillments: {},
+                  withholdings: {
+                    taxWithholdings: false,
+                  },
+                },
+              ],
+              action: 'order.get',
+              result: 'success',
+            },
+          ],
+        },
+      });
+      const outputPaymentModel = new PaymentServiceModel();
+      outputPaymentModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputPaymentModel.mode = PaymentServiceModel.MODE_PRODUCT;
+      testObj.paymentService.getAllPaymentMethod.resolves([null, [outputPaymentModel]]);
+
+      const [error, result] = await testObj.fastspringApiRepository.getOrder(inputSerial);
+
+      axiosGetStub.should.have.callCount(1);
+      testObj.paymentService.getAllPaymentMethod.should.have.callCount(1);
       expect(error).to.be.a('null');
       expect(result).to.be.an.instanceof(OrderModel).and.have.include({
         id: testObj.identifierGenerator.generateId(),
