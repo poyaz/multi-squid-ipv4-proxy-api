@@ -64,7 +64,8 @@
     "oauth": {
       "discord": {
         "id": "OAUTH_DISCORD_CLIENT_ID",
-        "secret": "OAUTH_DISCORD_CLIENT_SECRET"
+        "secret": "OAUTH_DISCORD_CLIENT_SECRET",
+        "cdn": "OAUTH_DISCORD_CDN_URL"
       },
       "htmlPageSuccess": {
         "address": "OAUTH_HTML_PAGE_SUCCESS_ADDRESS",

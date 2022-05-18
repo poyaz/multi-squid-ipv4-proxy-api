@@ -92,6 +92,17 @@ class IUserService {
     error['args'] = { username };
     throw error;
   }
+
+  /**
+   *
+   * @param {UserModel} model
+   * @return {Promise<(Error)[]>}
+   */
+  async update(model) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { model };
+    throw error;
+  }
 }
 
 module.exports = IUserService;

@@ -831,4 +831,31 @@ suite(`UserService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Update user`, () => {
+    test(`Should error update user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.isEnable = true;
+      testObj.userRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.userService.update(inputModel);
+
+      testObj.userRepository.update.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully update user`, async () => {
+      const inputModel = new UserModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.isEnable = true;
+      testObj.userRepository.update.resolves([null]);
+
+      const [error] = await testObj.userService.update(inputModel);
+
+      testObj.userRepository.update.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
 });

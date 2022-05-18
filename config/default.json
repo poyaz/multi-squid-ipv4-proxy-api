@@ -65,7 +65,8 @@
     "oauth": {
       "discord": {
         "id": "",
-        "secret": ""
+        "secret": "",
+        "cdn": ""
       },
       "htmlPageSuccess": {
         "address": "",

@@ -224,6 +224,10 @@ class FindClusterUserService extends IUserService {
 
     return [null];
   }
+
+  async update(model) {
+    return this.#userService.update(model);
+  }
 }
 
 module.exports = FindClusterUserService;

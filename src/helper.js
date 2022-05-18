@@ -735,7 +735,7 @@ function fakeOauthController(req, res) {
   };
 }
 
-function fakeDiscordExternalAuthService(clientId, redirectUrl) {
+function fakeDiscordExternalAuthService(clientId, redirectUrl, cdnUrl) {
   const IUserService = require('~src/core/interface/iUserService');
   const DiscordExternalAuthService = require('~src/core/service/discordExternalAuthService');
 
@@ -744,6 +744,7 @@ function fakeDiscordExternalAuthService(clientId, redirectUrl) {
     config: {
       id: clientId,
       redirectUrl,
+      cdnUrl,
     },
     auth: {
       generateAuthUrl: sinon.stub(),

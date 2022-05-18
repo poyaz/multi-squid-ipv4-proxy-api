@@ -124,8 +124,9 @@ class UserPgRepository extends IUserRepository {
 
     const addQuery = {
       text: singleLine`
-          INSERT INTO public.users AS u (id, username, password, role, external_oauth_data, is_enable,
-                                    insert_date)
+          INSERT INTO public.users AS u (id, username, password, role, external_oauth_data,
+                                         is_enable,
+                                         insert_date)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
           ON CONFLICT (username)
           WHERE delete_date ISNULL
@@ -180,6 +181,10 @@ class UserPgRepository extends IUserRepository {
       params.push(model.isEnable);
       columns.push(`is_enable = $${params.length}`);
     }
+    if (typeof model.externalOauthData !== 'undefined') {
+      params.push(model.externalOauthData);
+      columns.push(`external_oauth_data = external_oauth_data || $${params.length}`);
+    }
 
     if (columns.length === 0) {
       return [new DatabaseMinParamUpdateException()];
@@ -222,6 +227,8 @@ class UserPgRepository extends IUserRepository {
     model.role = row['role'];
     model.externalOauthData = {
       discordId: (row['external_oauth_data'] || {})['discordId'],
+      discordTag: (row['external_oauth_data'] || {})['discordTag'],
+      discordAvatar: (row['external_oauth_data'] || {})['discordAvatar'],
     };
     model.isEnable = row['is_enable'];
     model.insertDate = this.#dateTime.gregorianDateWithTimezone(row['insert_date']);

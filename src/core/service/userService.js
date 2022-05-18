@@ -237,6 +237,10 @@ class UserService extends IUserService {
     return [null];
   }
 
+  async update(model) {
+    return this.#userRepository.update(model);
+  }
+
   async _getUserModelByUsername(username) {
     const filterModel = new UserModel();
     filterModel.username = username;

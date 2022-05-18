@@ -33,6 +33,7 @@ class BaseUserOutputModel {
       obj.discord = {
         id: discordId,
         username: `${model.username}#${model.externalOauthData.discordTag}`,
+        avatar: model.externalOauthData.discordAvatar,
       };
     }
 

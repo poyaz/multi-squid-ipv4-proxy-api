@@ -21,7 +21,7 @@ class DiscordExternalAuthService extends IExternalAuthService {
 
   /**
    *
-   * @param {{auth: Object, config: {redirectUrl: string, id: string}, platform: string}} externalAuth
+   * @param {{auth: Object, config: {redirectUrl: string, id: string, cdnUrl: string}, platform: string}} externalAuth
    * @param {IUserService} userService
    */
   constructor(externalAuth, userService) {
@@ -69,6 +69,9 @@ class DiscordExternalAuthService extends IExternalAuthService {
       model.externalOauthData = {
         discordId: userInfo['id'],
         discordTag: userInfo['discriminator'],
+        discordAvatar: `${this.#externalAuth.config.cdnUrl}avatars/${userInfo['id']}/${
+          userInfo['avatar']
+        }.png`,
       };
 
       const [addUserError, addUserData] = await this.#userService.add(model);
@@ -83,6 +86,15 @@ class DiscordExternalAuthService extends IExternalAuthService {
         if (fetchUserError) {
           return [fetchUserError];
         }
+
+        const updateModel = new UserModel();
+        updateModel.id = fetchUserData[0].id;
+        updateModel.externalOauthData = model.externalOauthData;
+        const [updateError] = await this.#userService.update(updateModel);
+        if (updateError) {
+          return [updateError];
+        }
+        fetchUserData[0].externalOauthData = model.externalOauthData;
 
         return [null, fetchUserData[0]];
       }

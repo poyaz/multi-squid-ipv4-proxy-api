@@ -28,6 +28,7 @@ class DiscordOauth extends IRunner {
     const options = {
       clientId: this._config.getStr('custom.oauth.discord.id'),
       clientSecret: this._config.getStr('custom.oauth.discord.secret'),
+      cdn: this._config.getStr('custom.oauth.discord.cdn', ''),
       redirectUri: null,
     };
 
@@ -56,6 +57,7 @@ class DiscordOauth extends IRunner {
       config: {
         id: options.clientId,
         redirectUrl: options.redirectUri,
+        cdnUrl: options.cdn.substr(-1) === '/' ? options.cdn : `${options.cdn}/`,
       },
       auth,
     };

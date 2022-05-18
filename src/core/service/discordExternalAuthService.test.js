@@ -26,12 +26,13 @@ suite(`DiscordExternalAuthService`, () => {
   setup(() => {
     testObj.clientId = 'discordClientId';
     testObj.redirectUrl = 'discordRedirectUrl';
+    testObj.cdnUrl = 'https://cdn.com/';
 
     const {
       userService,
       externalAuth,
       discordExternalAuthService,
-    } = helper.fakeDiscordExternalAuthService(testObj.clientId, testObj.redirectUrl);
+    } = helper.fakeDiscordExternalAuthService(testObj.clientId, testObj.redirectUrl, testObj.cdnUrl);
 
     testObj.userService = userService;
     testObj.externalAuth = externalAuth;
@@ -144,6 +145,7 @@ suite(`DiscordExternalAuthService`, () => {
       testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
       const outputUserObj = {
         id: '123456789012',
+        avatar: '85d583d5b8b4099e580aed2ba27fd9fc',
         username: 'username',
         discriminator: '5645',
       };
@@ -169,7 +171,13 @@ suite(`DiscordExternalAuthService`, () => {
           .and(sinon.match.has('username', outputUserObj.username))
           .and(sinon.match.has('role', 'user'))
           .and(sinon.match.hasNested('externalOauthData.discordId', outputUserObj.id))
-          .and(sinon.match.hasNested('externalOauthData.discordTag', outputUserObj.discriminator)),
+          .and(sinon.match.hasNested('externalOauthData.discordTag', outputUserObj.discriminator))
+          .and(
+            sinon.match.hasNested(
+              'externalOauthData.discordAvatar',
+              `${testObj.cdnUrl}avatars/${outputUserObj.id}/${outputUserObj.avatar}.png`,
+            ),
+          ),
       );
       expect(error).to.be.an.instanceof(UnknownException);
     });
@@ -266,6 +274,61 @@ suite(`DiscordExternalAuthService`, () => {
       expect(error).to.be.an.instanceof(UnknownException);
     });
 
+    test(`Should error verify auth user when user found in system and error on update user`, async () => {
+      const inputPlatform = 'discord';
+      const inputCode = 'code';
+      const outputTokenObj = {
+        access_token: 'accessToken',
+      };
+      testObj.externalAuth.tokenRequest.resolves(outputTokenObj);
+      const outputUserObj = {
+        id: '123456789012',
+        username: 'username',
+        discriminator: '5645',
+      };
+      testObj.externalAuth.getUser.resolves(outputUserObj);
+      testObj.userService.add.resolves([new UserExistException()]);
+      const outputUserModel = new UserModel();
+      outputUserModel.id = testObj.identifierGenerator.generateId();
+      outputUserModel.username = 'username';
+      testObj.userService.getAll.resolves([null, [outputUserModel]]);
+      testObj.userService.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.discordExternalAuthService.verify(inputPlatform, inputCode);
+
+      testObj.externalAuth.tokenRequest.should.have.callCount(1);
+      testObj.externalAuth.tokenRequest.should.have.calledWith(
+        sinon.match
+          .has('code', inputCode)
+          .and(sinon.match.has('grantType', 'authorization_code'))
+          .and(sinon.match.has('scope', sinon.match.array.deepEquals(['identify']))),
+      );
+      testObj.externalAuth.getUser.should.have.callCount(1);
+      testObj.externalAuth.getUser.should.have.calledWith(sinon.match(outputTokenObj.access_token));
+      testObj.userService.add.should.have.callCount(1);
+      testObj.userService.add.should.have.calledWith(
+        sinon.match
+          .instanceOf(UserModel)
+          .and(sinon.match.has('username', outputUserObj.username))
+          .and(sinon.match.has('password', sinon.match.string))
+          .and(sinon.match.has('role', 'user'))
+          .and(sinon.match.hasNested('externalOauthData.discordId', outputUserObj.id))
+          .and(sinon.match.hasNested('externalOauthData.discordTag', outputUserObj.discriminator)),
+      );
+      testObj.userService.getAll.should.have.callCount(1);
+      testObj.userService.getAll.should.have.calledWith(
+        sinon.match.instanceOf(UserModel).and(sinon.match.has('username', outputUserObj.username)),
+      );
+      testObj.userService.update.should.have.callCount(1);
+      testObj.userService.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.hasNested('externalOauthData.discordId', outputUserObj.id))
+          .and(sinon.match.hasNested('externalOauthData.discordTag', outputUserObj.discriminator)),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
     test(`Should successfully verify auth user when user found in system`, async () => {
       const inputPlatform = 'discord';
       const inputCode = 'code';
@@ -284,6 +347,7 @@ suite(`DiscordExternalAuthService`, () => {
       outputUserModel.id = testObj.identifierGenerator.generateId();
       outputUserModel.username = 'username';
       testObj.userService.getAll.resolves([null, [outputUserModel]]);
+      testObj.userService.update.resolves([null]);
 
       const [error, result] = await testObj.discordExternalAuthService.verify(
         inputPlatform,
@@ -312,6 +376,13 @@ suite(`DiscordExternalAuthService`, () => {
       testObj.userService.getAll.should.have.callCount(1);
       testObj.userService.getAll.should.have.calledWith(
         sinon.match.instanceOf(UserModel).and(sinon.match.has('username', outputUserObj.username)),
+      );
+      testObj.userService.update.should.have.callCount(1);
+      testObj.userService.update.should.have.calledWith(
+        sinon.match
+          .has('id', testObj.identifierGenerator.generateId())
+          .and(sinon.match.hasNested('externalOauthData.discordId', outputUserObj.id))
+          .and(sinon.match.hasNested('externalOauthData.discordTag', outputUserObj.discriminator)),
       );
       expect(error).to.be.a('null');
       expect(result)
