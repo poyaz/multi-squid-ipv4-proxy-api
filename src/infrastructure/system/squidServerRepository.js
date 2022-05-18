@@ -2,6 +2,7 @@
  * Created by pooya on 8/30/21.
  */
 
+const os = require('os');
 const fs = require('fs');
 const fsAsync = require('fs/promises');
 const path = require('path');
@@ -107,6 +108,7 @@ class SquidServerRepository extends IProxyServerRepository {
     const squidOtherConfDir = this.#squidOtherConfDir;
     this.#defaultConfig = [
       `visible_hostname localhost`,
+      `workers ${os.cpus().length}`,
       ``,
       `#access_log tcp://127.0.0.1:1514`,
       ``,
