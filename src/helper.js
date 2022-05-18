@@ -933,9 +933,6 @@ function fakeOrderFastspringApiRepository() {
   const orderFastspringApiRepository = new OrderFastspringApiRepository(
     orderRepository,
     fastspringApiRepository,
-    'username',
-    'password',
-    'https://example.com',
   );
 
   return { orderRepository, fastspringApiRepository, orderFastspringApiRepository };

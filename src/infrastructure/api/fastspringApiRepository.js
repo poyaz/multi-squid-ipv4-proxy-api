@@ -50,6 +50,7 @@ class FastspringApiRepository extends IFastspringApiRepository {
       model.status = response.data['completed']
         ? OrderModel.STATUS_SUCCESS
         : OrderModel.STATUS_FAIL;
+      model.orderBodyData = JSON.stringify(response.data);
 
       return [null, model];
     } catch (error) {

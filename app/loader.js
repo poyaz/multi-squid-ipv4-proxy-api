@@ -209,9 +209,6 @@ class Loader {
     const orderFastspringApiRepository = new OrderFastspringApiRepository(
       orderPgRepository,
       fastspringApiRepository,
-      fastspringConfig.username,
-      fastspringConfig.password,
-      fastspringConfig.domain,
     );
     const externalProductApiRepository = new ExternalProductApiRepository(
       productPgRepository,
