@@ -992,7 +992,7 @@ class ExpressApi extends IRunner {
         const orderController = orderHttpApi.orderControllerFactory.create(req, res);
         const response = await orderController.processOrder();
 
-        this._sendResponse(req, res, response);
+        this._sendResponse(req, res, response, 200);
 
         return next(null);
       } catch (error) {
@@ -1267,7 +1267,7 @@ class ExpressApi extends IRunner {
     };
   }
 
-  _sendResponse(req, res, response) {
+  _sendResponse(req, res, response, overrideStatusCode = null) {
     const [error, result] = response;
 
     if (error) {
@@ -1289,6 +1289,9 @@ class ExpressApi extends IRunner {
       case 'delete':
         statusCode = 200;
         break;
+    }
+    if (overrideStatusCode) {
+      statusCode = overrideStatusCode;
     }
 
     this._sendResult(res, result, statusCode);
