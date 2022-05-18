@@ -48,7 +48,8 @@ class OrderPgRepository extends IOrderRepository {
                   WHERE o.id = s.order_id
                     AND s.delete_date ISNULL
                   ORDER BY s.insert_date DESC
-                  limit 1) AS last_subscription_status,
+                  limit 1)                                             AS last_subscription_status,
+                 coalesce(o.invoice, o.body :: JSONB ->> 'invoiceUrl') AS invoice,
                  o.package_count,
                  o.package_proxy_day,
                  o.package_proxy_type,
@@ -95,7 +96,8 @@ class OrderPgRepository extends IOrderRepository {
                   WHERE o.id = s.order_id
                     AND s.delete_date ISNULL
                   ORDER BY s.insert_date DESC
-                  limit 1) AS last_subscription_status,
+                  limit 1)                                             AS last_subscription_status,
+                 coalesce(o.invoice, o.body :: JSONB ->> 'invoiceUrl') AS invoice,
                  o.package_count,
                  o.package_proxy_day,
                  o.package_proxy_type,
@@ -201,8 +203,8 @@ class OrderPgRepository extends IOrderRepository {
           INSERT INTO public.orders (id, user_id, product_id, package_id, serial, service_name,
                                      status, body, package_count, package_proxy_day,
                                      package_proxy_type,
-                                     package_country_code, insert_date)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                                     package_country_code, invoice, insert_date)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
           RETURNING *, (SELECT username FROM public.users u WHERE u.id = user_id) AS username
       `,
       values: [
@@ -218,6 +220,7 @@ class OrderPgRepository extends IOrderRepository {
         model.prePackageOrderInfo.expireDay,
         model.prePackageOrderInfo.proxyType,
         model.prePackageOrderInfo.countryCode.toUpperCase(),
+        model.invoice,
         now,
       ],
     };
@@ -284,6 +287,10 @@ class OrderPgRepository extends IOrderRepository {
       params.push(model.orderBodyData);
       columns.push(`body = $${params.length}`);
     }
+    if (typeof model.invoice !== 'undefined') {
+      params.push(model.invoice);
+      columns.push(`invoice = $${params.length}`);
+    }
 
     if (columns.length === 0) {
       return [new DatabaseMinParamUpdateException()];
@@ -322,6 +329,7 @@ class OrderPgRepository extends IOrderRepository {
     model.serviceName = row['service_name'];
     model.status = row['status'];
     model.lastSubscriptionStatus = row['last_subscription_status'];
+    model.invoice = row['invoice'];
     model.prePackageOrderInfo = {
       count: row['package_count'],
       expireDay: row['package_proxy_day'],

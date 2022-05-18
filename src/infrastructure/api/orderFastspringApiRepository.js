@@ -83,6 +83,7 @@ class OrderFastspringApiRepository extends IOrderRepository {
     }
 
     model.status = data.status;
+    model.invoice = data.invoice;
     model.orderBodyData = data.orderBodyData;
 
     return [null];

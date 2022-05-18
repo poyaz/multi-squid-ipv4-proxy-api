@@ -26,6 +26,7 @@
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220420125900-init-orders-table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220420134925-init-subscription-table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502094900-alter-external-data-and-role.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502130015-alter-invoice-column-to-order.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502130015-alter-renewal-column-to-package.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220508160105-init-external-product-price.sql" dialect="PostgreSQL" />
   </component>

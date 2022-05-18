@@ -92,7 +92,7 @@ suite(`OrderPgRepository`, () => {
       expect(result).to.be.a('null');
     });
 
-    test(`Should successfully get order by id and return null`, async () => {
+    test(`Should successfully get order by id `, async () => {
       const inputId = testObj.identifierGenerator.generateId();
       const fetchQuery = {
         get rowCount() {
@@ -110,6 +110,7 @@ suite(`OrderPgRepository`, () => {
               service_name: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               status: OrderModel.STATUS_SUCCESS,
               last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
+              invoice: 'invoice',
               package_count: 3,
               package_proxy_day: 30,
               package_proxy_type: 'isp',
@@ -138,6 +139,7 @@ suite(`OrderPgRepository`, () => {
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: SubscriptionModel.STATUS_ACTIVATED,
+        invoice: 'invoice',
         insertDate: 'date',
       });
       expect(result.prePackageOrderInfo).to.be.includes({
@@ -202,6 +204,7 @@ suite(`OrderPgRepository`, () => {
               service_name: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               status: OrderModel.STATUS_SUCCESS,
               last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
+              invoice: 'invoice',
               package_count: 3,
               package_proxy_day: 30,
               package_proxy_type: 'isp',
@@ -231,6 +234,7 @@ suite(`OrderPgRepository`, () => {
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: SubscriptionModel.STATUS_ACTIVATED,
+        invoice: 'invoice',
         insertDate: 'date',
       });
       expect(result[0].prePackageOrderInfo).to.be.includes({
@@ -394,6 +398,7 @@ suite(`OrderPgRepository`, () => {
       inputModel.orderSerial = 'orderSerial';
       inputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       inputModel.status = OrderModel.STATUS_SUCCESS;
+      inputModel.invoice = 'invoice';
       inputModel.prePackageOrderInfo = {
         count: 3,
         expireDay: 30,
@@ -440,6 +445,7 @@ suite(`OrderPgRepository`, () => {
               service_name: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
               status: OrderModel.STATUS_SUCCESS,
               last_subscription_status: SubscriptionModel.STATUS_ACTIVATED,
+              invoice: 'invoice',
               package_count: 3,
               package_proxy_day: 30,
               package_proxy_type: 'isp',
@@ -477,9 +483,10 @@ suite(`OrderPgRepository`, () => {
               30,
               'isp',
               'GB',
+              'invoice',
               'date',
             ])
-            .and(sinon.match.has('length', 13)),
+            .and(sinon.match.has('length', 14)),
         ),
       );
       testObj.fillModelSpy.should.have.callCount(1);
@@ -494,6 +501,7 @@ suite(`OrderPgRepository`, () => {
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: SubscriptionModel.STATUS_ACTIVATED,
+        invoice: 'invoice',
         insertDate: 'date',
       });
       expect(result.prePackageOrderInfo).to.be.includes({

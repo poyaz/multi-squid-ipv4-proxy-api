@@ -33,6 +33,7 @@ class BaseOrderOutputModel {
     obj.status = model.status;
     obj.lastSubscriptionStatus =
       typeof model.lastSubscriptionStatus === 'undefined' ? null : model.lastSubscriptionStatus;
+    obj.invoice = model.invoice;
     obj.prePackageOrderInfo = {
       count: model.prePackageOrderInfo.count,
       expireDay: model.prePackageOrderInfo.expireDay,

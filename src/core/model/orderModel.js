@@ -12,6 +12,7 @@
  * @property {string} username
  * @property {string} status
  * @property {string} lastSubscriptionStatus
+ * @property {string} invoice
  * @property {Object<{count: number, expireDay: number, proxyType: string, countryCode: string}>} prePackageOrderInfo
  * @property {string} body
  * @property {Date} insertDate
@@ -30,6 +31,7 @@ class OrderModel {
   username = undefined;
   status = undefined;
   lastSubscriptionStatus = undefined;
+  invoice = undefined;
   prePackageOrderInfo = undefined;
   orderBodyData = undefined;
   insertDate = undefined;

@@ -234,6 +234,7 @@ suite(`OrderFastspringApiRepository`, () => {
       const inputModel = testObj.inputModel;
       const outputOrderModel = new OrderModel();
       outputOrderModel.status = OrderModel.STATUS_SUCCESS;
+      outputOrderModel.invoice = 'invoice';
       outputOrderModel.orderBodyData = '{}';
       testObj.fastspringApiRepository.getOrder.resolves([null, outputOrderModel]);
       const outputModel = new OrderModel();
@@ -246,6 +247,7 @@ suite(`OrderFastspringApiRepository`, () => {
       testObj.orderRepository.add.should.have.calledWith(
         sinon.match
           .has('status', OrderModel.STATUS_SUCCESS)
+          .and(sinon.match.has('invoice', 'invoice'))
           .and(sinon.match.has('orderBodyData', '{}')),
       );
       expect(error).to.be.a('null');
@@ -335,6 +337,7 @@ suite(`OrderFastspringApiRepository`, () => {
       inputModel.status = OrderModel.STATUS_SUCCESS;
       const outputOrderModel = new OrderModel();
       outputOrderModel.status = OrderModel.STATUS_SUCCESS;
+      outputOrderModel.invoice = 'invoice';
       outputOrderModel.orderBodyData = '{}';
       testObj.fastspringApiRepository.getOrder.resolves([null, outputOrderModel]);
       const outputModel = new OrderModel();
@@ -347,6 +350,7 @@ suite(`OrderFastspringApiRepository`, () => {
       testObj.orderRepository.update.should.have.calledWith(
         sinon.match
           .has('status', OrderModel.STATUS_SUCCESS)
+          .and(sinon.match.has('invoice', 'invoice'))
           .and(sinon.match.has('orderBodyData', '{}')),
       );
       expect(error).to.be.a('null');

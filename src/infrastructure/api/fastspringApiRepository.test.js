@@ -1053,6 +1053,8 @@ suite(`FastspringApiRepository`, () => {
         orderSerial: 'order serial',
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
+        invoice:
+          'https://venomsupply.test.onfastspring.com/popup-venomsupply/account/order/DESAINEGMBH220510-3308-55135/invoice/IV357D5QFPNND65C4RMTWBF24SLE',
       });
     });
   });

@@ -74,6 +74,7 @@ class FastspringApiRepository extends IFastspringApiRepository {
         ? OrderModel.STATUS_SUCCESS
         : OrderModel.STATUS_FAIL;
       model.orderBodyData = JSON.stringify(response.data);
+      model.invoice = response.data['invoiceUrl'];
 
       return [null, model];
     } catch (error) {

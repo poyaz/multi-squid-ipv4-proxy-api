@@ -66,6 +66,7 @@ suite(`OrderController`, () => {
       outputModel1.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel1.status = OrderModel.STATUS_SUCCESS;
       outputModel1.lastSubscriptionStatus = null;
+      outputModel1.invoice = 'invoice';
       outputModel1.prePackageOrderInfo = {
         count: 3,
         expireDay: 3,
@@ -90,6 +91,7 @@ suite(`OrderController`, () => {
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: null,
+        invoice: 'invoice',
         insertDate: 'date',
       });
       expect(result[0].prePackageOrderInfo).to.have.include({
@@ -128,6 +130,7 @@ suite(`OrderController`, () => {
       outputModel1.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel1.status = OrderModel.STATUS_SUCCESS;
       outputModel1.lastSubscriptionStatus = null;
+      outputModel1.invoice = 'invoice';
       outputModel1.prePackageOrderInfo = {
         count: 3,
         expireDay: 3,
@@ -157,6 +160,7 @@ suite(`OrderController`, () => {
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: null,
+        invoice: 'invoice',
         insertDate: 'date',
       });
       expect(result[0].prePackageOrderInfo).to.have.include({
@@ -256,6 +260,7 @@ suite(`OrderController`, () => {
       outputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       outputModel.status = OrderModel.STATUS_SUCCESS;
       outputModel.lastSubscriptionStatus = null;
+      outputModel.invoice = 'invoice';
       outputModel.prePackageOrderInfo = {
         count: 3,
         expireDay: 3,
@@ -288,6 +293,7 @@ suite(`OrderController`, () => {
         serviceName: ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING,
         status: OrderModel.STATUS_SUCCESS,
         lastSubscriptionStatus: null,
+        invoice: 'invoice',
         insertDate: 'date',
       });
       expect(result.prePackageOrderInfo).to.have.include({
