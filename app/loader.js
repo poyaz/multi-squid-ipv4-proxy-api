@@ -171,6 +171,8 @@ class Loader {
       storeAddress: this._config.getStr('custom.payment.service.fastspring.storePopupAddress'),
     };
 
+    const paymentService = new PaymentService(isPaymentEnable, fastspringConfig.storeAddress);
+
     // Repository
     // ----------
 
@@ -201,6 +203,7 @@ class Loader {
     const userPgRepository = new UserPgRepository(pgDb, dateTime, identifierGenerator);
 
     const fastspringApiRepository = new FastspringApiRepository(
+      paymentService,
       fastspringConfig.username,
       fastspringConfig.password,
       fastspringConfig.domain,
@@ -235,7 +238,6 @@ class Loader {
       packageFileRepository,
       squidServerRepository,
     );
-    const paymentService = new PaymentService(isPaymentEnable, fastspringConfig.storeAddress);
     const productService = new ProductService(productRepository);
     const urlAccessService = new UrlAccessService(
       userService,
@@ -299,6 +301,7 @@ class Loader {
       orderService,
       orderRepository,
       fastspringApiRepository,
+      paymentService,
     );
 
     // Controller and middleware
