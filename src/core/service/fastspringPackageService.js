@@ -61,6 +61,10 @@ class FastspringPackageService extends IPackageService {
     return this.#packageService.renew(id, expireDate);
   }
 
+  async renewal(id, renewalDate) {
+    return this.#packageService.renewal(id, renewalDate);
+  }
+
   async cancel(id) {
     const filterOrder = new OrderModel();
     filterOrder.packageId = id;

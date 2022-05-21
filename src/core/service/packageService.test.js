@@ -43,6 +43,16 @@ suite(`PackageService`, () => {
     testObj.proxySquidRepository = proxySquidRepository;
     testObj.packageService = packageService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+    testObj.clock = sinon.useFakeTimers({
+      now: new Date(2019, 1, 1, 0, 0),
+      shouldAdvanceTime: true,
+      advanceTimeDelta: 20,
+    });
+  });
+
+  teardown(() => {
+    testObj.clock.restore();
   });
 
   suite(`Get by id`, () => {
@@ -625,6 +635,83 @@ suite(`PackageService`, () => {
           .instanceOf(PackageModel)
           .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
           .and(sinon.match.has('expireDate', sinon.match.instanceOf(Date))),
+      );
+      expect(error).to.be.a('null');
+    });
+  });
+
+  suite(`Renewal date`, () => {
+    test(`Should error renewal date when check package exist`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      testObj.packageRepository.getById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error renewal date when package not exist`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      testObj.packageRepository.getById.resolves([null, null]);
+
+      const [error] = await testObj.packageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(NotFoundException);
+      expect(error).to.have.property('httpCode', 404);
+    });
+
+    test(`Should error renewal date when expire date not valid`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.status = PackageModel.STATUS_EXPIRE;
+      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
+
+      const [error] = await testObj.packageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(ItemDisableException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error renewal date when update`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.status = PackageModel.STATUS_ENABLE;
+      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
+      testObj.packageRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully renewal date`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.status = PackageModel.STATUS_ENABLE;
+      testObj.packageRepository.getById.resolves([null, outputFetchModel]);
+      testObj.packageRepository.update.resolves([null]);
+
+      const [error] = await testObj.packageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageRepository.getById.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.callCount(1);
+      testObj.packageRepository.update.should.have.calledWith(
+        sinon.match
+          .instanceOf(PackageModel)
+          .and(sinon.match.has('id', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('renewalDate', sinon.match.instanceOf(Date))),
       );
       expect(error).to.be.a('null');
     });

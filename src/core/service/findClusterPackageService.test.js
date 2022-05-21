@@ -545,6 +545,35 @@ suite(`FindClusterPackageService`, () => {
     });
   });
 
+  suite(`Renewal expire date`, () => {
+    test(`Should error renewal package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 60000);
+      testObj.packageService.renewal.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageService.renewal.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful renewal package`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      const outputFetchModel = new PackageModel();
+      outputFetchModel.expireDate = new Date(new Date().getTime() + 60000);
+      testObj.packageService.renewal.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageService.renewal.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
   suite(`Cancel package`, () => {
     test(`Should error cancel package when get all instance has fail`, async () => {
       const inputId = testObj.identifierGenerator.generateId();

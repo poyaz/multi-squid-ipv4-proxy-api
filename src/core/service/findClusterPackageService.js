@@ -143,6 +143,10 @@ class FindClusterPackageService extends IPackageService {
     return this.#packageService.renew(id, expireDate);
   }
 
+  async renewal(id, renewalDate) {
+    return this.#packageService.renewal(id, renewalDate);
+  }
+
   async cancel(id) {
     const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
     if (errorAllServer) {

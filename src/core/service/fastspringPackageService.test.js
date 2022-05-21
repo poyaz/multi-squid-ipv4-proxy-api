@@ -222,6 +222,31 @@ suite(`FastspringPackageService`, () => {
     });
   });
 
+  suite(`Renewal date`, () => {
+    test(`Should error renewal date`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      testObj.packageService.renewal.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringPackageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageService.renewal.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successfully renewal date`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const inputRenewalDate = new Date();
+      testObj.packageService.renewal.resolves([null]);
+
+      const [error] = await testObj.fastspringPackageService.renewal(inputId, inputRenewalDate);
+
+      testObj.packageService.renewal.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+  });
+
   suite(`Cancel package`, () => {
     test(`Should error cancel package when order data`, async () => {
       const inputId = testObj.identifierGenerator.generateId();

@@ -187,6 +187,27 @@ class PackageService extends IPackageService {
     return [null];
   }
 
+  async renewal(id, renewalDate) {
+    const [fetchError, fetchData] = await this._getPackageInfoIfExistById(id);
+    if (fetchError) {
+      return [fetchError];
+    }
+    if (fetchData.status !== PackageModel.STATUS_ENABLE) {
+      return [new ItemDisableException()];
+    }
+
+    const updateModel = new PackageModel();
+    updateModel.id = id;
+    updateModel.renewalDate = renewalDate;
+
+    const [updateError] = await this.#packageRepository.update(updateModel);
+    if (updateError) {
+      return [updateError];
+    }
+
+    return [null];
+  }
+
   async cancel(id) {
     const [fetchError, fetchData] = await this._getPackageInfoIfExistById(id);
     if (fetchError) {

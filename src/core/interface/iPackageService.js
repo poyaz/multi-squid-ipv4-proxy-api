@@ -62,6 +62,18 @@ class IPackageService {
 
   /**
    *
+   * @param {uuid} id
+   * @param {Date} renewalDate
+   * @return {Promise<(Error)[]>}
+   */
+  async renewal(id, renewalDate) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { id, renewalDate };
+    throw error;
+  }
+
+  /**
+   *
    * @param {string} id
    * @return {Promise<(Error)[]>}
    */

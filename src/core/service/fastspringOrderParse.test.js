@@ -14,13 +14,12 @@ const helper = require('~src/helper');
 
 const OrderModel = require('~src/core/model/orderModel');
 const PackageModel = require('~src/core/model/packageModel');
-const ProductModel = require('~src/core/model/productModel');
+const PaymentServiceModel = require('~src/core/model/paymentServiceModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const ExternalStoreModel = require('~src/core/model/externalStoreModel');
 const UnknownException = require('~src/core/exception/unknownException');
-const NotFoundException = require('~src/core/exception/notFoundException');
-const ApiCallException = require('~src/core/exception/apiCallException');
 const PaymentDataMatchException = require('~src/core/exception/paymentDataMatchException');
+const InvalidOrderPaymentException = require('~src/core/exception/invalidOrderPaymentException');
 const PaymentServiceMatchException = require('~src/core/exception/paymentServiceMatchException');
 
 chai.should();
@@ -37,6 +36,7 @@ suite(`FastspringOrderParse`, () => {
       orderService,
       orderRepository,
       fastspringApiRepository,
+      paymentService,
       fastspringOrderParse,
     } = helper.fakeFastspringOrderParse();
 
@@ -45,13 +45,21 @@ suite(`FastspringOrderParse`, () => {
     testObj.orderRepository = orderRepository;
     testObj.fastspringApiRepository = fastspringApiRepository;
     testObj.fastspringOrderParse = fastspringOrderParse;
+    testObj.paymentService = paymentService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
     testObj.consoleError = sinon.stub(console, 'error');
+
+    testObj.clock = sinon.useFakeTimers({
+      now: new Date(2019, 1, 1, 0, 0),
+      shouldAdvanceTime: true,
+      advanceTimeDelta: 20,
+    });
   });
 
   teardown(() => {
     axiosGetStub.resetHistory();
     testObj.consoleError.restore();
+    testObj.clock.restore();
   });
 
   suite(`Parse events`, () => {
@@ -163,15 +171,8 @@ suite(`FastspringOrderParse`, () => {
     });
   });
 
-  suite(`Add subscription`, () => {
+  suite(`Check payment mode`, () => {
     setup(() => {
-      const outputModel = new OrderModel();
-      outputModel.id = testObj.identifierGenerator.generateId();
-      outputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
-      outputModel.orderSerial = 'order serial';
-      outputModel.status = OrderModel.STATUS_SUCCESS;
-
-      testObj.outputModel = outputModel;
       testObj.inputDataSubscription = {
         events: [
           {
@@ -280,6 +281,156 @@ suite(`FastspringOrderParse`, () => {
       };
     });
 
+    test(`Should error check payment mode events if get payment mode`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      testObj.paymentService.getAllPaymentMethod.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      testObj.paymentService.getAllPaymentMethod.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error check payment mode if event is test mode but server run in product mode`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputPaymentModel = new PaymentServiceModel();
+      outputPaymentModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputPaymentModel.mode = PaymentServiceModel.MODE_PRODUCT;
+      testObj.paymentService.getAllPaymentMethod.resolves([null, [outputPaymentModel]]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.an.instanceof(InvalidOrderPaymentException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+  });
+
+  suite(`Add subscription`, () => {
+    setup(() => {
+      const outputModel = new OrderModel();
+      outputModel.id = testObj.identifierGenerator.generateId();
+      outputModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputModel.orderSerial = 'order serial';
+      outputModel.status = OrderModel.STATUS_SUCCESS;
+      outputModel.prePackageOrderInfo = { expireDay: 30 };
+
+      testObj.outputModel = outputModel;
+      testObj.inputDataSubscription = {
+        events: [
+          {
+            id: '6_hNJCU9Q4SSCGiGaxmbnw',
+            processed: false,
+            created: 1651401050743,
+            type: 'subscription.activated',
+            live: false,
+            data: {
+              id: 'fL_qYu2uSyO_F5j81kbh1g',
+              quote: null,
+              subscription: 'fL_qYu2uSyO_F5j81kbh1g',
+              active: true,
+              state: 'active',
+              changed: 1651401050743,
+              changedValue: 1651401050743,
+              changedInSeconds: 1651401050,
+              changedDisplay: '5/1/22',
+              changedDisplayISO8601: '2022-05-01',
+              live: false,
+              currency: 'USD',
+              account: 'RPHaJMN4RAGRA0YUVCAxqQ',
+              product: 'at-datacenter-proxies-100',
+              sku: null,
+              display: 'AT Datacenter Proxies [100]',
+              quantity: 1,
+              adhoc: false,
+              autoRenew: true,
+              price: 180,
+              priceDisplay: '$180.00',
+              priceInPayoutCurrency: 180,
+              priceInPayoutCurrencyDisplay: '$180.00',
+              discount: 0,
+              discountDisplay: '$0.00',
+              discountInPayoutCurrency: 0,
+              discountInPayoutCurrencyDisplay: '$0.00',
+              subtotal: 193.05,
+              subtotalDisplay: '$193.05',
+              subtotalInPayoutCurrency: 193.05,
+              subtotalInPayoutCurrencyDisplay: '$193.05',
+              tags: { orderId: testObj.identifierGenerator.generateId() },
+              next: 1654041600000,
+              nextValue: 1654041600000,
+              nextInSeconds: 1654041600,
+              nextDisplay: '6/1/22',
+              nextDisplayISO8601: '2022-06-01',
+              end: null,
+              endValue: null,
+              endInSeconds: null,
+              endDisplay: null,
+              endDisplayISO8601: null,
+              canceledDate: null,
+              canceledDateValue: null,
+              canceledDateInSeconds: null,
+              canceledDateDisplay: null,
+              canceledDateDisplayISO8601: null,
+              deactivationDate: null,
+              deactivationDateValue: null,
+              deactivationDateInSeconds: null,
+              deactivationDateDisplay: null,
+              deactivationDateDisplayISO8601: null,
+              sequence: 1,
+              periods: null,
+              remainingPeriods: null,
+              begin: 1651363200000,
+              beginValue: 1651363200000,
+              beginInSeconds: 1651363200,
+              beginDisplay: '5/1/22',
+              beginDisplayISO8601: '2022-05-01',
+              intervalUnit: 'month',
+              intervalLength: 1,
+              nextChargeCurrency: 'USD',
+              nextChargeDate: 1654041600000,
+              nextChargeDateValue: 1654041600000,
+              nextChargeDateInSeconds: 1654041600,
+              nextChargeDateDisplay: '6/1/22',
+              nextChargeDateDisplayISO8601: '2022-06-01',
+              nextChargePreTax: 180,
+              nextChargePreTaxDisplay: '$180.00',
+              nextChargePreTaxInPayoutCurrency: 180,
+              nextChargePreTaxInPayoutCurrencyDisplay: '$180.00',
+              nextChargeTotal: 193.05,
+              nextChargeTotalDisplay: '$193.05',
+              nextChargeTotalInPayoutCurrency: 193.05,
+              nextChargeTotalInPayoutCurrencyDisplay: '$193.05',
+              nextNotificationType: 'PAYMENT_REMINDER',
+              nextNotificationDate: 1653436800000,
+              nextNotificationDateValue: 1653436800000,
+              nextNotificationDateInSeconds: 1653436800,
+              nextNotificationDateDisplay: '5/25/22',
+              nextNotificationDateDisplayISO8601: '2022-05-25',
+              paymentReminder: { intervalUnit: 'week', intervalLength: 1 },
+              paymentOverdue: { intervalUnit: 'week', intervalLength: 1, total: 4, sent: 0 },
+              cancellationSetting: {
+                cancellation: 'AFTER_LAST_NOTIFICATION',
+                intervalUnit: 'week',
+                intervalLength: 1,
+              },
+              fulfillments: null,
+              instructions: {},
+              initialOrderId: 'BLXqoDqCQqKJUjs2QerHfA',
+              initialOrderReference: 'DESAINEGMBH220501-1274-82181',
+            },
+          },
+        ],
+      };
+
+      const outputPaymentModel = new PaymentServiceModel();
+      outputPaymentModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputPaymentModel.mode = PaymentServiceModel.MODE_TEST;
+      testObj.paymentService.getAllPaymentMethod.resolves([null, [outputPaymentModel]]);
+    });
+
     test(`Should error parse events when add subscription (error on get order info)`, async () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
@@ -314,7 +465,7 @@ suite(`FastspringOrderParse`, () => {
       testObj.consoleError.should.callCount(1);
     });
 
-    test(`Should error parse events when add subscription`, async () => {
+    test(`Should successfully parse events when add subscription`, async () => {
       const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
       const inputData = testObj.inputDataSubscription;
       const outputModel = testObj.outputModel;
@@ -332,6 +483,66 @@ suite(`FastspringOrderParse`, () => {
           .and(sinon.match.has('serial', inputData.events[0].data.id))
           .and(sinon.match.has('status', SubscriptionModel.STATUS_ACTIVATED))
           .and(sinon.match.has('subscriptionBodyData', JSON.stringify(inputData.events[0].data))),
+      );
+      testObj.consoleError.should.callCount(0);
+    });
+
+    test(`Should error parse events when update renewal`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputModel = testObj.outputModel;
+      outputModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.fastspringApiRepository.getOrder.resolves([null, outputModel]);
+      testObj.orderRepository.addSubscription.resolves([null]);
+      testObj.packageService.renewal.resolves([new UnknownException()]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.addSubscription.should.have.callCount(1);
+      testObj.orderRepository.addSubscription.should.have.calledWith(
+        sinon.match
+          .instanceOf(SubscriptionModel)
+          .and(sinon.match.has('orderId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('serial', inputData.events[0].data.id))
+          .and(sinon.match.has('status', SubscriptionModel.STATUS_ACTIVATED))
+          .and(sinon.match.has('subscriptionBodyData', JSON.stringify(inputData.events[0].data))),
+      );
+      testObj.packageService.renewal.should.have.callCount(1);
+      const expireDateCondition = new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000);
+      testObj.packageService.renewal.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match(expireDateCondition),
+      );
+      testObj.consoleError.should.callCount(1);
+    });
+
+    test(`Should successfully parse events when update renewal`, async () => {
+      const inputServiceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      const inputData = testObj.inputDataSubscription;
+      const outputModel = testObj.outputModel;
+      outputModel.packageId = testObj.identifierGenerator.generateId();
+      testObj.fastspringApiRepository.getOrder.resolves([null, outputModel]);
+      testObj.orderRepository.addSubscription.resolves([null]);
+      testObj.packageService.renewal.resolves([null]);
+
+      const [error] = await testObj.fastspringOrderParse.parse(inputServiceName, inputData);
+
+      expect(error).to.be.a('null');
+      testObj.orderRepository.addSubscription.should.have.callCount(1);
+      testObj.orderRepository.addSubscription.should.have.calledWith(
+        sinon.match
+          .instanceOf(SubscriptionModel)
+          .and(sinon.match.has('orderId', testObj.identifierGenerator.generateId()))
+          .and(sinon.match.has('serial', inputData.events[0].data.id))
+          .and(sinon.match.has('status', SubscriptionModel.STATUS_ACTIVATED))
+          .and(sinon.match.has('subscriptionBodyData', JSON.stringify(inputData.events[0].data))),
+      );
+      testObj.packageService.renewal.should.have.callCount(1);
+      const expireDateCondition = new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000);
+      testObj.packageService.renewal.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+        sinon.match(expireDateCondition),
       );
       testObj.consoleError.should.callCount(0);
     });
@@ -494,6 +705,11 @@ suite(`FastspringOrderParse`, () => {
           },
         ],
       };
+
+      const outputPaymentModel = new PaymentServiceModel();
+      outputPaymentModel.serviceName = ExternalStoreModel.EXTERNAL_STORE_TYPE_FASTSPRING;
+      outputPaymentModel.mode = PaymentServiceModel.MODE_TEST;
+      testObj.paymentService.getAllPaymentMethod.resolves([null, [outputPaymentModel]]);
     });
 
     test(`Should error parse event when cancel subscription (error on get order info)`, async () => {
