@@ -807,7 +807,7 @@ suite(`FastspringApiRepository`, () => {
       });
     });
 
-    test(`Should successfully get order (test product)`, async () => {
+    test(`Should successfully get order (product mode)`, async () => {
       const inputSerial = 'order serial';
       axiosGetStub.resolves({
         data: {
@@ -823,7 +823,7 @@ suite(`FastspringApiRepository`, () => {
           changedDisplay: '5/10/22',
           changedDisplayISO8601: '2022-05-10',
           language: 'en',
-          live: false,
+          live: true,
           currency: 'USD',
           payoutCurrency: 'USD',
           quote: null,

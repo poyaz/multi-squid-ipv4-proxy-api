@@ -61,7 +61,7 @@ class FastspringApiRepository extends IFastspringApiRepository {
       if (
         serviceMode &&
         serviceMode.mode === PaymentServiceModel.MODE_PRODUCT &&
-        response.data['payment']['type'] === 'test'
+        !response.data['live']
       ) {
         return [new InvalidOrderPaymentException()];
       }
