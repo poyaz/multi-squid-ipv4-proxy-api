@@ -269,6 +269,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
     model.ipList = body['ipList'];
     model.countIp = body['countIp'];
     model.type = body['type'];
+    model.status = body['status'];
     model.country = body['country'];
     model.isEnable = body['isEnable'];
     model.renewalDate = body['renewalDate']
