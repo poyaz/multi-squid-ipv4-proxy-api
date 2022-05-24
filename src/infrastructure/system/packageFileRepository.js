@@ -81,7 +81,7 @@ class PackageFileRepository extends IPackageRepository {
       (model.status === PackageModel.STATUS_ENABLE ||
         (model.status === PackageModel.STATUS_CANCEL &&
           model.expireDate instanceof Date &&
-          model.expireDate < new Date()))
+          model.expireDate.getTime() >= new Date().getTime()))
     ) {
       try {
         const lines = await fsAsync.readFile(this.#accessUserIpPath, 'utf8');
@@ -112,7 +112,7 @@ class PackageFileRepository extends IPackageRepository {
     let updatePattern = '';
     if (
       model.ipList.length > 0 &&
-      ((model.expireDate instanceof Date && model.expireDate > new Date()) ||
+      ((model.expireDate instanceof Date && model.expireDate.getTime() < new Date().getTime()) ||
         (!model.expireDate && model.status !== PackageModel.STATUS_ENABLE))
     ) {
       const ipList = model.ipList.map((v) => v.ip.replace(/\./g, '\\.')).join('\\|');
