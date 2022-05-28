@@ -388,7 +388,11 @@ if [[ $execute_mode == "init" ]]; then
 
     echo "[INFO] Please wait for init cluster service ..."
 
-    API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$JWT_TOKEN" node sh -c 'npm install --production &> /dev/null; node scripts/cli.js generate-token' 2>/dev/null)
+    docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$JWT_TOKEN" node sh -c 'npm install --production &> /dev/null'
+
+    sleep 3
+
+    API_TOKEN=$(docker-compose -f docker-compose.yml run --rm --no-deps --entrypoint="" -e "JWT_SECRET_KEY=$JWT_TOKEN" node sh -c 'node scripts/cli.js generate-token' 2>/dev/null)
 
     if ! [[ -f /etc/timezone ]]; then
       echo $(timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g') >>/etc/timezone
