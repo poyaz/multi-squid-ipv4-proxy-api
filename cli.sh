@@ -549,6 +549,14 @@ if [[ $execute_mode == "fetch" ]]; then
     exit
   fi
 
+  read -p "Enter host ip: " HOST_IP
+  if [[ -z ${HOST_IP} ]]; then
+    echo "[ERR] Please enter host ip"
+    echo ""
+
+    exit 1
+  fi
+
   read -s -p "Enter custom share key: " SHARE_KEY
   if [[ -z ${SHARE_KEY} ]]; then
     echo "[ERR] Please enter share key"
@@ -559,11 +567,8 @@ if [[ $execute_mode == "fetch" ]]; then
 
   echo ""
 
-  PG_HOST=$(sed -n "s/^DB_PG_HOST=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
-  PG_PORT=$(sed -n "s/^DB_PG_PORT=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
-  if [[ -z ${PG_PORT} ]]; then
-    PG_PORT=5432
-  fi
+  PG_HOST=$HOST_IP
+  PG_PORT=5432
   PG_DB=$(sed -n "s/^DB_PG_DATABASE=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
   PG_USER=$(sed -n "s/^DB_PG_USERNAME=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
   PG_PASS=$(sed -n "s/^DB_PG_PASSWORD=\(.*\)$/\1/p" "$DEFAULT_NODE_ENV_FILE")
