@@ -760,7 +760,6 @@ Squid ACL check request domain block for user or not
 curl \
   -X GET \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/user/:username/domain/:domain/status'
 ```
 
@@ -770,7 +769,6 @@ curl \
 curl \
     -X GET \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/user/my_username/domain/google.com/status'
 ```
 
@@ -2122,7 +2120,6 @@ Get all payment method for anonymous
 curl \
   -X GET \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <your-token>' \
   '<your-hostname-or-ip>/api/v1/payment/list'
 ```
 
@@ -2132,7 +2129,6 @@ curl \
 curl \
     -X GET \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer token' \
     '<your-hostname-or-ip>/api/v1/payment/list'
 ```
 
