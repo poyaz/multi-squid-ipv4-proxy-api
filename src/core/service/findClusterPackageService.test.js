@@ -35,6 +35,12 @@ suite(`FindClusterPackageService`, () => {
     testObj.serverApiRepository = serverApiRepository;
     testObj.findClusterPackageService = findClusterPackageService;
     testObj.identifierGenerator = helper.fakeIdentifierGenerator();
+
+    testObj.consoleError = sinon.stub(console, 'error');
+  });
+
+  teardown(() => {
+    testObj.consoleError.restore();
   });
 
   suite(`Get by id`, () => {
@@ -1020,24 +1026,114 @@ suite(`FindClusterPackageService`, () => {
   });
 
   suite(`Sync package with id`, () => {
-    test(`Should error sync package`, async () => {
+    test(`Should error sync package when get all instance has fail`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
+      testObj.serverService.getAll.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error sync package in current instance because not found any server`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      testObj.serverService.getAll.resolves([null, []]);
       testObj.packageService.syncPackageById.resolves([new UnknownException()]);
 
       const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
 
+      testObj.serverService.getAll.should.have.callCount(1);
       testObj.packageService.syncPackageById.should.have.callCount(1);
       expect(error).to.be.an.instanceof(UnknownException);
       expect(error).to.have.property('httpCode', 400);
     });
 
-    test(`Should successful sync package`, async () => {
+    test(`Should successful sync package in current instance because not found any server`, async () => {
       const inputId = testObj.identifierGenerator.generateId();
+      testObj.serverService.getAll.resolves([null, []]);
       testObj.packageService.syncPackageById.resolves([null]);
 
       const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
 
+      testObj.serverService.getAll.should.have.callCount(1);
       testObj.packageService.syncPackageById.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should error sync package in all instance when send request has been fail in all server`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      testObj.packageService.syncPackageById.resolves([null]);
+      testObj.serverApiRepository.syncPackageById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.syncPackageById.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
+      expect(error).to.be.an.instanceof(SyncPackageProxyException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should successful sync package in all instance`, async () => {
+      const inputId = testObj.identifierGenerator.generateId();
+      const outputServerModel1 = new ServerModel();
+      outputServerModel1.name = 'server-1';
+      outputServerModel1.hostIpAddress = '10.10.10.1';
+      outputServerModel1.hostApiPort = 8080;
+      outputServerModel1.isEnable = true;
+      const outputServerModel2 = new ServerModel();
+      outputServerModel2.name = 'server-2';
+      outputServerModel2.hostIpAddress = '10.10.10.2';
+      outputServerModel2.hostApiPort = 8080;
+      outputServerModel2.isEnable = false;
+      const outputServerModel3 = new ServerModel();
+      outputServerModel3.name = 'server-3';
+      outputServerModel3.hostIpAddress = '10.10.10.3';
+      outputServerModel3.hostApiPort = 8080;
+      outputServerModel3.isEnable = true;
+      const outputServerModel4 = new ServerModel();
+      outputServerModel4.name = 'server-4';
+      outputServerModel4.hostIpAddress = '10.10.10.4';
+      outputServerModel4.hostApiPort = 8080;
+      outputServerModel4.isEnable = true;
+      testObj.serverService.getAll.resolves([
+        null,
+        [outputServerModel1, outputServerModel2, outputServerModel3, outputServerModel4],
+      ]);
+      testObj.packageService.syncPackageById.resolves([null]);
+      testObj.serverApiRepository.syncPackageById.resolves([null]);
+
+      const [error] = await testObj.findClusterPackageService.syncPackageById(inputId);
+
+      testObj.serverService.getAll.should.have.callCount(1);
+      testObj.packageService.syncPackageById.should.have.callCount(1);
+      testObj.serverApiRepository.syncPackageById.should.have.callCount(2);
       expect(error).to.be.a('null');
     });
   });

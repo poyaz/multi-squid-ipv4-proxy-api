@@ -264,7 +264,44 @@ class FindClusterPackageService extends IPackageService {
   }
 
   async syncPackageById(id) {
-    return this.#packageService.syncPackageById(id);
+    const [errorAllServer, dataAllServer] = await this.#serverService.getAll();
+    if (errorAllServer) {
+      return [errorAllServer];
+    }
+
+    const [errorSyncPackage] = await this.#packageService.syncPackageById(id);
+    if (errorSyncPackage) {
+      return [errorSyncPackage];
+    }
+
+    if (dataAllServer.length === 0) {
+      return [null];
+    }
+
+    const tasks = [];
+    for (let i = 0; i < dataAllServer.length; i++) {
+      const serverModel = dataAllServer[i];
+      if (serverModel.isEnable && serverModel.hostIpAddress !== this.#currentInstanceIp) {
+        tasks.push(this.#serverApiRepository.syncPackageById(id, serverModel));
+      }
+    }
+
+    const resultTasks = await Promise.all(tasks);
+
+    let totalError = 0;
+    for (let i = 0; i < resultTasks.length; i++) {
+      const [errorExecute] = resultTasks[i];
+      if (errorExecute) {
+        console.error(`Fail to sync package "${id}"`, errorExecute);
+        totalError++;
+      }
+    }
+
+    if (totalError === resultTasks.length) {
+      return [new SyncPackageProxyException()];
+    }
+
+    return [null];
   }
 }
 
