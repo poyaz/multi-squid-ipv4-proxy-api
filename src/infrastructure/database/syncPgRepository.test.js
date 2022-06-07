@@ -12,6 +12,8 @@ const helper = require('~src/helper');
 const SyncModel = require('~src/core/model/syncModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
+const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
+const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 chai.should();
 chai.use(dirtyChai);
@@ -317,6 +319,216 @@ suite(`SyncPgRepository`, () => {
         insertDate: null,
         updateDate: null,
       });
+    });
+  });
+
+  suite(`Get list of in process status has been expired`, () => {
+    test(`Should error get list of in process status has been expired`, async () => {
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.syncRepository.getListOfInProcessExpired();
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([SyncModel.STATUS_PROCESS, 'date'])),
+      );
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully list of in process status has been expired`, async () => {
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+      const fetchQuery = {
+        get rowCount() {
+          return 0;
+        },
+        get rows() {
+          return [];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.syncRepository.getListOfInProcessExpired();
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([SyncModel.STATUS_PROCESS, 'date'])),
+      );
+      testObj.fillModelSpy.should.have.callCount(0);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(0);
+    });
+
+    test(`Should successfully get all list of in process status has been expired`, async () => {
+      testObj.dateTime.gregorianWithTimezoneString.returns('date');
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              references_id: testObj.identifierGenerator.generateId(),
+              service_name: SyncModel.SERVICE_EXPIRE_PACKAGE,
+              status: SyncModel.STATUS_PROCESS,
+            },
+          ];
+        },
+      };
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.syncRepository.getListOfInProcessExpired();
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has('values', sinon.match.array.deepEquals([SyncModel.STATUS_PROCESS, 'date'])),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.length(1);
+      expect(result[0]).to.be.instanceOf(SyncModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        referencesId: testObj.identifierGenerator.generateId(),
+        serviceName: SyncModel.SERVICE_EXPIRE_PACKAGE,
+        status: SyncModel.STATUS_PROCESS,
+        insertDate: null,
+        updateDate: null,
+      });
+    });
+  });
+
+  suite(`Add sync`, () => {
+    test(`Should error add new sync in database`, async () => {
+      const inputModel = new SyncModel();
+      inputModel.referencesId = testObj.identifierGenerator.generateId();
+      inputModel.serviceName = SyncModel.SERVICE_SYNC_PACKAGE;
+      inputModel.status = SyncModel.STATUS_PROCESS;
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.syncRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully add new sync in database`, async () => {
+      const inputModel = new SyncModel();
+      inputModel.referencesId = testObj.identifierGenerator.generateId();
+      inputModel.serviceName = SyncModel.SERVICE_SYNC_PACKAGE;
+      inputModel.status = SyncModel.STATUS_PROCESS;
+      const fetchQuery = {
+        get rowCount() {
+          return 1;
+        },
+        get rows() {
+          return [
+            {
+              id: testObj.identifierGenerator.generateId(),
+              references_id: testObj.identifierGenerator.generateId(),
+              service_name: SyncModel.SERVICE_SYNC_PACKAGE,
+              status: SyncModel.STATUS_PROCESS,
+            },
+          ];
+        },
+      };
+      testObj.identifierGeneratorSystem.generateId.returns(
+        testObj.identifierGenerator.generateId(),
+      );
+      testObj.dateTime.gregorianCurrentDateWithTimezoneString.returns('date');
+      testObj.postgresDb.query.resolves(fetchQuery);
+
+      const [error, result] = await testObj.syncRepository.add(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      testObj.postgresDb.query.should.have.calledWith(
+        sinon.match.has(
+          'values',
+          sinon.match.array
+            .startsWith([
+              testObj.identifierGenerator.generateId(),
+              inputModel.referencesId,
+              inputModel.serviceName,
+              inputModel.status,
+              'date',
+            ])
+            .and(sinon.match.has('length', 5)),
+        ),
+      );
+      testObj.fillModelSpy.should.have.callCount(1);
+      expect(error).to.be.a('null');
+      expect(result).to.be.instanceOf(SyncModel).and.includes({
+        id: testObj.identifierGenerator.generateId(),
+        referencesId: testObj.identifierGenerator.generateId(),
+        serviceName: SyncModel.SERVICE_SYNC_PACKAGE,
+        status: SyncModel.STATUS_PROCESS,
+        insertDate: null,
+        updateDate: null,
+      });
+    });
+  });
+
+  suite(`Update sync`, () => {
+    test(`Should error update sync when model id not found`, async () => {
+      const inputModel = new SyncModel();
+
+      const [error] = await testObj.syncRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(ModelIdNotExistException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update sync when model property not set`, async () => {
+      const inputModel = new SyncModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+
+      const [error] = await testObj.syncRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(0);
+      expect(error).to.be.an.instanceof(DatabaseMinParamUpdateException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', true);
+    });
+
+    test(`Should error update sync when execute query`, async () => {
+      const inputModel = new SyncModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.status = SyncModel.STATUS_ERROR;
+      const queryError = new Error('Query error');
+      testObj.postgresDb.query.throws(queryError);
+
+      const [error] = await testObj.syncRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(DatabaseExecuteException);
+      expect(error).to.have.property('httpCode', 400);
+      expect(error).to.have.property('isOperation', false);
+      expect(error).to.have.property('errorInfo', queryError);
+    });
+
+    test(`Should successfully update sync`, async () => {
+      const inputModel = new SyncModel();
+      inputModel.id = testObj.identifierGenerator.generateId();
+      inputModel.status = SyncModel.STATUS_ERROR;
+      testObj.postgresDb.query.resolves();
+
+      const [error] = await testObj.syncRepository.update(inputModel);
+
+      testObj.postgresDb.query.should.have.callCount(1);
+      expect(error).to.be.a('null');
     });
   });
 });

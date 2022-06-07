@@ -485,4 +485,53 @@ suite(`SyncService`, () => {
       expect(error).to.be.a('null');
     });
   });
+
+  suite(`Find in process has been expired`, () => {
+    setup(() => {
+      const outputModel1 = new SyncModel();
+      outputModel1.id = testObj.identifierGenerator.generateId();
+      outputModel1.referencesId = testObj.identifierGenerator.generateId();
+      outputModel1.serviceName = SyncModel.SERVICE_SYNC_PACKAGE;
+      outputModel1.status = SyncModel.STATUS_PROCESS;
+      outputModel1.insertDate = new Date();
+
+      testObj.outputModel1 = outputModel1;
+    });
+
+    test(`Should error find in process has been expired`, async () => {
+      testObj.syncRepository.getListOfInProcessExpired.resolves([new UnknownException()]);
+
+      const [error] = await testObj.syncService.executeFindInProcessHasBeenExpired();
+
+      testObj.syncRepository.getListOfInProcessExpired.should.have.callCount(1);
+      expect(error).to.be.an.instanceof(UnknownException);
+      expect(error).to.have.property('httpCode', 400);
+    });
+
+    test(`Should error find in process has been expired when update status`, async () => {
+      const outputModel = [testObj.outputModel1];
+      testObj.syncRepository.getListOfInProcessExpired.resolves([null, outputModel]);
+      testObj.syncRepository.update.resolves([new UnknownException()]);
+
+      const [error] = await testObj.syncService.executeFindInProcessHasBeenExpired();
+
+      testObj.syncRepository.getListOfInProcessExpired.should.have.callCount(1);
+      testObj.syncRepository.update.should.have.callCount(1);
+      testObj.consoleError.should.have.callCount(1);
+      expect(error).to.be.a('null');
+    });
+
+    test(`Should successfully find in process has been expired when update status`, async () => {
+      const outputModel = [testObj.outputModel1];
+      testObj.syncRepository.getListOfInProcessExpired.resolves([null, outputModel]);
+      testObj.syncRepository.update.resolves([null]);
+
+      const [error] = await testObj.syncService.executeFindInProcessHasBeenExpired();
+
+      testObj.syncRepository.getListOfInProcessExpired.should.have.callCount(1);
+      testObj.syncRepository.update.should.have.callCount(1);
+      testObj.consoleError.should.have.callCount(0);
+      expect(error).to.be.a('null');
+    });
+  });
 });

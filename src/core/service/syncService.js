@@ -14,7 +14,7 @@ class SyncService extends ISyncService {
    * @type {IPackageService}
    */
   #packageService;
-  #inProcessTimeLimit = 5 * 60 * 1000;
+  #inProcessTimeLimit = 1 * 60 * 1000;
 
   /**
    *
@@ -89,6 +89,28 @@ class SyncService extends ISyncService {
       const [syncError] = await this.#packageService.syncPackageById(syncModel.referencesId);
 
       await this._updateSyncResult(syncError, addData);
+    }
+
+    return [null];
+  }
+
+  async executeFindInProcessHasBeenExpired() {
+    const expireDate = new Date(new Date().getTime() + this.#inProcessTimeLimit);
+
+    const [error, data] = await this.#syncRepository.getListOfInProcessExpired(expireDate);
+    if (error) {
+      return [error];
+    }
+
+    for await (const syncModel of data) {
+      const updateSyncModel = new SyncModel();
+      updateSyncModel.id = syncModel.id;
+      updateSyncModel.status = SyncModel.STATUS_ERROR;
+
+      const [errorUpdate] = await this.#syncRepository.update(updateSyncModel);
+      if (errorUpdate) {
+        console.error(`Error to update error sync with ${syncModel.id}`, errorUpdate);
+      }
     }
 
     return [null];

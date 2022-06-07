@@ -7,6 +7,8 @@ const ISyncRepository = require('~src/core/interface/iSyncRepository');
 const SyncModel = require('~src/core/model/syncModel');
 const SubscriptionModel = require('~src/core/model/subscriptionModel');
 const DatabaseExecuteException = require('~src/core/exception/databaseExecuteException');
+const ModelIdNotExistException = require('~src/core/exception/modelIdNotExistException');
+const DatabaseMinParamUpdateException = require('~src/core/exception/databaseMinParamUpdateException');
 
 class SyncPgRepository extends ISyncRepository {
   #db;
@@ -102,6 +104,96 @@ class SyncPgRepository extends ISyncRepository {
     };
 
     return this._executeQuery(getAllNotSyncedQuery);
+  }
+
+  async getListOfInProcessExpired(expireDate) {
+    const date = this.#dateTime.gregorianWithTimezoneString(expireDate);
+
+    const getAllProcessHasBeenExpired = {
+      text: singleLine`
+          SELECT *
+          FROM sync
+          WHERE status = $1
+            AND insert_date < $2
+      `,
+      values: [SyncModel.STATUS_PROCESS, date],
+    };
+
+    return this._executeQuery(getAllProcessHasBeenExpired);
+  }
+
+  async add(model) {
+    const id = this.#identifierGenerator.generateId();
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const addQuery = {
+      text: singleLine`
+          INSERT INTO public.sync (id, references_id, service_name, status, insert_date)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING *
+      `,
+      values: [id, model.referencesId, model.serviceName, model.status, now],
+    };
+
+    try {
+      const { rows } = await this.#db.query(addQuery);
+
+      const result = this._fillModel(rows[0]);
+
+      return [null, result];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
+  }
+
+  async update(model) {
+    if (typeof model.id === 'undefined') {
+      return [new ModelIdNotExistException()];
+    }
+
+    const columns = [];
+    /**
+     * @type {Array<*>}
+     */
+    const params = [model.id];
+
+    if (typeof model.referencesId !== 'undefined') {
+      params.push(model.referencesId);
+      columns.push(`references_id = $${params.length}`);
+    }
+    if (typeof model.serviceName !== 'undefined') {
+      params.push(model.serviceName);
+      columns.push(`service_name = $${params.length}`);
+    }
+    if (typeof model.status !== 'undefined') {
+      params.push(model.status);
+      columns.push(`status = $${params.length}`);
+    }
+
+    if (columns.length === 0) {
+      return [new DatabaseMinParamUpdateException()];
+    }
+
+    params.push(this.#dateTime.gregorianCurrentDateWithTimezoneString());
+    columns.push(`update_date = $${params.length}`);
+
+    const updateQuery = {
+      text: singleLine`
+          UPDATE public.sync
+          SET ${columns.join(', ')}
+          WHERE delete_date ISNULL
+            AND id = $1
+      `,
+      values: [...params],
+    };
+
+    try {
+      await this.#db.query(updateQuery);
+
+      return [null];
+    } catch (error) {
+      return [new DatabaseExecuteException(error)];
+    }
   }
 
   async _executeQuery(query) {

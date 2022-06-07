@@ -35,6 +35,17 @@ class ISyncRepository {
 
   /**
    *
+   * @param {Date} expireDate
+   * @return {Promise<(Error|Array<SyncModel>|[])[]>}
+   */
+  async getListOfInProcessExpired(expireDate) {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = { expireDate };
+    throw error;
+  }
+
+  /**
+   *
    * @param {SyncModel} model
    * @return {Promise<(Error|SyncModel)[]>}
    */
