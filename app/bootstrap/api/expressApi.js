@@ -65,21 +65,10 @@ class ExpressApi extends IRunner {
     /**
      * @todo this is for test (should delete)
      */
-    router.get('/store.html', async (req, res, next) => {
-      res.end(`
-        <html>
-          <script
-              id="fsc-api"
-              src="https://d1f8f9xcsvx3ha.cloudfront.net/sbl/0.7.9/fastspring-builder.min.js"
-              type="text/javascript"
-              data-storefront="fastspringexamples.test.onfastspring.com/popup-fastspringexamples"
-          >
-          </script>
-          <body>
-              <button data-fsc-item-path-value="phot-io-main-app" data-fsc-action='Add, Checkout'> Buy </button>
-          </body>
-      </html>
-      `);
+    router.get('/store.html', async (req, res) => {
+      const fs = require('fs');
+      const orderHtml = fs.createReadStream('.tests/store.html');
+      orderHtml.pipe(res);
     });
 
     router.use(async (req, res, next) => {

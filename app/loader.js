@@ -25,6 +25,7 @@ const PackagePgRepository = require('~src/infrastructure/database/packagePgRepos
 const ProductPgRepository = require('~src/infrastructure/database/productPgRepository');
 const ProxyServerRepository = require('~src/infrastructure/database/proxyServerRepository');
 const ServerRepository = require('~src/infrastructure/database/serverRepository');
+const SyncPgRepository = require('~src/infrastructure/database/syncPgRepository');
 const UrlAccessPgRepository = require('~src/infrastructure/database/urlAccessPgRepository');
 const UserPgRepository = require('~src/infrastructure/database/userPgRepository');
 
@@ -55,6 +56,7 @@ const ProxyServerJobService = require('~src/core/service/proxyServerJobService')
 const ProxyServerRegenerateJobService = require('~src/core/service/proxyServerRegenerateJobService');
 const ProxyServerService = require('~src/core/service/proxyServerService');
 const ServerService = require('~src/core/service/serverService');
+const SyncService = require('~src/core/service/syncService');
 const UrlAccessService = require('~src/core/service/urlAccessService');
 const UserService = require('~src/core/service/userService');
 
@@ -98,6 +100,7 @@ const ProductControllerFactory = require('~src/api/http/product/controller/produ
 
 const PackageCronjob = require('~src/api/cronjob/packageCronjob');
 const ReloadCronjob = require('~src/api/cronjob/reloadCronjob');
+const SyncCronjob = require('~src/api/cronjob/syncCronjob');
 
 class Loader {
   constructor({ cwd = '', name = '', version = '', cli = false } = {}) {
@@ -199,6 +202,7 @@ class Loader {
     const productPgRepository = new ProductPgRepository(pgDb, dateTime, identifierGenerator);
     const proxyServerRepository = new ProxyServerRepository(pgDb, dateTime, identifierGenerator);
     const serverRepository = new ServerRepository(pgDb, dateTime, identifierGenerator);
+    const syncPgRepository = new SyncPgRepository(pgDb, dateTime, identifierGenerator);
     const urlAccessPgRepository = new UrlAccessPgRepository(pgDb, dateTime, identifierGenerator);
     const userPgRepository = new UserPgRepository(pgDb, dateTime, identifierGenerator);
 
@@ -303,6 +307,7 @@ class Loader {
       fastspringApiRepository,
       paymentService,
     );
+    const syncService = new SyncService(syncPgRepository, packageService);
 
     // Controller and middleware
     // -------------------------
@@ -387,6 +392,7 @@ class Loader {
 
     const packageCronjob = new PackageCronjob(packageService);
     const reloadCronjob = new ReloadCronjob(proxyServerService);
+    const syncCronjob = new SyncCronjob(syncService);
 
     // Fill dependency
     // --------------------------
@@ -457,6 +463,7 @@ class Loader {
 
     this._dependency.packageCronjob = packageCronjob;
     this._dependency.reloadCronjob = reloadCronjob;
+    this._dependency.syncCronjob = syncCronjob;
 
     if (this._options.cli) {
       await this._cli();
