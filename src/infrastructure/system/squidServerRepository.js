@@ -108,7 +108,7 @@ class SquidServerRepository extends IProxyServerRepository {
     const squidOtherConfDir = this.#squidOtherConfDir;
     this.#defaultConfig = [
       `visible_hostname localhost`,
-      `workers ${os.cpus().length}`,
+      `workers ${Math.ceil(os.cpus().length / 2)}`,
       ``,
       `#access_log tcp://127.0.0.1:1514`,
       ``,
