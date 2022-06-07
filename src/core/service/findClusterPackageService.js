@@ -128,6 +128,7 @@ class FindClusterPackageService extends IPackageService {
     for (let i = 0; i < resultTasks.length; i++) {
       const [errorExecute] = resultTasks[i];
       if (errorExecute) {
+        console.error(`Fail to sync package "${dataAddPackage.id}"`, errorExecute);
         totalError++;
       }
     }
