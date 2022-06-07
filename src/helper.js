@@ -1081,6 +1081,41 @@ function fakeAclService() {
   };
 }
 
+function fakeSyncService() {
+  const ISyncRepository = require('~src/core/interface/iSyncRepository');
+  const IPackageService = require('~src/core/interface/iPackageService');
+  const SyncService = require('~src/core/service/syncService');
+
+  const syncRepository = sinon.createStubInstance(ISyncRepository);
+
+  const packageService = sinon.createStubInstance(IPackageService);
+
+  const syncService = new SyncService(syncRepository, packageService);
+
+  return {
+    syncRepository,
+    packageService,
+    syncService,
+  };
+}
+
+function fakeSyncPgRepository() {
+  const IDateTime = require('~src/core/interface/iDateTime');
+  const IIdentifierGenerator = require('~src/core/interface/iIdentifierGenerator');
+  const SyncPgRepository = require('~src/infrastructure/database/syncPgRepository');
+
+  const postgresDb = {};
+  postgresDb.query = sinon.stub();
+
+  const identifierGenerator = sinon.createStubInstance(IIdentifierGenerator);
+
+  const dateTime = sinon.createStubInstance(IDateTime);
+
+  const syncRepository = new SyncPgRepository(postgresDb, dateTime, identifierGenerator);
+
+  return { postgresDb, dateTime, identifierGenerator, syncRepository };
+}
+
 module.exports = {
   sleep,
   formatDate,
@@ -1138,4 +1173,6 @@ module.exports = {
   fakePaymentController,
   fakePaymentService,
   fakeAclService,
+  fakeSyncService,
+  fakeSyncPgRepository,
 };

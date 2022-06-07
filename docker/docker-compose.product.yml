@@ -1,0 +1,15 @@
+version: "2.3"
+services:
+  node:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10g"
+        max-file: "2"
+
+  postgres:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10g"
+        max-file: "2"

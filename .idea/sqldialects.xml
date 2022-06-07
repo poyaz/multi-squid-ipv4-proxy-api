@@ -7,6 +7,7 @@
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/productPgRepository.js" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/proxyServerRepository.js" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/serverRepository.js" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/infrastructure/database/syncPgRepository.js" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/urlAccessPgRepository.js" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/userPgRepository.js" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20210823130635-init-users-table.sql" dialect="PostgreSQL" />
@@ -29,6 +30,7 @@
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502130015-alter-invoice-column-to-order.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220502130015-alter-renewal-column-to-package.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/storage/database/migrition/20220508160105-init-external-product-price.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/storage/database/migrition/20220524143400-init-sync-table.sql" dialect="PostgreSQL" />
   </component>
   <component name="SqlResolveMappings">
     <file url="file://$PROJECT_DIR$/src/infrastructure/database/jobRepository.js" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;name&quot;:{     &quot;@qname&quot;:&quot;d5e4bf0b-fa63-4d7c-a4fc-e402456fb777&quot;    },    &quot;group&quot;:{     &quot;@kind&quot;:&quot;database&quot;,     &quot;node&quot;:{      &quot;name&quot;:{       &quot;@qname&quot;:&quot;postgres&quot;      }     }    }   }  } }}" />
