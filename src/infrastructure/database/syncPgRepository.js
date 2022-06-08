@@ -63,11 +63,11 @@ class SyncPgRepository extends ISyncRepository {
     const getAllNotCanceledQuery = {
       text: singleLine`
           SELECT (SELECT o.package_id FROM orders o WHERE o.id = sub.order_id) AS references_id,
-                 coalesce(s.service_name, $1) AS service_name,
+                 coalesce(s.service_name, $1)                                  AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
-                     ELSE s.status END                           AS status,
-                 max(coalesce(s.insert_date, 'now'))             AS insert_date
+                     ELSE s.status END                                         AS status,
+                 max(coalesce(s.insert_date, 'now'))                           AS insert_date
           FROM subscription sub
                    LEFT JOIN sync s
                              ON sub.order_id = s.references_id AND s.service_name = $1
@@ -100,9 +100,9 @@ class SyncPgRepository extends ISyncRepository {
           FROM packages p
                    LEFT JOIN sync s
                              ON p.id = s.references_id AND s.service_name = $1
-                                 AND p.expire_date < $3
-          WHERE s.status ISNULL
-             OR (s.id NOTNULL AND s.status NOT IN ('success', 'in_process'))
+          WHERE (s.status ISNULL
+              OR (s.id NOTNULL AND s.status NOT IN ('success', 'in_process')))
+            AND p.expire_date < $3
           GROUP BY p.id, s.service_name, s.status
           HAVING count(*) FILTER ( WHERE s.status = 'error' ) <= $2
       `,
