@@ -71,8 +71,9 @@ class SyncPgRepository extends ISyncRepository {
           FROM subscription sub
                    LEFT JOIN sync s
                              ON sub.order_id = s.references_id AND s.service_name = $1
-          WHERE s.status ISNULL
-             OR (s.id NOTNULL AND s.status NOT IN ('success', 'in_process') AND sub.status = $3)
+          WHERE (s.status ISNULL
+              OR (s.id NOTNULL AND s.status NOT IN ('success', 'in_process')))
+            AND sub.status = $3
           GROUP BY sub.id, s.service_name, s.status
           HAVING count(*) FILTER ( WHERE s.status = 'error' ) <= $2
       `,
