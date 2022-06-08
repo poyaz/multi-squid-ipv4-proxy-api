@@ -18,6 +18,7 @@ class CronjobApi extends IRunner {
     this._options = options;
     this._cwd = options.cwd;
     this._dependency = dependency;
+    this._delay = Number(Math.random().toFixed(1));
   }
 
   async start() {
@@ -35,23 +36,23 @@ class CronjobApi extends IRunner {
 
     setInterval(async () => {
       await syncCronjob.executePackageHasBeenSynced();
-    }, 2 * 60 * 1000);
+    }, this._delay * 2 * 60 * 1000);
 
     setInterval(async () => {
       await syncCronjob.executeOrderHasBeenCanceled();
-    }, 10 * 60 * 1000);
+    }, this._delay * 10 * 60 * 1000);
 
     setInterval(async () => {
       await syncCronjob.executePackageHasBeenExpired();
-    }, 10 * 60 * 1000);
+    }, this._delay * 10 * 60 * 1000);
 
     setInterval(async () => {
       await syncCronjob.executeFindInProcessHasBeenExpired();
-    }, 5 * 60 * 1000);
+    }, this._delay * 5 * 60 * 1000);
 
     setInterval(async () => {
       await syncCronjob.executeUserHasBeenSynced();
-    }, 2 * 60 * 1000);
+    }, this._delay * 2 * 60 * 1000);
   }
 }
 
