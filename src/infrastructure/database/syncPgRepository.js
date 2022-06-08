@@ -188,8 +188,7 @@ class SyncPgRepository extends ISyncRepository {
       text: singleLine`
           UPDATE public.sync
           SET ${columns.join(', ')}
-          WHERE delete_date ISNULL
-            AND id = $1
+          WHERE id = $1
       `,
       values: [...params],
     };
