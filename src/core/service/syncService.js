@@ -186,7 +186,10 @@ class SyncService extends ISyncService {
     const updateSyncModel = new SyncModel();
     updateSyncModel.id = addData.id;
     if (syncError) {
-      console.error(`Error to execute sync package with ${addData.referencesId}`, syncError);
+      console.error(
+        `Error to execute service ${addData.serviceName} with ${addData.referencesId}`,
+        syncError,
+      );
       updateSyncModel.status = SyncModel.STATUS_ERROR;
     } else {
       updateSyncModel.status = SyncModel.STATUS_SUCCESS;
