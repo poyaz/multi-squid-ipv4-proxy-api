@@ -48,6 +48,10 @@ class CronjobApi extends IRunner {
     setInterval(async () => {
       await syncCronjob.executeFindInProcessHasBeenExpired();
     }, 5 * 60 * 1000);
+
+    setInterval(async () => {
+      await syncCronjob.executeUserHasBeenSynced();
+    }, 2 * 60 * 1000);
   }
 }
 

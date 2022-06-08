@@ -59,6 +59,17 @@ class SyncCronjob {
       console.error(error);
     }
   }
+
+  async executeUserHasBeenSynced() {
+    try {
+      const [error] = await this.#syncService.executeUserHasBeenSynced();
+      if (error) {
+        console.error(error);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }
 
 module.exports = SyncCronjob;
