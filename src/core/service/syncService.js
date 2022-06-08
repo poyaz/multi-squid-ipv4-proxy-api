@@ -4,6 +4,7 @@
 
 const ISyncService = require('~src/core/interface/iSyncService');
 const SyncModel = require('~src/core/model/syncModel');
+const UserModel = require('~src/core/model/userModel');
 
 class SyncService extends ISyncService {
   /**
@@ -14,18 +15,24 @@ class SyncService extends ISyncService {
    * @type {IPackageService}
    */
   #packageService;
-  #inProcessTimeLimit = 1 * 60 * 1000;
+  /**
+   * @type {IUserService}
+   */
+  #userService;
+  #inProcessTimeLimit = 60 * 1000;
 
   /**
    *
    * @param {ISyncRepository} syncRepository
    * @param {IPackageService} packageService
+   * @param {IUserService} userService
    */
-  constructor(syncRepository, packageService) {
+  constructor(syncRepository, packageService, userService) {
     super();
 
     this.#syncRepository = syncRepository;
     this.#packageService = packageService;
+    this.#userService = userService;
   }
 
   async executePackageHasBeenSynced() {
@@ -111,6 +118,39 @@ class SyncService extends ISyncService {
       if (errorUpdate) {
         console.error(`Error to update error sync with ${syncModel.id}`, errorUpdate);
       }
+    }
+
+    return [null];
+  }
+
+  async executeUserHasBeenSynced() {
+    const [fetchError, fetchData] = await this.#syncRepository.getListOfUserNotSynced();
+    if (fetchError) {
+      return [fetchError];
+    }
+
+    const processPackageList = this._getListOfTaskShouldExecute(fetchData);
+    for await (const syncModel of processPackageList) {
+      const [addError, addData] = await this._addStartSyncData(syncModel);
+      if (addError) {
+        console.error(`Error to add sync package with ${syncModel.referencesId}`, addError);
+        continue;
+      }
+
+      const [fetchUserError, fetchUserData] = await this.#userService.getUserById(
+        syncModel.referencesId,
+      );
+      if (fetchUserError) {
+        await this._updateSyncResult(fetchUserError, addData);
+        continue;
+      }
+
+      const [updatePasswordError] = await this.#userService.changePassword(
+        fetchUserData.username,
+        fetchUserData.password,
+      );
+
+      await this._updateSyncResult(updatePasswordError, addData);
     }
 
     return [null];

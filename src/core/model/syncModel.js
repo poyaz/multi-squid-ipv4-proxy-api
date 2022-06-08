@@ -14,6 +14,7 @@ class SyncModel {
   static SERVICE_SYNC_PACKAGE = 'sync_package';
   static SERVICE_CANCEL_SUBSCRIPTION = 'cancel_subscription';
   static SERVICE_EXPIRE_PACKAGE = 'expire_package';
+  static SERVICE_SYNC_USER = 'sync_user';
 
   static STATUS_PROCESS = 'in_process';
   static STATUS_ERROR = 'error';

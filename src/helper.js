@@ -1084,17 +1084,21 @@ function fakeAclService() {
 function fakeSyncService() {
   const ISyncRepository = require('~src/core/interface/iSyncRepository');
   const IPackageService = require('~src/core/interface/iPackageService');
+  const IUserService = require('~src/core/interface/iUserService');
   const SyncService = require('~src/core/service/syncService');
 
   const syncRepository = sinon.createStubInstance(ISyncRepository);
 
   const packageService = sinon.createStubInstance(IPackageService);
 
-  const syncService = new SyncService(syncRepository, packageService);
+  const userService = sinon.createStubInstance(IUserService);
+
+  const syncService = new SyncService(syncRepository, packageService, userService);
 
   return {
     syncRepository,
     packageService,
+    userService,
     syncService,
   };
 }

@@ -65,6 +65,16 @@ class ISyncRepository {
     error['args'] = { model };
     throw error;
   }
+
+  /**
+   *
+   * @return {Promise<(Error|Array<SyncModel>|[])[]>}
+   */
+  async getListOfUserNotSynced() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
 }
 
 module.exports = ISyncRepository;

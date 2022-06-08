@@ -42,6 +42,16 @@ class ISyncService {
     error['args'] = {};
     throw error;
   }
+
+  /**
+   *
+   * @return {Promise<(Error)[]>}
+   */
+  async executeUserHasBeenSynced() {
+    const error = new Error('The method has to be overridden by subclasses.');
+    error['args'] = {};
+    throw error;
+  }
 }
 
 module.exports = ISyncService;

@@ -200,6 +200,34 @@ class SyncPgRepository extends ISyncRepository {
     }
   }
 
+  async getListOfUserNotSynced() {
+    const now = this.#dateTime.gregorianCurrentDateWithTimezoneString();
+
+    const getAllNotSyncedQuery = {
+      text: singleLine`
+          SELECT u.id                         AS references_id,
+                 coalesce(s.service_name, $1) AS service_name,
+                 CASE
+                     WHEN count(*) FILTER ( WHERE s.status = 'error' ) > 3 THEN 'fail'
+                     WHEN count(*)
+                          FILTER ( WHERE s.status = 'success' AND u.update_date >= s.insert_date ) >
+                          0 THEN NULL
+                     ELSE s.status END        AS status
+          FROM users u
+                   LEFT JOIN sync s
+                             ON u.id = s.references_id AND s.service_name = $1
+          WHERE s.status ISNULL
+             OR (s.id NOTNULL AND
+                 (s.status NOT IN ('success', 'in_process') OR u.update_date >= s.insert_date))
+          GROUP BY u.id, s.service_name, s.status
+          HAVING count(*) FILTER ( WHERE s.status = 'error' ) <= 3
+      `,
+      values: [SyncModel.SERVICE_SYNC_USER, this.#maxErrorFail],
+    };
+
+    return this._executeQuery(getAllNotSyncedQuery);
+  }
+
   async _executeQuery(query) {
     try {
       const { rowCount, rows } = await this.#db.query(query);
