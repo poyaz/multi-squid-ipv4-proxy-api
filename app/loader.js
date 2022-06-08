@@ -307,7 +307,7 @@ class Loader {
       fastspringApiRepository,
       paymentService,
     );
-    const syncService = new SyncService(syncPgRepository, packageService, userService);
+    const syncService = new SyncService(syncPgRepository, packageService, findClusterUserService);
 
     // Controller and middleware
     // -------------------------
