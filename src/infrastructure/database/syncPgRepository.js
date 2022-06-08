@@ -209,9 +209,8 @@ class SyncPgRepository extends ISyncRepository {
                  coalesce(s.service_name, $1)        AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
-                     WHEN count(*)
-                          FILTER ( WHERE s.status = 'success' AND u.update_date >= s.insert_date ) >
-                          0 THEN NULL
+                     WHEN count(*) FILTER ( WHERE s.status = 'success' ) > 0 AND
+                          u.update_date > max(s.update_date) THEN NULL
                      ELSE s.status END               AS status,
                  max(coalesce(s.insert_date, 'now')) AS insert_date
           FROM users u

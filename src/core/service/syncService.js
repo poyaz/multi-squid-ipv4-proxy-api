@@ -4,7 +4,7 @@
 
 const ISyncService = require('~src/core/interface/iSyncService');
 const SyncModel = require('~src/core/model/syncModel');
-const UserModel = require('~src/core/model/userModel');
+const { sleep } = require('~src/utility');
 
 class SyncService extends ISyncService {
   /**
@@ -194,6 +194,8 @@ class SyncService extends ISyncService {
     } else {
       updateSyncModel.status = SyncModel.STATUS_SUCCESS;
     }
+
+    await sleep(3000);
 
     const [updateError] = await this.#syncRepository.update(updateSyncModel);
     if (updateError) {
