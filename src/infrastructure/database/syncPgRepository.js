@@ -39,11 +39,12 @@ class SyncPgRepository extends ISyncRepository {
   async getListOfPackageNotSynced() {
     const getAllNotSyncedQuery = {
       text: singleLine`
-          SELECT p.id                         AS references_id,
-                 coalesce(s.service_name, $1) AS service_name,
+          SELECT p.id                                AS references_id,
+                 coalesce(s.service_name, $1)        AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
-                     ELSE s.status END        AS status
+                     ELSE s.status END               AS status,
+                 max(coalesce(s.insert_date, 'now')) AS insert_date
           FROM packages p
                    LEFT JOIN sync s
                              ON p.id = s.references_id AND s.service_name = $1
@@ -61,11 +62,12 @@ class SyncPgRepository extends ISyncRepository {
   async getListOfOrderNotCanceled() {
     const getAllNotCanceledQuery = {
       text: singleLine`
-          SELECT sub.order_id                 AS references_id,
-                 coalesce(s.service_name, $1) AS service_name,
+          SELECT sub.order_id                        AS references_id,
+                 coalesce(s.service_name, $1)        AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
-                     ELSE s.status END        AS status
+                     ELSE s.status END               AS status,
+                 max(coalesce(s.insert_date, 'now')) AS insert_date
           FROM subscription sub
                    LEFT JOIN sync s
                              ON sub.order_id = s.references_id AND s.service_name = $1
@@ -90,11 +92,12 @@ class SyncPgRepository extends ISyncRepository {
 
     const getAllNotSyncedQuery = {
       text: singleLine`
-          SELECT p.id                         AS references_id,
-                 coalesce(s.service_name, $1) AS service_name,
+          SELECT p.id                                AS references_id,
+                 coalesce(s.service_name, $1)        AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
-                     ELSE s.status END        AS status
+                     ELSE s.status END               AS status,
+                 max(coalesce(s.insert_date, 'now')) AS insert_date
           FROM packages p
                    LEFT JOIN sync s
                              ON p.id = s.references_id AND s.service_name = $1
@@ -203,14 +206,15 @@ class SyncPgRepository extends ISyncRepository {
   async getListOfUserNotSynced() {
     const getAllNotSyncedQuery = {
       text: singleLine`
-          SELECT u.id                         AS references_id,
-                 coalesce(s.service_name, $1) AS service_name,
+          SELECT u.id                                AS references_id,
+                 coalesce(s.service_name, $1)        AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
                      WHEN count(*)
                           FILTER ( WHERE s.status = 'success' AND u.update_date >= s.insert_date ) >
                           0 THEN NULL
-                     ELSE s.status END        AS status
+                     ELSE s.status END               AS status,
+                 max(coalesce(s.insert_date, 'now')) AS insert_date
           FROM users u
                    LEFT JOIN sync s
                              ON u.id = s.references_id AND s.service_name = $1
