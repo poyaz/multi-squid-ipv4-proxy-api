@@ -62,15 +62,6 @@ class ExpressApi extends IRunner {
   }
 
   _route() {
-    /**
-     * @todo this is for test (should delete)
-     */
-    router.get('/store.html', async (req, res) => {
-      const fs = require('fs');
-      const orderHtml = fs.createReadStream('.tests/store.html');
-      orderHtml.pipe(res);
-    });
-
     router.use(async (req, res, next) => {
       try {
         const accessMiddleware = this._dependency.accessMiddlewareFactory.create(req, res);
@@ -736,6 +727,23 @@ class ExpressApi extends IRunner {
         try {
           const serverController = serverHttpApi.serverControllerFactory.create(req, res);
           const response = await serverController.getAllInterfaceInSelfInstance();
+
+          this._sendResponse(req, res, response);
+
+          return next(null);
+        } catch (error) {
+          return next(error);
+        }
+      },
+    );
+
+    router.post(
+      '/v1/instance/self/package/:packageId/sync',
+      this._middlewareRoleAccess(['admin']),
+      async (req, res, next) => {
+        try {
+          const packageController = packageHttpApi.packageControllerFactory.create(req, res);
+          const response = await packageController.syncPackageInSelfInstance();
 
           this._sendResponse(req, res, response);
 

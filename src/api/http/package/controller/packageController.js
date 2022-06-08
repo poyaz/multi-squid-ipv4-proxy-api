@@ -147,6 +147,17 @@ class PackageController {
 
     return [null];
   }
+
+  async syncPackageInSelfInstance() {
+    const { packageId } = this.#req.params;
+
+    const [error] = await this.#packageService.syncPackageById(packageId);
+    if (error) {
+      return [error];
+    }
+
+    return [null];
+  }
 }
 
 module.exports = PackageController;

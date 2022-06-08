@@ -520,4 +520,33 @@ suite(`PackageController`, () => {
       expect(result).to.be.a('undefined');
     });
   });
+
+  suite(`Sync package by id in self instance`, () => {
+    test(`Should error sync package by id in self instance`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.packageService.syncPackageById.resolves([new UnknownException()]);
+
+      const [error] = await testObj.packageController.syncPackageInSelfInstance();
+
+      testObj.packageService.syncPackageById.should.have.callCount(1);
+      testObj.packageService.syncPackageById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.an.instanceof(UnknownException);
+    });
+
+    test(`Should successfully sync package by id in self instance`, async () => {
+      testObj.req.params = { packageId: testObj.identifierGenerator.generateId() };
+      testObj.packageService.syncPackageById.resolves([null]);
+
+      const [error, result] = await testObj.packageController.syncPackageInSelfInstance();
+
+      testObj.packageService.syncPackageById.should.have.callCount(1);
+      testObj.packageService.syncPackageById.should.have.calledWith(
+        sinon.match(testObj.identifierGenerator.generateId()),
+      );
+      expect(error).to.be.a('null');
+      expect(result).to.be.a('undefined');
+    });
+  });
 });

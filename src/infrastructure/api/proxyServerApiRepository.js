@@ -125,7 +125,7 @@ class ProxyServerApiRepository extends IServerApiRepository {
   async syncPackageById(id, serverModel) {
     try {
       await axios.post(
-        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/package/${id}/sync`,
+        `http://${serverModel.hostIpAddress}:${serverModel.hostApiPort}/api/v1/instance/self/package/${id}/sync`,
         {},
         {
           headers: {
