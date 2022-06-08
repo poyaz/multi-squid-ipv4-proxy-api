@@ -435,7 +435,7 @@ if [[ $execute_mode == "init" ]]; then
         exit 1
       fi
 
-    PG_HOST=$PG_HOST PG_PORT=$PG_PORT docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node docker-proxy build-squid-image
+    PG_HOST=$PG_HOST PG_PORT=$PG_PORT docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml -f docker/docker-compose.product.yml up -d node docker-proxy build-squid-image
   else
     GENERATE_PG_PASSWORD=$(
       tr -dc A-Za-z0-9 </dev/urandom | head -c 13
@@ -505,7 +505,7 @@ if [[ $execute_mode == "init" ]]; then
       echo "[INFO] This key store in $DIRNAME/storage/temp/master.key.txt"
     fi
 
-    docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d
+    docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml -f docker/docker-compose.product.yml up -d
   fi
 
   exit
@@ -625,7 +625,7 @@ if [[ $execute_mode == "discord" ]]; then
       -e "s/\(OAUTH_DISCORD_CLIENT_SECRET=\).*/\1$DISCORD_CLIENT_SECRET/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
-  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml -f docker/docker-compose.product.yml up -d node
   exit
 fi
 
@@ -664,7 +664,7 @@ if [[ $execute_mode == "oauth" ]]; then
       -e "s/\(OAUTH_HTML_PAGE_SUCCESS_KEY_NAME=\).*/\1$OAUTH_PAGE_KEY_NAME/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
-  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml -f docker/docker-compose.product.yml up -d node
   exit
 fi
 
@@ -678,7 +678,7 @@ if [[ $execute_mode == "enable-check-url" ]]; then
       -e "s/SQUID_CHECK_BLOCK_URL=.*/SQUID_CHECK_BLOCK_URL=true/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
-  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml -f docker/docker-compose.product.yml up -d node
   exit
 fi
 
@@ -692,7 +692,7 @@ if [[ $execute_mode == "disable-check-url" ]]; then
       -e "s/SQUID_CHECK_BLOCK_URL=.*/SQUID_CHECK_BLOCK_URL=false/g" \
       "$DEFAULT_NODE_ENV_FILE"
 
-  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml up -d node
+  docker-compose -f docker-compose.yml -f docker/docker-compose.env.yml -f docker/docker-compose.product.yml up -d node
   exit
 fi
 
