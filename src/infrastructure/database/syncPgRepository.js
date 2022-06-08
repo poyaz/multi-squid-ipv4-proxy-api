@@ -62,18 +62,17 @@ class SyncPgRepository extends ISyncRepository {
   async getListOfOrderNotCanceled() {
     const getAllNotCanceledQuery = {
       text: singleLine`
-          SELECT sub.order_id                        AS references_id,
-                 coalesce(s.service_name, $1)        AS service_name,
+          SELECT (SELECT o.package_id FROM orders o WHERE o.id = sub.order_id) AS references_id,
+                 coalesce(s.service_name, $1) AS service_name,
                  CASE
                      WHEN count(*) FILTER ( WHERE s.status = 'error' ) > $2 THEN 'fail'
-                     ELSE s.status END               AS status,
-                 max(coalesce(s.insert_date, 'now')) AS insert_date
+                     ELSE s.status END                           AS status,
+                 max(coalesce(s.insert_date, 'now'))             AS insert_date
           FROM subscription sub
                    LEFT JOIN sync s
                              ON sub.order_id = s.references_id AND s.service_name = $1
-                                 AND sub.status = $3
           WHERE s.status ISNULL
-             OR (s.id NOTNULL AND s.status NOT IN ('success', 'in_process'))
+             OR (s.id NOTNULL AND s.status NOT IN ('success', 'in_process') AND sub.status = $3)
           GROUP BY sub.id, s.service_name, s.status
           HAVING count(*) FILTER ( WHERE s.status = 'error' ) <= $2
       `,
