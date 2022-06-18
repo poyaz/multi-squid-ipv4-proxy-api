@@ -32,7 +32,7 @@ class CronjobApi extends IRunner {
 
     setInterval(async () => {
       await reloadCronjob.reload();
-    }, 20 * 60 * 1000);
+    }, 24 * 60 * 60 * 1000);
 
     setInterval(async () => {
       await syncCronjob.executePackageHasBeenSynced();
